@@ -4,9 +4,7 @@ import { resolveRenewalsDetailPath } from '$lib/dashboard/routing/renewals';
 import type {
 	AccountDetailReadModel,
 	AccountListReadModel,
-	DashboardShellReadModel,
-	NewBusinessDetailReadModel,
-	NewBusinessListReadModel
+	DashboardShellReadModel
 } from '$lib/dashboard/read-models';
 import {
 	buildAccountDetailContentPageData,

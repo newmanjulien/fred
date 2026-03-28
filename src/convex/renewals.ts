@@ -21,8 +21,8 @@ import {
 import {
 	type AccountDetailReadModel,
 	type AccountListReadModel,
-	newBusinessDetailReadModelValidator,
-	newBusinessListReadModelValidator,
+	accountDetailReadModelValidator,
+	accountListReadModelValidator,
 	renewalsViewValidator
 } from './validators';
 
@@ -65,7 +65,7 @@ export const getRenewalsList = query({
 	args: {
 		view: renewalsViewValidator
 	},
-	returns: newBusinessListReadModelValidator,
+	returns: accountListReadModelValidator,
 	handler: async (ctx, args): Promise<AccountListReadModel> => {
 		const selectedView = args.view as RenewalsView;
 		const [brokers, accounts] = await Promise.all([
@@ -89,7 +89,7 @@ export const getRenewalsDetail = query({
 	args: {
 		accountKey: v.string()
 	},
-	returns: v.union(newBusinessDetailReadModelValidator, v.null()),
+	returns: v.union(accountDetailReadModelValidator, v.null()),
 	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
 		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 

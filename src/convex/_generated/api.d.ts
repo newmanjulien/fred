@@ -11,10 +11,12 @@
 import type * as accountDetail from "../accountDetail.js";
 import type * as industryInternal from "../industryInternal.js";
 import type * as leadershipList from "../leadershipList.js";
+import type * as migrations from "../migrations.js";
 import type * as mutations from "../mutations.js";
 import type * as myAccounts from "../myAccounts.js";
 import type * as newBusiness from "../newBusiness.js";
 import type * as opportunities from "../opportunities.js";
+import type * as orgChartMigration from "../orgChartMigration.js";
 import type * as readModels from "../readModels.js";
 import type * as renewals from "../renewals.js";
 import type * as shell from "../shell.js";
@@ -31,10 +33,12 @@ declare const fullApi: ApiFromModules<{
   accountDetail: typeof accountDetail;
   industryInternal: typeof industryInternal;
   leadershipList: typeof leadershipList;
+  migrations: typeof migrations;
   mutations: typeof mutations;
   myAccounts: typeof myAccounts;
   newBusiness: typeof newBusiness;
   opportunities: typeof opportunities;
+  orgChartMigration: typeof orgChartMigration;
   readModels: typeof readModels;
   renewals: typeof renewals;
   shell: typeof shell;

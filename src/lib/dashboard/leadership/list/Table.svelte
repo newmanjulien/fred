@@ -24,9 +24,15 @@
 		rows: readonly LeadershipTableRow[];
 		selection?: LeadershipTableSelection;
 		ariaLabel?: string;
+		probabilityLabel?: string;
 	};
 
-	let { rows, selection, ariaLabel = 'Leadership accounts table' }: Props = $props();
+	let {
+		rows,
+		selection,
+		ariaLabel = 'Leadership accounts table',
+		probabilityLabel = 'likely to close'
+	}: Props = $props();
 
 	const headers = ['Account', 'Probability', 'Activity level', 'Owner', 'Stage', 'Last activity'] as const;
 	let columnClass = $derived(
@@ -67,7 +73,7 @@
 		{row.account}
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-900">
-		{row.probability}% likely to close
+		{row.probability}% {probabilityLabel}
 	</span>
 	<span data-table-cell class="whitespace-nowrap">
 		<ActivityLevelLabel activityLevel={row.activityLevel} />
@@ -132,7 +138,7 @@
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap text-zinc-900 no-underline"
 						>
-							{row.probability}% likely to close
+							{row.probability}% {probabilityLabel}
 						</a>
 						<a
 							href={resolve(row.href)}

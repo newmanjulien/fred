@@ -20,9 +20,14 @@
 	type Props = {
 		rows: readonly LeadershipTableRow[];
 		ariaLabel?: string;
+		probabilityLabel?: string;
 	};
 
-	let { rows, ariaLabel = 'Leadership likely out of date accounts table' }: Props = $props();
+	let {
+		rows,
+		ariaLabel = 'Leadership likely out of date accounts table',
+		probabilityLabel = 'likely to close'
+	}: Props = $props();
 	let selectedRowKeys = new SvelteSet<LeadershipTableRow['key']>();
 	const selection = {
 		headerLabel: 'Select' as const,
@@ -52,7 +57,7 @@
 	scope={getLikelyOutOfDateHeaderUiScope(selectedRowKeys.size)}
 />
 
-<Table {rows} {selection} {ariaLabel} />
+<Table {rows} {selection} {ariaLabel} {probabilityLabel} />
 
 {#if rows.length > 0}
 	<InlineInfoBar

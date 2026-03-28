@@ -4,9 +4,7 @@ import { resolveNewBusinessDetailPath } from '$lib/dashboard/routing/new-busines
 import type {
 	AccountDetailReadModel,
 	AccountListReadModel,
-	DashboardShellReadModel,
-	NewBusinessDetailReadModel,
-	NewBusinessListReadModel
+	DashboardShellReadModel
 } from '$lib/dashboard/read-models';
 import {
 	buildAccountDetailContentPageData,

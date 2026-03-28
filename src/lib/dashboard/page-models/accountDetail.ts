@@ -1,7 +1,6 @@
 import type {
 	AccountDetailReadModel,
-	DashboardShellReadModel,
-	SinceLastMeetingDetailReadModel
+	DashboardShellReadModel
 } from '$lib/dashboard/read-models';
 import {
 	createPersonSummaryMap,
@@ -18,7 +17,7 @@ export type AccountDetailContentPageData = {
 };
 
 export function buildAccountDetailContentPageData(params: {
-	readModel: AccountDetailReadModel | SinceLastMeetingDetailReadModel;
+	readModel: AccountDetailReadModel;
 	dashboardShell: DashboardShellReadModel;
 }): AccountDetailContentPageData {
 	const { readModel, dashboardShell } = params;

@@ -20,6 +20,7 @@ import type {
 	AccountStage
 } from '../lib/types/vocab';
 import type { DashboardMeeting, DashboardPerson } from '../lib/models/person';
+import { hasLegacyOrgChartRoot } from './orgChartMigration';
 
 export type BrokerRecordData = {
 	id: BrokerId;
@@ -124,9 +125,7 @@ export type InsightRecordData = {
 
 type DashboardActivityValue = Doc<'activities'> | Doc<'insights'>['timeline'][number];
 type AccountContextDocument = NonNullable<Doc<'accounts'>['context']>;
-type FlatAccountContextDocument = Extract<AccountContextDocument, { orgChartNodes: unknown[] }>;
 type InsightDocument = Doc<'insights'>;
-type FlatInsightDocument = Extract<InsightDocument, { orgChartNodes: unknown[] }>;
 
 function requireString(value: unknown, path: string) {
 	if (typeof value !== 'string') {
@@ -137,9 +136,7 @@ function requireString(value: unknown, path: string) {
 }
 
 function toInternalOrgChartNodeRecord(
-	node:
-		| FlatAccountContextDocument['orgChartNodes'][number]
-		| FlatInsightDocument['orgChartNodes'][number]
+	node: AccountContextDocument['orgChartNodes'][number] | InsightDocument['orgChartNodes'][number]
 ): InternalOrgChartNodeRecord {
 	return {
 		id: node.id,
@@ -152,54 +149,6 @@ function toInternalOrgChartNodeRecord(
 		),
 		parentId: node.parentId ?? undefined
 	};
-}
-
-function toLegacyOrgChartNodeRecords(
-	node: unknown,
-	path: string,
-	parentId?: string
-): InternalOrgChartNodeRecord[] {
-	if (!node || typeof node !== 'object' || Array.isArray(node)) {
-		throw new Error(`Invalid legacy org chart node at "${path}".`);
-	}
-
-	const rawNode = node as Record<string, unknown>;
-	const id = requireString(rawNode.id, `${path}.id`);
-	const directReports = rawNode.directReports;
-
-	if (directReports !== undefined && !Array.isArray(directReports)) {
-		throw new Error(`Invalid legacy org chart directReports at "${path}.directReports".`);
-	}
-
-	const currentNode: InternalOrgChartNodeRecord = {
-		id,
-		name: requireString(rawNode.name, `${path}.name`),
-		role: requireString(rawNode.role, `${path}.role`),
-		lastContactedByBrokerId: requireString(
-			rawNode.lastContactedByBrokerId,
-			`${path}.lastContactedByBrokerId`
-		) as BrokerId,
-		lastContactedOnIso: parseIsoDate(
-			requireString(rawNode.lastContactedOnIso, `${path}.lastContactedOnIso`),
-			`${path}.lastContactedOnIso`
-		),
-		parentId
-	};
-
-	return [
-		currentNode,
-		...(directReports ?? []).flatMap((childNode, index) =>
-			toLegacyOrgChartNodeRecords(childNode, `${path}.directReports[${index}]`, id)
-		)
-	];
-}
-
-function hasFlatOrgChartNodes(context: AccountContextDocument): context is FlatAccountContextDocument {
-	return 'orgChartNodes' in context;
-}
-
-function hasFlatInsightOrgChartNodes(insight: InsightDocument): insight is FlatInsightDocument {
-	return 'orgChartNodes' in insight;
 }
 
 export async function findBrokerRecordByKey(
@@ -378,12 +327,16 @@ async function resolveBrokerAvatar(
 }
 
 export function toAccountContextRecord(context: AccountContextDocument): AccountContextRecordData {
+	if (hasLegacyOrgChartRoot(context)) {
+		throw new Error(
+			'Legacy account org chart detected. Run api.migrations.migrateLegacyOrgCharts before reading account context.'
+		);
+	}
+
 	return {
 		summary: context.summary,
 		claimedAtIso: parseIsoDateTime(context.claimedAtIso, 'account.context.claimedAtIso'),
-		orgChartNodes: hasFlatOrgChartNodes(context)
-			? context.orgChartNodes.map((node) => toInternalOrgChartNodeRecord(node))
-			: toLegacyOrgChartNodeRecords(context.orgChartRoot, 'account.context.orgChartRoot'),
+		orgChartNodes: context.orgChartNodes.map((node) => toInternalOrgChartNodeRecord(node)),
 		helpfulContacts: context.helpfulContacts?.map((contact) => ({
 			id: contact.id,
 			name: contact.name,
@@ -497,6 +450,12 @@ export function toNewsRecord(newsItem: Doc<'news'>): NewsRecordData {
 }
 
 export function toInsightRecord(insight: InsightDocument): InsightRecordData {
+	if (hasLegacyOrgChartRoot(insight)) {
+		throw new Error(
+			'Legacy insight org chart detected. Run api.migrations.migrateLegacyOrgCharts before reading insights.'
+		);
+	}
+
 	return {
 		id: insight._id,
 		key: insight.key as InsightKey,
@@ -507,8 +466,6 @@ export function toInsightRecord(insight: InsightDocument): InsightRecordData {
 		ownerBrokerId: insight.ownerBrokerId,
 		collaboratorBrokerIds: insight.collaboratorBrokerIds,
 		timeline: insight.timeline.map((activity) => toActivityRecord(activity)),
-		orgChartNodes: hasFlatInsightOrgChartNodes(insight)
-			? insight.orgChartNodes.map((node) => toInternalOrgChartNodeRecord(node))
-			: toLegacyOrgChartNodeRecords(insight.orgChartRoot, `insights["${insight._id}"].orgChartRoot`)
+		orgChartNodes: insight.orgChartNodes.map((node) => toInternalOrgChartNodeRecord(node))
 	};
 }

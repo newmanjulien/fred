@@ -10,4 +10,5 @@
 	scopeId="renewals-list"
 	tableAriaLabel="Renewals accounts table"
 	likelyOutOfDateTableAriaLabel="Renewals likely out of date accounts table"
+	probabilityLabel="likely to renew"
 />

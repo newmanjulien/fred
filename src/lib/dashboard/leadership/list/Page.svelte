@@ -29,13 +29,15 @@
 		scopeId: string;
 		tableAriaLabel: string;
 		likelyOutOfDateTableAriaLabel: string;
+		probabilityLabel?: string;
 	};
 
 	let {
 		data,
 		scopeId,
 		tableAriaLabel,
-		likelyOutOfDateTableAriaLabel
+		likelyOutOfDateTableAriaLabel,
+		probabilityLabel = 'likely to close'
 	}: Props = $props();
 	const filterDrawerData = $derived(data.filterDrawerData);
 	let isFilterDrawerOpen = $state(false);
@@ -128,9 +130,13 @@
 	{#snippet body()}
 		<div class="pt-1">
 			{#if data.route.view === 'likely-out-of-date'}
-				<LikelyOutOfDateTable rows={data.rows} ariaLabel={likelyOutOfDateTableAriaLabel} />
+				<LikelyOutOfDateTable
+					rows={data.rows}
+					ariaLabel={likelyOutOfDateTableAriaLabel}
+					{probabilityLabel}
+				/>
 			{:else}
-				<Table rows={data.rows} ariaLabel={tableAriaLabel} />
+				<Table rows={data.rows} ariaLabel={tableAriaLabel} {probabilityLabel} />
 			{/if}
 		</div>
 	{/snippet}

@@ -1,10 +1,27 @@
 import { convexTest } from 'convex-test';
+import { makeFunctionReference, type FunctionReference } from 'convex/server';
 import { describe, expect, it } from 'vitest';
 import type { OrgChartNodeRecord as InternalOrgChartNodeRecord } from '../lib/domain/org-chart';
 import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import { api } from './_generated/api';
+import { flattenLegacyOrgChartRoot } from './orgChartMigration';
 import schema from './schema';
 import { convexTestModules } from './test.setup';
+
+const reportLegacyOrgChartsReference = makeFunctionReference<'query', {}, unknown>(
+	'migrations:reportLegacyOrgCharts'
+) as unknown as FunctionReference<'query', 'public', {}, unknown>;
+
+const migrateLegacyOrgChartsReference = makeFunctionReference<
+	'action',
+	{ dryRun?: boolean },
+	unknown
+>('migrations:migrateLegacyOrgCharts') as unknown as FunctionReference<
+	'action',
+	'public',
+	{ dryRun?: boolean },
+	unknown
+>;
 
 function createConvex() {
 	return convexTest(schema, convexTestModules);
@@ -469,112 +486,52 @@ describe('Convex feature contracts', () => {
 		expect(renewalsDetail?.title).toBe('Acme Renewal');
 	});
 
-	it('normalizes legacy nested org charts for accounts and insights', async () => {
+	it('reports zero legacy org charts once data is stored in the flat shape', async () => {
 		const t = createConvex();
-		const seed = await seedDashboardRecords(t);
-		const legacyAccountKey = 'legacy-org-chart' as AccountKey;
-		const legacyInsightKey = 'legacy-risk-insight' as InsightKey;
+		await seedDashboardRecords(t);
 
-		await t.run(async (ctx) => {
-			await ctx.db.insert(
-				'accounts',
-				{
-					key: legacyAccountKey,
-					accountNumber: 404,
-					industry: 'Industrials',
-					accountName: 'Legacy Org Chart',
-					isRenewal: false,
-					isReservedInEpic: false,
-					probability: 55,
-					stage: 'Proposal',
-					isLikelyOutOfDate: false,
-					activityLevel: 'medium',
-					lastActivityAtIso: '2026-03-24T10:00:00Z',
-					ownerBrokerId: seed.ownerBrokerId,
-					collaboratorBrokerIds: [seed.collaboratorBrokerId],
-					context: {
-						summary: 'Stored before org chart flattening.',
-						claimedAtIso: '2026-03-10T09:00:00Z',
-						orgChartRoot: {
-							id: 'legacy-root',
-							name: 'Alex Morgan',
-							role: 'CFO',
-							lastContactedByBrokerId: seed.ownerBrokerId,
-							lastContactedOnIso: '2026-03-21',
-							directReports: [
-								{
-									id: 'legacy-child',
-									name: 'Taylor Smith',
-									role: 'VP Finance',
-									lastContactedByBrokerId: seed.collaboratorBrokerId,
-									lastContactedOnIso: '2026-03-22'
-								}
-							]
-						}
-					},
-					dashboardFlags: {
-						needsSupport: false,
-						duplicatedWork: false
+		await expect(t.query(reportLegacyOrgChartsReference, {})).resolves.toEqual({
+			accountsWithLegacyOrgChartRoot: 0,
+			accountsWithFlatOrgChartNodes: 1,
+			insightsWithLegacyOrgChartRoot: 0,
+			insightsWithFlatOrgChartNodes: 1
+		});
+		await expect(t.action(migrateLegacyOrgChartsReference, { dryRun: true })).resolves.toEqual({
+			accountsWithLegacyOrgChartRoot: 0,
+			accountsWithFlatOrgChartNodes: 1,
+			insightsWithLegacyOrgChartRoot: 0,
+			insightsWithFlatOrgChartNodes: 1,
+			migratedAccounts: 0,
+			migratedInsights: 0,
+			dryRun: true
+		});
+	});
+
+	it('flattens legacy nested org charts with a dedicated migration helper', () => {
+		expect(
+			flattenLegacyOrgChartRoot({
+				id: 'legacy-root',
+				name: 'Alex Morgan',
+				role: 'CFO',
+				lastContactedByBrokerId: 'broker-1',
+				lastContactedOnIso: '2026-03-21',
+				directReports: [
+					{
+						id: 'legacy-child',
+						name: 'Taylor Smith',
+						role: 'VP Finance',
+						lastContactedByBrokerId: 'broker-2',
+						lastContactedOnIso: '2026-03-22'
 					}
-				} as never
-			);
-
-			await ctx.db.insert(
-				'insights',
-				{
-					key: legacyInsightKey,
-					accountId: seed.accountId,
-					meetingId: seed.march20MeetingId,
-					kind: 'risk',
-					title: 'Legacy Risk Insight',
-					ownerBrokerId: seed.ownerBrokerId,
-					collaboratorBrokerIds: [seed.collaboratorBrokerId],
-					timeline: [
-						{
-							id: 'legacy-risk-1',
-							accountId: seed.accountId,
-							stream: 'account-detail',
-							occurredOnIso: '2026-03-23',
-							body: 'Legacy insight still needs flattening.',
-							marker: { kind: 'dot' },
-							title: 'Legacy note'
-						}
-					],
-					orgChartRoot: {
-						id: 'legacy-insight-root',
-						name: 'Jordan Lee',
-						role: 'Chief Procurement Officer',
-						lastContactedByBrokerId: seed.ownerBrokerId,
-						lastContactedOnIso: '2026-03-23',
-						directReports: [
-							{
-								id: 'legacy-insight-child',
-								name: 'Sam Rivera',
-								role: 'Security Lead',
-								lastContactedByBrokerId: seed.collaboratorBrokerId,
-								lastContactedOnIso: '2026-03-24'
-							}
-						]
-					}
-				} as never
-			);
-		});
-
-		const newBusinessDetail = await t.query(api.newBusiness.getNewBusinessDetail, {
-			accountKey: legacyAccountKey
-		});
-		const opportunityDetail = await t.query(api.opportunities.getOpportunityDetail, {
-			insightKey: legacyInsightKey,
-			meetingKey: seed.march20MeetingKey
-		});
-
-		expect(newBusinessDetail?.orgChartNodes).toEqual([
+				]
+			})
+		).toEqual([
 			{
 				id: 'legacy-root',
 				name: 'Alex Morgan',
 				role: 'CFO',
 				parentId: undefined,
-				lastContactedByBrokerKey: seed.ownerBrokerKey,
+				lastContactedByBrokerId: 'broker-1',
 				lastContactedOnIso: '2026-03-21'
 			},
 			{
@@ -582,26 +539,8 @@ describe('Convex feature contracts', () => {
 				parentId: 'legacy-root',
 				name: 'Taylor Smith',
 				role: 'VP Finance',
-				lastContactedByBrokerKey: seed.collaboratorBrokerKey,
+				lastContactedByBrokerId: 'broker-2',
 				lastContactedOnIso: '2026-03-22'
-			}
-		]);
-		expect(opportunityDetail?.orgChartNodes).toEqual([
-			{
-				id: 'legacy-insight-root',
-				name: 'Jordan Lee',
-				role: 'Chief Procurement Officer',
-				parentId: undefined,
-				lastContactedByBrokerKey: seed.ownerBrokerKey,
-				lastContactedOnIso: '2026-03-23'
-			},
-			{
-				id: 'legacy-insight-child',
-				parentId: 'legacy-insight-root',
-				name: 'Sam Rivera',
-				role: 'Security Lead',
-				lastContactedByBrokerKey: seed.collaboratorBrokerKey,
-				lastContactedOnIso: '2026-03-24'
 			}
 		]);
 	});

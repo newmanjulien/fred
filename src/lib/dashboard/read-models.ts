@@ -8,12 +8,8 @@ export type {
 	MyAccountsDetailRef,
 	MyAccountsFeedItemReadModel,
 	MyAccountsListReadModel,
-	NewBusinessDetailReadModel,
-	NewBusinessListReadModel,
-	AccountListReadModel as RenewalsListReadModel,
 	OpportunityDetailReadModel,
 	OpportunitiesListReadModel,
-	SinceLastMeetingDetailReadModel,
 	SinceLastMeetingAccountReadModel,
 	SinceLastMeetingReadModel
 } from '../../convex/validators';

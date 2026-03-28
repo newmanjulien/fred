@@ -78,16 +78,7 @@ const flatAccountContextValidator = v.object({
 	orgChartNodes: v.array(internalOrgChartNodeRecordValidator),
 	helpfulContacts: v.optional(v.array(helpfulContactValidator))
 });
-
-// Accept legacy nested org charts so existing deployments can still boot after the shape change.
-const legacyAccountContextValidator = v.object({
-	summary: v.string(),
-	claimedAtIso: v.string(),
-	orgChartRoot: v.any(),
-	helpfulContacts: v.optional(v.array(helpfulContactValidator))
-});
-
-const accountContextValidator = v.union(flatAccountContextValidator, legacyAccountContextValidator);
+const accountContextValidator = flatAccountContextValidator;
 
 const flatInsightValidator = v.object({
 	key: v.string(),
@@ -100,20 +91,7 @@ const flatInsightValidator = v.object({
 	timeline: v.array(embeddedActivityValidator),
 	orgChartNodes: v.array(internalOrgChartNodeRecordValidator)
 });
-
-const legacyInsightValidator = v.object({
-	key: v.string(),
-	accountId: v.id('accounts'),
-	meetingId: v.id('meetings'),
-	kind: accountInsightKindValidator,
-	title: v.string(),
-	ownerBrokerId: v.id('brokers'),
-	collaboratorBrokerIds: v.array(v.id('brokers')),
-	timeline: v.array(embeddedActivityValidator),
-	orgChartRoot: v.any()
-});
-
-const insightDocumentValidator = v.union(flatInsightValidator, legacyInsightValidator);
+const insightDocumentValidator = flatInsightValidator;
 
 export default defineSchema({
 	meetings: defineTable({

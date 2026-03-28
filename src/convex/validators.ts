@@ -266,8 +266,6 @@ export const accountListRowReadModelValidator = v.object({
 	lastActivity: newBusinessRowLastActivityValidator,
 	owner: v.union(dashboardPersonValidator, v.null())
 });
-export const newBusinessTableRowReadModelValidator = accountListRowReadModelValidator;
-
 export const accountListFilterDrawerDataValidator = v.object({
 	brokers: v.array(dashboardPersonValidator),
 	activityLevels: v.array(
@@ -283,7 +281,6 @@ export const accountListFilterDrawerDataValidator = v.object({
 		})
 	)
 });
-export const newBusinessFilterDrawerDataValidator = accountListFilterDrawerDataValidator;
 
 export const opportunityTileReadModelValidator = v.object({
 	key: v.string(),
@@ -328,7 +325,6 @@ export const accountListReadModelValidator = v.object({
 	rows: v.array(accountListRowReadModelValidator),
 	filterDrawerData: accountListFilterDrawerDataValidator
 });
-export const newBusinessListReadModelValidator = accountListReadModelValidator;
 
 export const accountDetailReadModelValidator = v.object({
 	title: v.string(),
@@ -338,7 +334,6 @@ export const accountDetailReadModelValidator = v.object({
 	update: fileUploadFieldValidator,
 	rightRail: detailRightRailDataValidator
 });
-export const newBusinessDetailReadModelValidator = accountDetailReadModelValidator;
 
 export const opportunitiesListReadModelValidator = v.object({
 	opportunityTiles: v.array(opportunityTileReadModelValidator),
@@ -420,7 +415,6 @@ export type AccountListRowReadModel = {
 		  };
 	owner: DashboardPerson | null;
 };
-export type NewBusinessTableRowReadModel = AccountListRowReadModel;
 
 export type AccountListFilterDrawerData = {
 	brokers: DashboardPerson[];
@@ -433,7 +427,6 @@ export type AccountListFilterDrawerData = {
 		label: string;
 	}[];
 };
-export type NewBusinessFilterDrawerData = AccountListFilterDrawerData;
 
 export type OpportunityTileReadModel = {
 	key: InsightKey;
@@ -483,9 +476,6 @@ export type AccountDetailReadModel = {
 	rightRail: DetailRightRailData;
 };
 
-export type NewBusinessListReadModel = AccountListReadModel;
-export type NewBusinessDetailReadModel = AccountDetailReadModel;
-
 export type OpportunitiesListReadModel = {
 	opportunityTiles: OpportunityTileReadModel[];
 	riskTiles: OpportunityTileReadModel[];
@@ -508,5 +498,3 @@ export type SinceLastMeetingReadModel = {
 	accounts: SinceLastMeetingAccountReadModel[];
 	update: FileUploadFieldData;
 };
-
-export type SinceLastMeetingDetailReadModel = AccountDetailReadModel;

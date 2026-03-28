@@ -14,19 +14,13 @@ import {
 import { getAccountDetailReadModel } from './accountDetail';
 import {
 	type AccountDetailReadModel,
-	type SinceLastMeetingDetailReadModel,
 	type SinceLastMeetingAccountReadModel,
 	type SinceLastMeetingReadModel,
 	sinceLastMeetingDetailReadModelValidator,
 	sinceLastMeetingReadModelValidator
 } from './validators';
 
-export type {
-	AccountDetailReadModel,
-	SinceLastMeetingDetailReadModel,
-	SinceLastMeetingAccountReadModel,
-	SinceLastMeetingReadModel
-} from './validators';
+export type { AccountDetailReadModel, SinceLastMeetingAccountReadModel, SinceLastMeetingReadModel } from './validators';
 
 function createAccountByIdMap(accounts: readonly ReturnType<typeof toAccountRecord>[]) {
 	return new Map(accounts.map((account) => [account.id, account] as const));

@@ -5,8 +5,8 @@ import type {
 } from '$lib/dashboard/routing';
 import { resolveSinceLastMeetingDetailPath } from '$lib/dashboard/routing/since-last-meeting';
 import type {
+	AccountDetailReadModel,
 	DashboardShellReadModel,
-	SinceLastMeetingDetailReadModel,
 	SinceLastMeetingReadModel
 } from '$lib/dashboard/read-models';
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
@@ -79,7 +79,7 @@ export function buildSinceLastMeetingPageData(params: {
 
 export function buildSinceLastMeetingDetailPageData(params: {
 	route: SinceLastMeetingDetailRouteRef;
-	readModel: SinceLastMeetingDetailReadModel;
+	readModel: AccountDetailReadModel;
 	dashboardShell: DashboardShellReadModel;
 }): SinceLastMeetingDetailPageData {
 	const { route, readModel, dashboardShell } = params;

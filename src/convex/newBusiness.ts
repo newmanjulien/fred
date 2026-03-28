@@ -21,18 +21,12 @@ import {
 import {
 	type AccountDetailReadModel,
 	type AccountListReadModel,
-	newBusinessDetailReadModelValidator,
-	newBusinessListReadModelValidator,
+	accountDetailReadModelValidator,
+	accountListReadModelValidator,
 	newBusinessViewValidator
 } from './validators';
 
-export type {
-	DashboardShellReadModel,
-	AccountDetailReadModel,
-	AccountListReadModel,
-	NewBusinessDetailReadModel,
-	NewBusinessListReadModel
-} from './validators';
+export type { DashboardShellReadModel, AccountDetailReadModel, AccountListReadModel } from './validators';
 
 type RowCollections = {
 	newBusinessTableRows: LeadershipListTableRow[];
@@ -95,7 +89,7 @@ export const getNewBusinessList = query({
 	args: {
 		view: newBusinessViewValidator
 	},
-	returns: newBusinessListReadModelValidator,
+	returns: accountListReadModelValidator,
 	handler: async (ctx, args): Promise<AccountListReadModel> => {
 		const selectedView = args.view as NewBusinessView;
 		const [brokers, accounts] = await Promise.all([
@@ -119,7 +113,7 @@ export const getNewBusinessDetail = query({
 	args: {
 		accountKey: v.string()
 	},
-	returns: v.union(newBusinessDetailReadModelValidator, v.null()),
+	returns: v.union(accountDetailReadModelValidator, v.null()),
 	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
 		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 

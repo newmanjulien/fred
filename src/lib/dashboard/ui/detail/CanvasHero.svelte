@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { CanvasHeroData, CanvasHeroIcon } from './CanvasHero.types';
-	import { formatDealNumber } from '$lib/dashboard/view-models/deal';
+	import { formatAccountNumber } from '$lib/dashboard/view-models/account';
 	import { cn } from '$lib/support/cn';
 
 	type Props = {
@@ -9,7 +9,7 @@
 	};
 
 	let { hero, icon: Icon }: Props = $props();
-	const hasHeaderMeta = $derived(Boolean(hero && (hero.dealNumber || Icon)));
+	const hasHeaderMeta = $derived(Boolean(hero && (hero.accountNumber || Icon)));
 </script>
 
 {#if hero}
@@ -21,8 +21,8 @@
 						<Icon class="size-5.5 text-current" />
 					</div>
 				{/if}
-				{#if hero.dealNumber}
-					<p class="text-xs tracking-wide text-zinc-400">{formatDealNumber(hero.dealNumber)}</p>
+				{#if hero.accountNumber}
+					<p class="text-xs tracking-wide text-zinc-400">{formatAccountNumber(hero.accountNumber)}</p>
 				{/if}
 			</div>
 		{/if}

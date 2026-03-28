@@ -1,26 +1,26 @@
 import type { BrokerId } from '../lib/types/ids';
-import { getActivityLevelLabel } from '../lib/dashboard/view-models/deal';
+import { getActivityLevelLabel } from '../lib/dashboard/view-models/account';
 import {
 	type PersonSummaryMap,
 	resolveOptionalBrokerPerson
-} from '../lib/dashboard/view-models/deal-content';
-import { DEAL_INDUSTRIES, type ActivityLevel, type DealIndustry } from '../lib/types/vocab';
-import type { DealRecordData } from './readModels';
+} from '../lib/dashboard/view-models/account-content';
+import { ACCOUNT_INDUSTRIES, type ActivityLevel, type AccountIndustry } from '../lib/types/vocab';
+import type { AccountRecordData } from './readModels';
 import type { DashboardPerson } from './validators';
 
 const NO_ACTIVITY_LABEL = 'No recorded activity';
 
 export type LeadershipListTableRow = {
-	key: DealRecordData['key'];
+	key: AccountRecordData['key'];
 	hasDetail: boolean;
 	probability: number;
-	activityLevel: DealRecordData['activityLevel'];
-	deal: string;
+	activityLevel: AccountRecordData['activityLevel'];
+	account: string;
 	stage: string;
 	lastActivity:
 		| {
 				kind: 'relative';
-				atIso: NonNullable<DealRecordData['lastActivityAtIso']>;
+				atIso: NonNullable<AccountRecordData['lastActivityAtIso']>;
 		  }
 		| {
 				kind: 'text';
@@ -30,52 +30,52 @@ export type LeadershipListTableRow = {
 };
 
 export function hasListActivityData(
-	deal: DealRecordData
-): deal is DealRecordData & {
-	lastActivityAtIso: NonNullable<DealRecordData['lastActivityAtIso']>;
+	account: AccountRecordData
+): account is AccountRecordData & {
+	lastActivityAtIso: NonNullable<AccountRecordData['lastActivityAtIso']>;
 } {
-	return Boolean(deal.lastActivityAtIso);
+	return Boolean(account.lastActivityAtIso);
 }
 
 export function toLeadershipTableRow(
-	deal: DealRecordData,
+	account: AccountRecordData,
 	lastActivity: LeadershipListTableRow['lastActivity'],
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ): LeadershipListTableRow {
 	return {
-		key: deal.key,
-		hasDetail: Boolean(deal.context),
-		probability: deal.probability,
-		activityLevel: deal.activityLevel,
-		deal: deal.dealName,
-		stage: deal.stage,
+		key: account.key,
+		hasDetail: Boolean(account.context),
+		probability: account.probability,
+		activityLevel: account.activityLevel,
+		account: account.accountName,
+		stage: account.stage,
 		lastActivity,
-		owner: resolveOptionalBrokerPerson(peopleByBrokerId, deal.ownerBrokerId)
+		owner: resolveOptionalBrokerPerson(peopleByBrokerId, account.ownerBrokerId)
 	};
 }
 
 export function toRelativeLastActivityRow(
-	deal: DealRecordData & {
-		lastActivityAtIso: NonNullable<DealRecordData['lastActivityAtIso']>;
+	account: AccountRecordData & {
+		lastActivityAtIso: NonNullable<AccountRecordData['lastActivityAtIso']>;
 	},
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ) {
 	return toLeadershipTableRow(
-		deal,
+		account,
 		{
 			kind: 'relative',
-			atIso: deal.lastActivityAtIso
+			atIso: account.lastActivityAtIso
 		},
 		peopleByBrokerId
 	);
 }
 
 export function toNoActivityRow(
-	deal: DealRecordData,
+	account: AccountRecordData,
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ) {
 	return toLeadershipTableRow(
-		deal,
+		account,
 		{
 			kind: 'text',
 			label: NO_ACTIVITY_LABEL
@@ -86,9 +86,9 @@ export function toNoActivityRow(
 
 export function createLeadershipFilterDrawerData(
 	people: DashboardPerson[],
-	deals: readonly DealRecordData[]
+	accounts: readonly AccountRecordData[]
 ) {
-	const industries = new Set(deals.map((deal) => deal.industry));
+	const industries = new Set(accounts.map((account) => account.industry));
 
 	return {
 		brokers: people,
@@ -97,8 +97,8 @@ export function createLeadershipFilterDrawerData(
 			{ id: 'medium' as ActivityLevel, label: getActivityLevelLabel('medium') },
 			{ id: 'low' as ActivityLevel, label: getActivityLevelLabel('low') }
 		],
-		industries: DEAL_INDUSTRIES.filter((industry) => industries.has(industry)).map((industry) => ({
-			id: industry as DealIndustry,
+		industries: ACCOUNT_INDUSTRIES.filter((industry) => industries.has(industry)).map((industry) => ({
+			id: industry as AccountIndustry,
 			label: industry
 		}))
 	};

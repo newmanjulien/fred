@@ -7,7 +7,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('$lib/server/convex', () => ({
 	api: {
 		mutations: {
-			updateDealIndustry: 'updateDealIndustry'
+			updateAccountIndustry: 'updateAccountIndustry'
 		}
 	},
 	createServerConvexClient: () => ({
@@ -15,11 +15,11 @@ vi.mock('$lib/server/convex', () => ({
 	})
 }));
 
-import { applyDealIndustryUpdate } from './update-industry';
+import { applyAccountIndustryUpdate } from './update-industry';
 
-const dealKey = 'deal-doc-3m';
+const accountKey = 'account-doc-3m';
 
-describe('applyDealIndustryUpdate', () => {
+describe('applyAccountIndustryUpdate', () => {
 	beforeEach(() => {
 		mocks.action.mockReset();
 	});
@@ -28,35 +28,35 @@ describe('applyDealIndustryUpdate', () => {
 		mocks.action.mockResolvedValue('updated');
 
 		await expect(
-			applyDealIndustryUpdate({
+			applyAccountIndustryUpdate({
 				request: new Request(
-					`http://localhost/my-deals/detail/${dealKey}?/updateIndustry&tab=activity`,
+					`http://localhost/my-accounts/detail/${accountKey}?/updateIndustry&tab=activity`,
 					{
 						method: 'POST',
-						body: new URLSearchParams({ dealKey, industry: 'Hospitality' })
+						body: new URLSearchParams({ accountKey, industry: 'Hospitality' })
 					}
 				),
-				url: new URL(`http://localhost/my-deals/detail/${dealKey}?/updateIndustry&tab=activity`)
+				url: new URL(`http://localhost/my-accounts/detail/${accountKey}?/updateIndustry&tab=activity`)
 			})
 		).rejects.toMatchObject({
 			status: 303,
-			location: `/my-deals/detail/${dealKey}?tab=activity`
+			location: `/my-accounts/detail/${accountKey}?tab=activity`
 		});
 
-		expect(mocks.action).toHaveBeenCalledWith('updateDealIndustry', {
-			dealKey,
+		expect(mocks.action).toHaveBeenCalledWith('updateAccountIndustry', {
+			accountKey,
 			industry: 'Hospitality'
 		});
 	});
 
 	it('rejects invalid input without calling Convex', async () => {
 		await expect(
-			applyDealIndustryUpdate({
-				request: new Request(`http://localhost/my-deals/detail/${dealKey}?/updateIndustry`, {
+			applyAccountIndustryUpdate({
+				request: new Request(`http://localhost/my-accounts/detail/${accountKey}?/updateIndustry`, {
 					method: 'POST',
-					body: new URLSearchParams({ dealKey, industry: 'NotReal' })
+					body: new URLSearchParams({ accountKey, industry: 'NotReal' })
 				}),
-				url: new URL(`http://localhost/my-deals/detail/${dealKey}`)
+				url: new URL(`http://localhost/my-accounts/detail/${accountKey}`)
 			})
 		).rejects.toMatchObject({
 			status: 400

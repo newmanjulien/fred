@@ -1,20 +1,20 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
-import { sortDealActivitiesAscending } from '../lib/dashboard/view-models/deal';
-import type { DealKey, MeetingKey } from '../lib/types/keys';
-import { toTimelineItem } from '../lib/dashboard/view-models/deal-content';
+import { sortAccountActivitiesAscending } from '../lib/dashboard/view-models/account';
+import type { AccountKey, MeetingKey } from '../lib/types/keys';
+import { toTimelineItem } from '../lib/dashboard/view-models/account-content';
 import {
 	createDashboardPersonByBrokerIdMap,
-	findDealDocumentByKey,
+	findAccountDocumentByKey,
 	requireMeetingRecordByKey,
 	toActivityRecord,
 	toBrokerRecord,
-	toDealRecord
+	toAccountRecord
 } from './readModels';
-import { getDealDetailReadModel } from './dealDetail';
+import { getAccountDetailReadModel } from './accountDetail';
 import {
 	type SinceLastMeetingDetailReadModel,
-	type SinceLastMeetingDealReadModel,
+	type SinceLastMeetingAccountReadModel,
 	type SinceLastMeetingReadModel,
 	sinceLastMeetingDetailReadModelValidator,
 	sinceLastMeetingReadModelValidator
@@ -22,41 +22,41 @@ import {
 
 export type {
 	SinceLastMeetingDetailReadModel,
-	SinceLastMeetingDealReadModel,
+	SinceLastMeetingAccountReadModel,
 	SinceLastMeetingReadModel
 } from './validators';
 
-function createDealByIdMap(deals: readonly ReturnType<typeof toDealRecord>[]) {
-	return new Map(deals.map((deal) => [deal.id, deal] as const));
+function createAccountByIdMap(accounts: readonly ReturnType<typeof toAccountRecord>[]) {
+	return new Map(accounts.map((account) => [account.id, account] as const));
 }
 
-function toSinceLastMeetingDeals(
+function toSinceLastMeetingAccounts(
 	meetingUpdateActivities: readonly ReturnType<typeof toActivityRecord>[],
-	dealsById: ReadonlyMap<string, ReturnType<typeof toDealRecord>>
-): SinceLastMeetingDealReadModel[] {
-	const seenDealIds = new Set<string>();
+	accountsById: ReadonlyMap<string, ReturnType<typeof toAccountRecord>>
+): SinceLastMeetingAccountReadModel[] {
+	const seenAccountIds = new Set<string>();
 
 	return meetingUpdateActivities.flatMap((activity) => {
-		if (seenDealIds.has(activity.dealId)) {
+		if (seenAccountIds.has(activity.accountId)) {
 			return [];
 		}
 
-		const deal = dealsById.get(activity.dealId);
+		const account = accountsById.get(activity.accountId);
 
-		if (!deal) {
-			throw new Error(`Unknown deal id "${activity.dealId}" in meeting update activity.`);
+		if (!account) {
+			throw new Error(`Unknown account id "${activity.accountId}" in meeting update activity.`);
 		}
 
-		seenDealIds.add(activity.dealId);
+		seenAccountIds.add(activity.accountId);
 
 		return [
 			{
-				key: deal.key,
-				deal: deal.dealName,
-				probability: deal.probability,
-				activityLevel: deal.activityLevel,
-				stage: deal.stage,
-				hasDetail: Boolean(deal.context)
+				key: account.key,
+				account: account.accountName,
+				probability: account.probability,
+				activityLevel: account.activityLevel,
+				stage: account.stage,
+				hasDetail: Boolean(account.context)
 			}
 		];
 	});
@@ -68,10 +68,10 @@ export const getSinceLastMeeting = query({
 	},
 	returns: sinceLastMeetingReadModelValidator,
 	handler: async (ctx, args): Promise<SinceLastMeetingReadModel> => {
-		const [meeting, brokers, deals] = await Promise.all([
+		const [meeting, brokers, accounts] = await Promise.all([
 			requireMeetingRecordByKey(ctx, args.meetingKey as MeetingKey),
 			ctx.db.query('brokers').collect(),
-			ctx.db.query('deals').collect()
+			ctx.db.query('accounts').collect()
 		]);
 		const activities = await ctx.db
 			.query('activities')
@@ -81,15 +81,15 @@ export const getSinceLastMeeting = query({
 			.collect();
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const peopleById = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const meetingUpdateActivities = sortDealActivitiesAscending(
+		const meetingUpdateActivities = sortAccountActivitiesAscending(
 			activities.map((activity) => toActivityRecord(activity))
 		);
-		const dealRecords = deals.map((deal) => toDealRecord(deal));
+		const accountRecords = accounts.map((account) => toAccountRecord(account));
 
 		return {
 			referenceMeetingDateIso: meeting.dateIso,
 			timelineItems: meetingUpdateActivities.map((activity) => toTimelineItem(activity, peopleById)),
-			deals: toSinceLastMeetingDeals(meetingUpdateActivities, createDealByIdMap(dealRecords)),
+			accounts: toSinceLastMeetingAccounts(meetingUpdateActivities, createAccountByIdMap(accountRecords)),
 			update: {
 				sectionId: 'update',
 				uploadLabel: 'Upload files',
@@ -102,23 +102,23 @@ export const getSinceLastMeeting = query({
 export const getSinceLastMeetingDetail = query({
 	args: {
 		meetingKey: v.string(),
-		dealKey: v.string()
+		accountKey: v.string()
 	},
 	returns: v.union(sinceLastMeetingDetailReadModelValidator, v.null()),
 	handler: async (ctx, args): Promise<SinceLastMeetingDetailReadModel | null> => {
-		const [meeting, deal] = await Promise.all([
+		const [meeting, account] = await Promise.all([
 			requireMeetingRecordByKey(ctx, args.meetingKey as MeetingKey),
-			findDealDocumentByKey(ctx, args.dealKey as DealKey)
+			findAccountDocumentByKey(ctx, args.accountKey as AccountKey)
 		]);
 
-		if (!deal) {
+		if (!account) {
 			return null;
 		}
 
 		const meetingActivities = await ctx.db
 			.query('activities')
-			.withIndex('by_meeting_id_deal_id_stream_occurred_on_iso', (query) =>
-				query.eq('meetingId', meeting.id).eq('dealId', deal._id).eq('stream', 'meeting-update')
+			.withIndex('by_meeting_id_account_id_stream_occurred_on_iso', (query) =>
+				query.eq('meetingId', meeting.id).eq('accountId', account._id).eq('stream', 'meeting-update')
 			)
 			.collect();
 
@@ -126,6 +126,6 @@ export const getSinceLastMeetingDetail = query({
 			return null;
 		}
 
-		return getDealDetailReadModel(ctx, args.dealKey as DealKey);
+		return getAccountDetailReadModel(ctx, args.accountKey as AccountKey);
 	}
 });

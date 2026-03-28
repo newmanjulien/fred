@@ -1,8 +1,8 @@
-import type { DealKey } from '$lib/types/keys';
+import type { AccountKey } from '$lib/types/keys';
 
 const NEW_BUSINESS_BASE_PATH = '/new-business';
 
-export const DEFAULT_NEW_BUSINESS_VIEW = 'deals' as const;
+export const DEFAULT_NEW_BUSINESS_VIEW = 'accounts' as const;
 export const NEW_BUSINESS_NON_DEFAULT_VIEWS = [
 	'need-support',
 	'duplicated-work',
@@ -14,11 +14,11 @@ export type NonDefaultNewBusinessView = (typeof NEW_BUSINESS_NON_DEFAULT_VIEWS)[
 export type NewBusinessView = typeof DEFAULT_NEW_BUSINESS_VIEW | NonDefaultNewBusinessView;
 export type NewBusinessListPath = '/new-business' | `/new-business/${NonDefaultNewBusinessView}`;
 export type NewBusinessDetailPath =
-	| `/new-business/detail/${DealKey}`
-	| `/new-business/${NonDefaultNewBusinessView}/detail/${DealKey}`;
+	| `/new-business/detail/${AccountKey}`
+	| `/new-business/${NonDefaultNewBusinessView}/detail/${AccountKey}`;
 
 export const NEW_BUSINESS_VIEW_OPTIONS = [
-	{ id: DEFAULT_NEW_BUSINESS_VIEW, label: 'Deals' },
+	{ id: DEFAULT_NEW_BUSINESS_VIEW, label: 'Accounts' },
 	{ id: 'need-support', label: 'Need support' },
 	{ id: 'duplicated-work', label: 'Duplicated work' },
 	{ id: 'unassigned', label: 'Unassigned' },
@@ -45,8 +45,8 @@ export function resolveNewBusinessListPath(view: NewBusinessView): NewBusinessLi
 }
 
 export function resolveNewBusinessDetailPath(params: {
-	dealKey: DealKey;
+	accountKey: AccountKey;
 	view: NewBusinessView;
 }): NewBusinessDetailPath {
-	return `${resolveNewBusinessListPath(params.view)}/detail/${params.dealKey}` as NewBusinessDetailPath;
+	return `${resolveNewBusinessListPath(params.view)}/detail/${params.accountKey}` as NewBusinessDetailPath;
 }

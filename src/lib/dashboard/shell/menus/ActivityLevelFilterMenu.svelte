@@ -3,7 +3,7 @@
 	import {
 		getActivityLevelIconVariant,
 		getActivityLevelLabel
-	} from '$lib/dashboard/view-models/deal';
+	} from '$lib/dashboard/view-models/account';
 	import ActivityLevelGridIcon from '$lib/dashboard/ui/activity-level/ActivityLevelGridIcon.svelte';
 	import SelectableIconRow from '$lib/dashboard/ui/shared/SelectableIconRow.svelte';
 	import { ACTIVITY_LEVELS, type ActivityLevel } from '$lib/types/vocab';

@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { DashboardMeeting } from '$lib/dashboard/read-models';
-	import { resolveMyDealsListPath } from '$lib/dashboard/routing/my-deals';
+	import { resolveMyAccountsListPath } from '$lib/dashboard/routing/my-accounts';
 	import { resolveNewBusinessListPath } from '$lib/dashboard/routing/new-business';
 	import { resolveOpportunitiesListPath } from '$lib/dashboard/routing/opportunities';
 	import { resolveRenewalsListPath } from '$lib/dashboard/routing/renewals';
@@ -41,8 +41,8 @@
 		{placement}
 		class={controlClass}
 	/>
-{:else if control.kind === 'my-deals-back-link'}
-	<a href={resolve(resolveMyDealsListPath(control.view))} class={controlClass}>
+{:else if control.kind === 'my-accounts-back-link'}
+	<a href={resolve(resolveMyAccountsListPath(control.view))} class={controlClass}>
 		{control.label}
 	</a>
 {:else if control.kind === 'new-business-back-link'}

@@ -5,7 +5,7 @@ const DASHBOARD_HEADER_UI_CONTROLLER_KEY = Symbol('dashboard-header-ui-controlle
 
 export type DashboardHeaderButtonHandler = () => void | Promise<void>;
 
-export type DashboardHeaderButtonId = 'ask-for-update' | 'add-deal' | 'filter';
+export type DashboardHeaderButtonId = 'ask-for-update' | 'add-account' | 'filter';
 
 export type DashboardHeaderOverlayButton = {
 	id: DashboardHeaderButtonId;

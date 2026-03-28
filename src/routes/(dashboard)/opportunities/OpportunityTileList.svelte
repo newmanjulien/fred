@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { OpportunitiesListPageData } from '$lib/dashboard/page-models/opportunities';
 	import { Building } from 'lucide-svelte';
-	import { formatDealNumber } from '$lib/dashboard/view-models/deal';
+	import { formatAccountNumber } from '$lib/dashboard/view-models/account';
 	import type { CanvasHeroIcon } from '$lib/dashboard/ui/detail/CanvasHero.types';
 	import ActivityLevelLabel from '$lib/dashboard/ui/activity-level/ActivityLevelLabel.svelte';
 	import AvatarStack from '$lib/dashboard/ui/people/AvatarStack.svelte';
@@ -19,13 +19,13 @@
 
 <ol class="space-y-2.5 pt-1">
 	{#each tiles as tile (tile.key)}
-		{@const hasBottomMeta = Boolean(tile.dealLabel || tile.activityLevel)}
+		{@const hasBottomMeta = Boolean(tile.accountLabel || tile.activityLevel)}
 		<li>
 			<ListCard link={{ kind: 'opportunities', href: tile.href }}>
 				{#snippet body()}
 					<div class="flex items-start justify-between gap-3">
 						<p class="text-[10px] tracking-wide text-zinc-500">
-							{formatDealNumber(tile.dealNumber)}
+							{formatAccountNumber(tile.accountNumber)}
 						</p>
 						{#if tile.avatars}
 							<AvatarStack
@@ -50,10 +50,10 @@
 
 					{#if hasBottomMeta}
 						<div class="mt-4 flex flex-wrap items-center gap-1.5">
-							{#if tile.dealLabel}
+							{#if tile.accountLabel}
 								<span class="inline-flex items-center gap-1 rounded-md border border-zinc-100 px-2 py-0.5 text-[11px] tracking-wide text-zinc-800">
 									<Building aria-hidden="true" class="size-2.5 text-zinc-400" />
-									{tile.dealLabel}
+									{tile.accountLabel}
 								</span>
 							{/if}
 							{#if tile.activityLevel}

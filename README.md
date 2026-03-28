@@ -28,7 +28,7 @@ so commands like
 ## Environment
 
 - `CONVEX_DEPLOYMENT`: Convex CLI target for local development, codegen, and deploy commands.
-- `DEFAULT_BROKER_KEY`: Immutable broker key for the pre-auth default broker used by My Deals.
+- `DEFAULT_BROKER_KEY`: Immutable broker key for the pre-auth default broker used by My Accounts.
 - `PUBLIC_CONVEX_URL`: Convex HTTP URL used by the app's server-rendered routes.
 - `PUBLIC_CONVEX_SITE_URL`: Convex HTTP actions URL managed by Convex for SvelteKit.
 

@@ -1,44 +1,44 @@
 import { internalMutation, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
-import { dealIndustryValidator } from './validators';
-import type { DealKey } from '../lib/types/keys';
+import { accountIndustryValidator } from './validators';
+import type { AccountKey } from '../lib/types/keys';
 
-export type UpdateDealIndustryResult = 'updated' | 'not-found';
+export type UpdateAccountIndustryResult = 'updated' | 'not-found';
 
-export const updateDealIndustryResultValidator = v.union(
+export const updateAccountIndustryResultValidator = v.union(
 	v.literal('updated'),
 	v.literal('not-found')
 );
 
-export const findDealIdByKeyForUpdate = internalQuery({
+export const findAccountIdByKeyForUpdate = internalQuery({
 	args: {
-		dealKey: v.string()
+		accountKey: v.string()
 	},
-	returns: v.union(v.id('deals'), v.null()),
+	returns: v.union(v.id('accounts'), v.null()),
 	handler: async (ctx, args) => {
-		const deal = await ctx.db
-			.query('deals')
-			.withIndex('by_key', (query) => query.eq('key', args.dealKey as DealKey))
+		const account = await ctx.db
+			.query('accounts')
+			.withIndex('by_key', (query) => query.eq('key', args.accountKey as AccountKey))
 			.unique();
 
-		return deal?._id ?? null;
+		return account?._id ?? null;
 	}
 });
 
-export const updateDealIndustryByCanonicalId = internalMutation({
+export const updateAccountIndustryByCanonicalId = internalMutation({
 	args: {
-		dealId: v.id('deals'),
-		industry: dealIndustryValidator
+		accountId: v.id('accounts'),
+		industry: accountIndustryValidator
 	},
-	returns: updateDealIndustryResultValidator,
+	returns: updateAccountIndustryResultValidator,
 	handler: async (ctx, args) => {
-		const deal = await ctx.db.get(args.dealId);
+		const account = await ctx.db.get(args.accountId);
 
-		if (!deal) {
+		if (!account) {
 			return 'not-found';
 		}
 
-		await ctx.db.patch(args.dealId, {
+		await ctx.db.patch(args.accountId, {
 			industry: args.industry
 		});
 

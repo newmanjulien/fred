@@ -38,7 +38,7 @@
 	}
 </script>
 
-{#if link.kind === 'my-deals'}
+{#if link.kind === 'my-accounts'}
 	<a href={resolve(link.href)} class={cardClass}>
 		{#if body}
 			{@render body()}

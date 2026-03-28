@@ -6,7 +6,7 @@ import {
 
 type DashboardLayoutParams = {
 	view?: string;
-	dealKey?: string;
+	accountKey?: string;
 	insightKey?: string;
 };
 

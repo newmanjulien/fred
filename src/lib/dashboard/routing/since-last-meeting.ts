@@ -1,12 +1,12 @@
-import type { DealKey, MeetingKey } from '$lib/types/keys';
+import type { AccountKey, MeetingKey } from '$lib/types/keys';
 
 const SINCE_LAST_MEETING_BASE_PATH = '/since-last-meeting';
 export type SinceLastMeetingPath =
 	| '/since-last-meeting'
 	| `/since-last-meeting?meetingKey=${MeetingKey}`;
 export type SinceLastMeetingDetailPath =
-	| `/since-last-meeting/detail/${DealKey}`
-	| `/since-last-meeting/detail/${DealKey}?meetingKey=${MeetingKey}`;
+	| `/since-last-meeting/detail/${AccountKey}`
+	| `/since-last-meeting/detail/${AccountKey}?meetingKey=${MeetingKey}`;
 
 export function resolveSinceLastMeetingPath(meetingKey: MeetingKey | null): SinceLastMeetingPath {
 	return meetingKey
@@ -15,10 +15,10 @@ export function resolveSinceLastMeetingPath(meetingKey: MeetingKey | null): Sinc
 }
 
 export function resolveSinceLastMeetingDetailPath(params: {
-	dealKey: DealKey;
+	accountKey: AccountKey;
 	meetingKey: MeetingKey | null;
 }): SinceLastMeetingDetailPath {
-	const detailPath = `${SINCE_LAST_MEETING_BASE_PATH}/detail/${params.dealKey}` as const;
+	const detailPath = `${SINCE_LAST_MEETING_BASE_PATH}/detail/${params.accountKey}` as const;
 
 	return params.meetingKey
 		? (`${detailPath}?meetingKey=${params.meetingKey}` as SinceLastMeetingDetailPath)

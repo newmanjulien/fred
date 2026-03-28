@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { resolveMyDealsListPath } from '$lib/dashboard/routing/my-deals';
+	import { resolveMyAccountsListPath } from '$lib/dashboard/routing/my-accounts';
 	import { resolveNewBusinessListPath } from '$lib/dashboard/routing/new-business';
 	import { resolveRenewalsListPath } from '$lib/dashboard/routing/renewals';
 	import type { DashboardHeaderTitleMenu } from '$lib/dashboard/shell/header/types';
@@ -60,11 +60,11 @@
 		>
 			{#snippet body()}
 				<ul class="mt-1 space-y-1">
-					{#if menu.pageKind === 'my-deals'}
+					{#if menu.pageKind === 'my-accounts'}
 						{#each menu.options as option (option.id)}
 							<li>
 								<a
-									href={resolve(resolveMyDealsListPath(option.id))}
+									href={resolve(resolveMyAccountsListPath(option.id))}
 									role="menuitemradio"
 									aria-checked={option.current}
 									aria-current={option.current ? 'page' : undefined}

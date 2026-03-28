@@ -22,7 +22,7 @@
 		ariaLabel?: string;
 	};
 
-	let { rows, ariaLabel = 'Leadership likely out of date deals table' }: Props = $props();
+	let { rows, ariaLabel = 'Leadership likely out of date accounts table' }: Props = $props();
 	let selectedRowKeys = new SvelteSet<LeadershipTableRow['key']>();
 	const selection = {
 		headerLabel: 'Select' as const,
@@ -57,6 +57,6 @@
 {#if rows.length > 0}
 	<InlineInfoBar
 		dataAttribute="data-likely-out-of-date-info-bar"
-		text="Our automatic data collection doesn't track in-person conversations so deals sometimes get out of date"
+		text="Our automatic data collection doesn't track in-person conversations so accounts sometimes get out of date"
 	/>
 {/if}

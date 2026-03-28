@@ -1,10 +1,10 @@
 import type { AbsoluteUrl } from '$lib/types/url';
-import type { MyDealsDetailPath } from '$lib/dashboard/routing/my-deals';
+import type { MyAccountsDetailPath } from '$lib/dashboard/routing/my-accounts';
 import type { OpportunitiesDetailPath } from '$lib/dashboard/routing/opportunities';
 
-export type MyDealsLink = {
-	kind: 'my-deals';
-	href: MyDealsDetailPath;
+export type MyAccountsLink = {
+	kind: 'my-accounts';
+	href: MyAccountsDetailPath;
 };
 
 export type OpportunitiesLink = {
@@ -19,4 +19,4 @@ export type ExternalLink = {
 	rel?: string;
 };
 
-export type LinkTarget = MyDealsLink | OpportunitiesLink | ExternalLink | { kind: 'none' };
+export type LinkTarget = MyAccountsLink | OpportunitiesLink | ExternalLink | { kind: 'none' };

@@ -1,10 +1,10 @@
-import { getActivityLevelLabel } from '$lib/dashboard/view-models/deal';
+import { getActivityLevelLabel } from '$lib/dashboard/view-models/account';
 import type { CanvasHeroData } from '$lib/dashboard/ui/detail/CanvasHero.types';
 import type { FileUploadFieldData } from '$lib/dashboard/ui/detail/FileUploadField.types';
 
-type DealHeroInput = {
-	dealNumber: number;
-	dealName: string;
+type AccountHeroInput = {
+	accountNumber: number;
+	accountName: string;
 	stage: string;
 	probability: number;
 	activityLevel: Parameters<typeof getActivityLevelLabel>[0];
@@ -13,23 +13,23 @@ type DealHeroInput = {
 	};
 };
 
-export function buildDealHero(deal: DealHeroInput): CanvasHeroData {
-	const activityLabel = getActivityLevelLabel(deal.activityLevel).toLowerCase();
+export function buildAccountHero(account: AccountHeroInput): CanvasHeroData {
+	const activityLabel = getActivityLevelLabel(account.activityLevel).toLowerCase();
 
 	return {
-		dealNumber: deal.dealNumber,
-		title: deal.dealName,
-		description: `${deal.dealName} is in ${deal.stage} and is ${deal.probability}% likely to close with ${activityLabel}. ${deal.context.summary}`
+		accountNumber: account.accountNumber,
+		title: account.accountName,
+		description: `${account.accountName} is in ${account.stage} and is ${account.probability}% likely to close with ${activityLabel}. ${account.context.summary}`
 	};
 }
 
-export function buildDealUploadFieldData(
-	dealName: string,
+export function buildAccountUploadFieldData(
+	accountName: string,
 	descriptionPrefix = 'Upload call notes, security review feedback, or procurement documents that add context to'
 ): FileUploadFieldData {
 	return {
 		sectionId: 'update',
 		uploadLabel: 'Upload files',
-		uploadDescription: `${descriptionPrefix} ${dealName}.`
+		uploadDescription: `${descriptionPrefix} ${accountName}.`
 	};
 }

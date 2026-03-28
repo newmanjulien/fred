@@ -1,13 +1,13 @@
 import { action, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { makeFunctionReference, type FunctionReference } from 'convex/server';
-import type { DealId } from '../lib/types/ids';
-import type { DealKey } from '../lib/types/keys';
-import type { DealIndustry } from '../lib/types/vocab';
-import { dealIndustryValidator } from './validators';
+import type { AccountId } from '../lib/types/ids';
+import type { AccountKey } from '../lib/types/keys';
+import type { AccountIndustry } from '../lib/types/vocab';
+import { accountIndustryValidator } from './validators';
 import {
-	type UpdateDealIndustryResult,
-	updateDealIndustryResultValidator
+	type UpdateAccountIndustryResult,
+	updateAccountIndustryResultValidator
 } from './industryInternal';
 
 const brokerAvatarUpdateValidator = v.object({
@@ -15,48 +15,48 @@ const brokerAvatarUpdateValidator = v.object({
 	avatar: v.id('_storage')
 });
 
-const findDealIdByKeyForUpdateReference = makeFunctionReference<
+const findAccountIdByKeyForUpdateReference = makeFunctionReference<
 	'query',
-	{ dealKey: string },
-	DealId | null
->('industryInternal:findDealIdByKeyForUpdate') as unknown as FunctionReference<
+	{ accountKey: string },
+	AccountId | null
+>('industryInternal:findAccountIdByKeyForUpdate') as unknown as FunctionReference<
 	'query',
 	'internal',
-	{ dealKey: string },
-	DealId | null
+	{ accountKey: string },
+	AccountId | null
 >;
 
-const updateDealIndustryByCanonicalIdReference = makeFunctionReference<
+const updateAccountIndustryByCanonicalIdReference = makeFunctionReference<
 	'mutation',
-	{ dealId: DealId; industry: DealIndustry },
-	UpdateDealIndustryResult
->('industryInternal:updateDealIndustryByCanonicalId') as unknown as FunctionReference<
+	{ accountId: AccountId; industry: AccountIndustry },
+	UpdateAccountIndustryResult
+>('industryInternal:updateAccountIndustryByCanonicalId') as unknown as FunctionReference<
 	'mutation',
 	'internal',
-	{ dealId: DealId; industry: DealIndustry },
-	UpdateDealIndustryResult
+	{ accountId: AccountId; industry: AccountIndustry },
+	UpdateAccountIndustryResult
 >;
 
-export const updateDealIndustry = action({
+export const updateAccountIndustry = action({
 	args: {
-		dealKey: v.string(),
-		industry: dealIndustryValidator
+		accountKey: v.string(),
+		industry: accountIndustryValidator
 	},
-	returns: updateDealIndustryResultValidator,
+	returns: updateAccountIndustryResultValidator,
 	handler: async (
 		ctx,
-		args: { dealKey: DealKey; industry: DealIndustry }
-	): Promise<UpdateDealIndustryResult> => {
-		const normalizedDealId: DealId | null = await ctx.runQuery(findDealIdByKeyForUpdateReference, {
-			dealKey: args.dealKey
+		args: { accountKey: AccountKey; industry: AccountIndustry }
+	): Promise<UpdateAccountIndustryResult> => {
+		const normalizedAccountId: AccountId | null = await ctx.runQuery(findAccountIdByKeyForUpdateReference, {
+			accountKey: args.accountKey
 		});
 
-		if (!normalizedDealId) {
+		if (!normalizedAccountId) {
 			return 'not-found';
 		}
 
-		return ctx.runMutation(updateDealIndustryByCanonicalIdReference, {
-			dealId: normalizedDealId,
+		return ctx.runMutation(updateAccountIndustryByCanonicalIdReference, {
+			accountId: normalizedAccountId,
 			industry: args.industry
 		});
 	}

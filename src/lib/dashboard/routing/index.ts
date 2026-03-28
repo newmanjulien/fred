@@ -1,14 +1,14 @@
-import type { DealKey, InsightKey, MeetingKey } from '$lib/types/keys';
+import type { AccountKey, InsightKey, MeetingKey } from '$lib/types/keys';
 import {
-	DEFAULT_MY_DEALS_DETAIL_TAB_ID,
-	DEFAULT_MY_DEALS_VIEW,
-	isMyDealsDetailTabId,
-	isNonDefaultMyDealsView,
-	resolveMyDealsDetailPath,
-	resolveMyDealsListPath,
-	type MyDealsDetailTabId,
-	type MyDealsView
-} from './my-deals';
+	DEFAULT_MY_ACCOUNTS_DETAIL_TAB_ID,
+	DEFAULT_MY_ACCOUNTS_VIEW,
+	isMyAccountsDetailTabId,
+	isNonDefaultMyAccountsView,
+	resolveMyAccountsDetailPath,
+	resolveMyAccountsListPath,
+	type MyAccountsDetailTabId,
+	type MyAccountsView
+} from './my-accounts';
 import {
 	DEFAULT_NEW_BUSINESS_VIEW,
 	isNonDefaultNewBusinessView,
@@ -34,39 +34,39 @@ import {
 import type { DashboardPath } from './paths';
 
 const DASHBOARD_ROUTE_IDS = {
-	myDealsList: ['/(dashboard)/my-deals', '/(dashboard)/my-deals/[view=myDealsView]'],
-	myDealsDetail: [
-		'/(dashboard)/my-deals/detail/[dealKey]',
-		'/(dashboard)/my-deals/[view=myDealsView]/detail/[dealKey]'
+	myAccountsList: ['/(dashboard)/my-accounts', '/(dashboard)/my-accounts/[view=myAccountsView]'],
+	myAccountsDetail: [
+		'/(dashboard)/my-accounts/detail/[accountKey]',
+		'/(dashboard)/my-accounts/[view=myAccountsView]/detail/[accountKey]'
 	],
 	newBusinessList: [
 		'/(dashboard)/new-business',
 		'/(dashboard)/new-business/[view=newBusinessView]'
 	],
 	newBusinessDetail: [
-		'/(dashboard)/new-business/detail/[dealKey]',
-		'/(dashboard)/new-business/[view=newBusinessView]/detail/[dealKey]'
+		'/(dashboard)/new-business/detail/[accountKey]',
+		'/(dashboard)/new-business/[view=newBusinessView]/detail/[accountKey]'
 	],
 	renewalsList: ['/(dashboard)/renewals', '/(dashboard)/renewals/[view=renewalsView]'],
 	renewalsDetail: [
-		'/(dashboard)/renewals/detail/[dealKey]',
-		'/(dashboard)/renewals/[view=renewalsView]/detail/[dealKey]'
+		'/(dashboard)/renewals/detail/[accountKey]',
+		'/(dashboard)/renewals/[view=renewalsView]/detail/[accountKey]'
 	],
 	opportunities: ['/(dashboard)/opportunities', '/(dashboard)/opportunities/detail/[insightKey]'],
 	sinceLastMeeting: ['/(dashboard)/since-last-meeting'],
-	sinceLastMeetingDetail: ['/(dashboard)/since-last-meeting/detail/[dealKey]']
+	sinceLastMeetingDetail: ['/(dashboard)/since-last-meeting/detail/[accountKey]']
 } as const;
 
-export type MyDealsListRouteRef = {
-	kind: 'my-deals-list';
-	view: MyDealsView;
+export type MyAccountsListRouteRef = {
+	kind: 'my-accounts-list';
+	view: MyAccountsView;
 };
 
-export type MyDealsDetailRouteRef = {
-	kind: 'my-deals-detail';
-	dealKey: DealKey;
-	view: MyDealsView;
-	tab: MyDealsDetailTabId;
+export type MyAccountsDetailRouteRef = {
+	kind: 'my-accounts-detail';
+	accountKey: AccountKey;
+	view: MyAccountsView;
+	tab: MyAccountsDetailTabId;
 };
 
 export type NewBusinessListRouteRef = {
@@ -76,7 +76,7 @@ export type NewBusinessListRouteRef = {
 
 export type NewBusinessDetailRouteRef = {
 	kind: 'new-business-detail';
-	dealKey: DealKey;
+	accountKey: AccountKey;
 	view: NewBusinessView;
 };
 
@@ -87,7 +87,7 @@ export type RenewalsListRouteRef = {
 
 export type RenewalsDetailRouteRef = {
 	kind: 'renewals-detail';
-	dealKey: DealKey;
+	accountKey: AccountKey;
 	view: RenewalsView;
 };
 
@@ -109,12 +109,12 @@ export type SinceLastMeetingRouteRef = {
 
 export type SinceLastMeetingDetailRouteRef = {
 	kind: 'since-last-meeting-detail';
-	dealKey: DealKey;
+	accountKey: AccountKey;
 	meetingKey: MeetingKey | null;
 };
 
 export type DashboardNavRouteRef =
-	| MyDealsListRouteRef
+	| MyAccountsListRouteRef
 	| NewBusinessListRouteRef
 	| RenewalsListRouteRef
 	| OpportunitiesListRouteRef
@@ -122,7 +122,7 @@ export type DashboardNavRouteRef =
 
 export type DashboardRouteRef =
 	| DashboardNavRouteRef
-	| MyDealsDetailRouteRef
+	| MyAccountsDetailRouteRef
 	| NewBusinessDetailRouteRef
 	| RenewalsDetailRouteRef
 	| OpportunitiesDetailRouteRef
@@ -130,7 +130,7 @@ export type DashboardRouteRef =
 
 type DashboardLayoutRouteParams = {
 	view?: string;
-	dealKey?: string;
+	accountKey?: string;
 	insightKey?: string;
 };
 
@@ -173,7 +173,7 @@ function resolveOptionalMeetingKey(searchParams: URLSearchParams) {
 	return meetingKey && meetingKey.length > 0 ? (meetingKey as MeetingKey) : null;
 }
 
-function resolveMyDealsDetailTab(searchParams: URLSearchParams): MyDealsDetailTabId | null {
+function resolveMyAccountsDetailTab(searchParams: URLSearchParams): MyAccountsDetailTabId | null {
 	if (!hasOnlyAllowedSearchParams(searchParams, ['tab'])) {
 		return null;
 	}
@@ -181,68 +181,68 @@ function resolveMyDealsDetailTab(searchParams: URLSearchParams): MyDealsDetailTa
 	const tab = searchParams.get('tab');
 
 	if (tab === null) {
-		return DEFAULT_MY_DEALS_DETAIL_TAB_ID;
+		return DEFAULT_MY_ACCOUNTS_DETAIL_TAB_ID;
 	}
 
-	return isMyDealsDetailTabId(tab) ? tab : null;
+	return isMyAccountsDetailTabId(tab) ? tab : null;
 }
 
 const dashboardRouteDefinitions = {
-	'my-deals-list': {
-		routeIds: DASHBOARD_ROUTE_IDS.myDealsList,
+	'my-accounts-list': {
+		routeIds: DASHBOARD_ROUTE_IDS.myAccountsList,
 		parse: ({ routeId, params, searchParams }) => {
 			if (searchParams.size > 0) {
 				return null;
 			}
 
-			if (routeId === DASHBOARD_ROUTE_IDS.myDealsList[0]) {
+			if (routeId === DASHBOARD_ROUTE_IDS.myAccountsList[0]) {
 				return {
-					kind: 'my-deals-list',
-					view: DEFAULT_MY_DEALS_VIEW
+					kind: 'my-accounts-list',
+					view: DEFAULT_MY_ACCOUNTS_VIEW
 				};
 			}
 
-			if (!params.view || !isNonDefaultMyDealsView(params.view)) {
+			if (!params.view || !isNonDefaultMyAccountsView(params.view)) {
 				return null;
 			}
 
 			return {
-				kind: 'my-deals-list',
+				kind: 'my-accounts-list',
 				view: params.view
 			};
 		}
 	},
-	'my-deals-detail': {
-		routeIds: DASHBOARD_ROUTE_IDS.myDealsDetail,
+	'my-accounts-detail': {
+		routeIds: DASHBOARD_ROUTE_IDS.myAccountsDetail,
 		parse: ({ routeId, params, searchParams }) => {
-			const dealKey = resolveRequiredRouteParam(params.dealKey);
+			const accountKey = resolveRequiredRouteParam(params.accountKey);
 
-			if (!dealKey) {
+			if (!accountKey) {
 				return null;
 			}
 
-			const tab = resolveMyDealsDetailTab(searchParams);
+			const tab = resolveMyAccountsDetailTab(searchParams);
 
 			if (!tab) {
 				return null;
 			}
 
-			if (routeId === DASHBOARD_ROUTE_IDS.myDealsDetail[0]) {
+			if (routeId === DASHBOARD_ROUTE_IDS.myAccountsDetail[0]) {
 				return {
-					kind: 'my-deals-detail',
-					dealKey: dealKey as DealKey,
-					view: DEFAULT_MY_DEALS_VIEW,
+					kind: 'my-accounts-detail',
+					accountKey: accountKey as AccountKey,
+					view: DEFAULT_MY_ACCOUNTS_VIEW,
 					tab
 				};
 			}
 
-			if (!params.view || !isNonDefaultMyDealsView(params.view)) {
+			if (!params.view || !isNonDefaultMyAccountsView(params.view)) {
 				return null;
 			}
 
 			return {
-				kind: 'my-deals-detail',
-				dealKey: dealKey as DealKey,
+				kind: 'my-accounts-detail',
+				accountKey: accountKey as AccountKey,
 				view: params.view,
 				tab
 			};
@@ -279,16 +279,16 @@ const dashboardRouteDefinitions = {
 				return null;
 			}
 
-			const dealKey = resolveRequiredRouteParam(params.dealKey);
+			const accountKey = resolveRequiredRouteParam(params.accountKey);
 
-			if (!dealKey) {
+			if (!accountKey) {
 				return null;
 			}
 
 			if (routeId === DASHBOARD_ROUTE_IDS.newBusinessDetail[0]) {
 				return {
 					kind: 'new-business-detail',
-					dealKey: dealKey as DealKey,
+					accountKey: accountKey as AccountKey,
 					view: DEFAULT_NEW_BUSINESS_VIEW
 				};
 			}
@@ -299,7 +299,7 @@ const dashboardRouteDefinitions = {
 
 			return {
 				kind: 'new-business-detail',
-				dealKey: dealKey as DealKey,
+				accountKey: accountKey as AccountKey,
 				view: params.view
 			};
 		}
@@ -335,16 +335,16 @@ const dashboardRouteDefinitions = {
 				return null;
 			}
 
-			const dealKey = resolveRequiredRouteParam(params.dealKey);
+			const accountKey = resolveRequiredRouteParam(params.accountKey);
 
-			if (!dealKey) {
+			if (!accountKey) {
 				return null;
 			}
 
 			if (routeId === DASHBOARD_ROUTE_IDS.renewalsDetail[0]) {
 				return {
 					kind: 'renewals-detail',
-					dealKey: dealKey as DealKey,
+					accountKey: accountKey as AccountKey,
 					view: DEFAULT_RENEWALS_VIEW
 				};
 			}
@@ -355,7 +355,7 @@ const dashboardRouteDefinitions = {
 
 			return {
 				kind: 'renewals-detail',
-				dealKey: dealKey as DealKey,
+				accountKey: accountKey as AccountKey,
 				view: params.view
 			};
 		}
@@ -413,15 +413,15 @@ const dashboardRouteDefinitions = {
 				return null;
 			}
 
-			const dealKey = resolveRequiredRouteParam(params.dealKey);
+			const accountKey = resolveRequiredRouteParam(params.accountKey);
 
-			if (!dealKey) {
+			if (!accountKey) {
 				return null;
 			}
 
 			return {
 				kind: 'since-last-meeting-detail',
-				dealKey: dealKey as DealKey,
+				accountKey: accountKey as AccountKey,
 				meetingKey: resolveOptionalMeetingKey(searchParams)
 			};
 		}
@@ -434,10 +434,10 @@ const dashboardRouteDefinitionEntries = Object.values(
 
 export function resolveDashboardRoute(route: DashboardRouteRef): DashboardPath {
 	switch (route.kind) {
-		case 'my-deals-list':
-			return resolveMyDealsListPath(route.view);
-		case 'my-deals-detail':
-			return resolveMyDealsDetailPath(route);
+		case 'my-accounts-list':
+			return resolveMyAccountsListPath(route.view);
+		case 'my-accounts-detail':
+			return resolveMyAccountsDetailPath(route);
 		case 'new-business-list':
 			return resolveNewBusinessListPath(route.view);
 		case 'new-business-detail':
@@ -486,8 +486,8 @@ export function isDashboardNavRouteActive(
 	currentRoute: DashboardRouteRef
 ) {
 	switch (itemRoute.kind) {
-		case 'my-deals-list':
-			return currentRoute.kind === 'my-deals-list' || currentRoute.kind === 'my-deals-detail';
+		case 'my-accounts-list':
+			return currentRoute.kind === 'my-accounts-list' || currentRoute.kind === 'my-accounts-detail';
 		case 'new-business-list':
 			return (
 				currentRoute.kind === 'new-business-list' || currentRoute.kind === 'new-business-detail'

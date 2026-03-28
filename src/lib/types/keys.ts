@@ -3,7 +3,7 @@ type Brand<TValue extends string, TBrand extends string> = TValue & {
 };
 
 export type BrokerKey = Brand<string, 'BrokerKey'>;
-export type DealKey = Brand<string, 'DealKey'>;
+export type AccountKey = Brand<string, 'AccountKey'>;
 export type InsightKey = Brand<string, 'InsightKey'>;
 export type MeetingKey = Brand<string, 'MeetingKey'>;
 
@@ -19,8 +19,8 @@ export function toBrokerKey(value: string): BrokerKey {
 	return toKey<'BrokerKey'>(value);
 }
 
-export function toDealKey(value: string): DealKey {
-	return toKey<'DealKey'>(value);
+export function toAccountKey(value: string): AccountKey {
+	return toKey<'AccountKey'>(value);
 }
 
 export function toInsightKey(value: string): InsightKey {
@@ -35,8 +35,8 @@ export function parseBrokerKey(value: unknown): BrokerKey | null {
 	return parseKey<'BrokerKey'>(value);
 }
 
-export function parseDealKey(value: unknown): DealKey | null {
-	return parseKey<'DealKey'>(value);
+export function parseAccountKey(value: unknown): AccountKey | null {
+	return parseKey<'AccountKey'>(value);
 }
 
 export function parseInsightKey(value: unknown): InsightKey | null {

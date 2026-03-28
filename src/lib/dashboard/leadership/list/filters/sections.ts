@@ -1,9 +1,9 @@
 import {
 	getActivityLevelIconVariant,
 	type ActivityLevelIconVariant
-} from '$lib/dashboard/view-models/deal';
+} from '$lib/dashboard/view-models/account';
 import type { SearchableFilterPanelOption } from '$lib/dashboard/ui/pickers/filter-panel';
-import type { ActivityLevel, DealIndustry } from '$lib/types/vocab';
+import type { ActivityLevel, AccountIndustry } from '$lib/types/vocab';
 import type {
 	LeadershipFilterDrawerData,
 	LeadershipFilterExpansionState
@@ -27,7 +27,7 @@ export type LeadershipActivityLevelFilterOption = BaseFilterOption<
 	{ iconVariant: ActivityLevelIconVariant }
 >;
 
-export type LeadershipIndustryFilterOption = BaseFilterOption<DealIndustry>;
+export type LeadershipIndustryFilterOption = BaseFilterOption<AccountIndustry>;
 
 type BaseSection<Id extends string, Option> = {
 	id: Id;
@@ -71,7 +71,7 @@ type BuildLeadershipFilterDrawerSectionsParams = {
 	data: LeadershipFilterDrawerData;
 	selectedBrokerKeys: readonly BrokerOption['key'][];
 	selectedActivityLevels: readonly ActivityLevel[];
-	selectedIndustries: readonly DealIndustry[];
+	selectedIndustries: readonly AccountIndustry[];
 	expandedSections: LeadershipFilterExpansionState;
 };
 

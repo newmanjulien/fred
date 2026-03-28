@@ -2,11 +2,11 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
 	activityLevelValidator,
-	dealActivityStreamValidator,
-	dealIndustryValidator,
-	dealInsightKindValidator,
-	dealNewsSourceValidator,
-	dealStageValidator
+	accountActivityStreamValidator,
+	accountIndustryValidator,
+	accountInsightKindValidator,
+	accountNewsSourceValidator,
+	accountStageValidator
 } from './validators';
 
 const activityMarkerValidator = v.union(
@@ -20,9 +20,9 @@ const activityMarkerValidator = v.union(
 );
 
 const activityBaseFields = {
-	dealId: v.id('deals'),
+	accountId: v.id('accounts'),
 	meetingId: v.optional(v.id('meetings')),
-	stream: dealActivityStreamValidator,
+	stream: accountActivityStreamValidator,
 	occurredOnIso: v.string(),
 	body: v.string(),
 	marker: activityMarkerValidator
@@ -72,7 +72,7 @@ const internalOrgChartNodeRecordValidator = v.object({
 	parentId: v.optional(v.string())
 });
 
-const flatDealContextValidator = v.object({
+const flatAccountContextValidator = v.object({
 	summary: v.string(),
 	claimedAtIso: v.string(),
 	orgChartNodes: v.array(internalOrgChartNodeRecordValidator),
@@ -80,20 +80,20 @@ const flatDealContextValidator = v.object({
 });
 
 // Accept legacy nested org charts so existing deployments can still boot after the shape change.
-const legacyDealContextValidator = v.object({
+const legacyAccountContextValidator = v.object({
 	summary: v.string(),
 	claimedAtIso: v.string(),
 	orgChartRoot: v.any(),
 	helpfulContacts: v.optional(v.array(helpfulContactValidator))
 });
 
-const dealContextValidator = v.union(flatDealContextValidator, legacyDealContextValidator);
+const accountContextValidator = v.union(flatAccountContextValidator, legacyAccountContextValidator);
 
 const flatInsightValidator = v.object({
 	key: v.string(),
-	dealId: v.id('deals'),
+	accountId: v.id('accounts'),
 	meetingId: v.id('meetings'),
-	kind: dealInsightKindValidator,
+	kind: accountInsightKindValidator,
 	title: v.string(),
 	ownerBrokerId: v.id('brokers'),
 	collaboratorBrokerIds: v.array(v.id('brokers')),
@@ -103,9 +103,9 @@ const flatInsightValidator = v.object({
 
 const legacyInsightValidator = v.object({
 	key: v.string(),
-	dealId: v.id('deals'),
+	accountId: v.id('accounts'),
 	meetingId: v.id('meetings'),
-	kind: dealInsightKindValidator,
+	kind: accountInsightKindValidator,
 	title: v.string(),
 	ownerBrokerId: v.id('brokers'),
 	collaboratorBrokerIds: v.array(v.id('brokers')),
@@ -129,21 +129,21 @@ export default defineSchema({
 		avatar: v.string()
 	}).index('by_key', ['key']),
 
-	deals: defineTable({
+	accounts: defineTable({
 		key: v.string(),
-		dealNumber: v.number(),
-		industry: dealIndustryValidator,
-		dealName: v.string(),
+		accountNumber: v.number(),
+		industry: accountIndustryValidator,
+		accountName: v.string(),
 		isRenewal: v.boolean(),
 		isReservedInEpic: v.boolean(),
 		probability: v.number(),
-		stage: dealStageValidator,
+		stage: accountStageValidator,
 		isLikelyOutOfDate: v.boolean(),
 		activityLevel: activityLevelValidator,
 		lastActivityAtIso: v.optional(v.string()),
 		ownerBrokerId: v.optional(v.id('brokers')),
 		collaboratorBrokerIds: v.array(v.id('brokers')),
-		context: v.optional(dealContextValidator),
+		context: v.optional(accountContextValidator),
 		dashboardFlags: v.object({
 			needsSupport: v.boolean(),
 			duplicatedWork: v.boolean()
@@ -153,28 +153,28 @@ export default defineSchema({
 	activities: defineTable(activityDocumentValidator)
 		.index('by_stream_occurred_on_iso', ['stream', 'occurredOnIso'])
 		.index('by_meeting_id_stream_occurred_on_iso', ['meetingId', 'stream', 'occurredOnIso'])
-		.index('by_meeting_id_deal_id_stream_occurred_on_iso', [
+		.index('by_meeting_id_account_id_stream_occurred_on_iso', [
 			'meetingId',
-			'dealId',
+			'accountId',
 			'stream',
 			'occurredOnIso'
 		])
-		.index('by_deal_id_stream_occurred_on_iso', ['dealId', 'stream', 'occurredOnIso']),
+		.index('by_account_id_stream_occurred_on_iso', ['accountId', 'stream', 'occurredOnIso']),
 
 	news: defineTable({
-		dealId: v.id('deals'),
+		accountId: v.id('accounts'),
 		title: v.string(),
-		source: dealNewsSourceValidator,
+		source: accountNewsSourceValidator,
 		publishedOnIso: v.string()
 	})
 		.index('by_published_on_iso', ['publishedOnIso'])
-		.index('by_deal_id_published_on_iso', ['dealId', 'publishedOnIso']),
+		.index('by_account_id_published_on_iso', ['accountId', 'publishedOnIso']),
 
 	insights: defineTable(insightDocumentValidator)
 		.index('by_key', ['key'])
-		.index('by_deal_id', ['dealId'])
+		.index('by_account_id', ['accountId'])
 		.index('by_kind', ['kind'])
 		.index('by_meeting_id', ['meetingId'])
 		.index('by_meeting_id_kind', ['meetingId', 'kind'])
-		.index('by_deal_id_kind', ['dealId', 'kind'])
+		.index('by_account_id_kind', ['accountId', 'kind'])
 });

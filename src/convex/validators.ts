@@ -10,31 +10,31 @@ import {
 	type RenewalsView
 } from '../lib/dashboard/routing/renewals';
 import {
-	DEFAULT_MY_DEALS_VIEW,
-	MY_DEALS_DETAIL_TAB_IDS,
-	MY_DEALS_NON_DEFAULT_VIEWS,
-	type MyDealsDetailTabId,
-	type MyDealsView
-} from '../lib/dashboard/routing/my-deals';
+	DEFAULT_MY_ACCOUNTS_VIEW,
+	MY_ACCOUNTS_DETAIL_TAB_IDS,
+	MY_ACCOUNTS_NON_DEFAULT_VIEWS,
+	type MyAccountsDetailTabId,
+	type MyAccountsView
+} from '../lib/dashboard/routing/my-accounts';
 import type { DetailRightRailData } from '../lib/dashboard/detail/right-rail';
-import type { OrgChartNodeRecord as SharedOrgChartNodeRecord } from '../lib/dashboard/view-models/deal-content';
+import type { OrgChartNodeRecord as SharedOrgChartNodeRecord } from '../lib/dashboard/view-models/account-content';
 import type { CanvasHeroData } from '../lib/dashboard/ui/detail/CanvasHero.types';
 import type { FileUploadFieldData } from '../lib/dashboard/ui/detail/FileUploadField.types';
-import type { DealSummaryRow } from '../lib/dashboard/view-models/deal';
-import type { TimelineItem } from '../lib/dashboard/view-models/deal-content';
+import type { AccountSummaryRow } from '../lib/dashboard/view-models/account';
+import type { TimelineItem } from '../lib/dashboard/view-models/account-content';
 import type { IsoDate, IsoDateTime } from '../lib/types/dates';
-import type { BrokerKey, DealKey, InsightKey, MeetingKey } from '../lib/types/keys';
+import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import {
 	ACTIVITY_LEVELS,
-	DEAL_ACTIVITY_STREAMS,
-	DEAL_INDUSTRIES,
-	DEAL_INSIGHT_KINDS,
-	DEAL_NEWS_SOURCES,
-	DEAL_STAGES,
+	ACCOUNT_ACTIVITY_STREAMS,
+	ACCOUNT_INDUSTRIES,
+	ACCOUNT_INSIGHT_KINDS,
+	ACCOUNT_NEWS_SOURCES,
+	ACCOUNT_STAGES,
 	type ActivityLevel,
-	type DealIndustry,
-	type DealInsightKind,
-	type DealNewsSource
+	type AccountIndustry,
+	type AccountInsightKind,
+	type AccountNewsSource
 } from '../lib/types/vocab';
 
 type NonEmptyStringTuple = readonly [string, ...string[]];
@@ -46,11 +46,11 @@ export function literalUnion<const Values extends NonEmptyStringTuple>(values: V
 }
 
 export const activityLevelValidator = literalUnion(ACTIVITY_LEVELS);
-export const dealStageValidator = literalUnion(DEAL_STAGES);
-export const dealIndustryValidator = literalUnion(DEAL_INDUSTRIES);
-export const dealActivityStreamValidator = literalUnion(DEAL_ACTIVITY_STREAMS);
-export const dealNewsSourceValidator = literalUnion(DEAL_NEWS_SOURCES);
-export const dealInsightKindValidator = literalUnion(DEAL_INSIGHT_KINDS);
+export const accountStageValidator = literalUnion(ACCOUNT_STAGES);
+export const accountIndustryValidator = literalUnion(ACCOUNT_INDUSTRIES);
+export const accountActivityStreamValidator = literalUnion(ACCOUNT_ACTIVITY_STREAMS);
+export const accountNewsSourceValidator = literalUnion(ACCOUNT_NEWS_SOURCES);
+export const accountInsightKindValidator = literalUnion(ACCOUNT_INSIGHT_KINDS);
 
 export const newBusinessViewValidator = literalUnion([
 	DEFAULT_NEW_BUSINESS_VIEW,
@@ -60,16 +60,16 @@ export const renewalsViewValidator = literalUnion([
 	DEFAULT_RENEWALS_VIEW,
 	...RENEWALS_NON_DEFAULT_VIEWS
 ] as const);
-export const myDealsViewValidator = literalUnion([
-	DEFAULT_MY_DEALS_VIEW,
-	...MY_DEALS_NON_DEFAULT_VIEWS
+export const myAccountsViewValidator = literalUnion([
+	DEFAULT_MY_ACCOUNTS_VIEW,
+	...MY_ACCOUNTS_NON_DEFAULT_VIEWS
 ] as const);
-export const myDealsDetailTabIdValidator = literalUnion(MY_DEALS_DETAIL_TAB_IDS);
+export const myAccountsDetailTabIdValidator = literalUnion(MY_ACCOUNTS_DETAIL_TAB_IDS);
 
 export type NewBusinessViewValue = NewBusinessView;
 export type RenewalsViewValue = RenewalsView;
-export type MyDealsViewValue = MyDealsView;
-export type MyDealsDetailTabIdValue = MyDealsDetailTabId;
+export type MyAccountsViewValue = MyAccountsView;
+export type MyAccountsDetailTabIdValue = MyAccountsDetailTabId;
 
 export const dashboardPersonValidator = v.object({
 	key: v.string(),
@@ -93,15 +93,15 @@ export type DashboardMeeting = {
 	dateIso: IsoDate;
 };
 
-export const myDealsDetailRefValidator = v.object({
-	dealKey: v.string(),
-	defaultTab: myDealsDetailTabIdValidator
+export const myAccountsDetailRefValidator = v.object({
+	accountKey: v.string(),
+	defaultTab: myAccountsDetailTabIdValidator
 });
 
 export const canvasHeroValidator = v.object({
 	title: v.string(),
 	description: v.optional(v.string()),
-	dealNumber: v.optional(v.number())
+	accountNumber: v.optional(v.number())
 });
 
 export const fileUploadFieldValidator = v.object({
@@ -166,14 +166,14 @@ export const detailRightRailRowValidator = v.union(
 		id: v.string(),
 		label: v.string(),
 		kind: v.literal('industry'),
-		value: dealIndustryValidator,
-		dealKey: v.string()
+		value: accountIndustryValidator,
+		accountKey: v.string()
 	}),
 	v.object({
 		id: v.string(),
 		label: v.string(),
-		kind: v.literal('deal-number'),
-		dealNumber: v.number()
+		kind: v.literal('account-number'),
+		accountNumber: v.number()
 	}),
 	v.object({
 		id: v.string(),
@@ -216,7 +216,7 @@ export const detailRightRailDataValidator = v.object({
 	sections: v.array(detailRightRailSectionValidator)
 });
 
-export const myDealsFeedItemReadModelValidator = v.union(
+export const myAccountsFeedItemReadModelValidator = v.union(
 	v.object({
 		id: v.string(),
 		title: v.string(),
@@ -234,15 +234,15 @@ export const myDealsFeedItemReadModelValidator = v.union(
 		title: v.string(),
 		kind: v.literal('activity'),
 		dateIso: v.string(),
-		detail: myDealsDetailRefValidator
+		detail: myAccountsDetailRefValidator
 	})
 );
 
-export const myDealsTableRowReadModelValidator = v.object({
+export const myAccountsTableRowReadModelValidator = v.object({
 	key: v.string(),
-	detail: v.union(myDealsDetailRefValidator, v.null()),
-	deal: v.string(),
-	latestNewsSource: v.union(dealNewsSourceValidator, v.null()),
+	detail: v.union(myAccountsDetailRefValidator, v.null()),
+	account: v.string(),
+	latestNewsSource: v.union(accountNewsSourceValidator, v.null()),
 	latestNews: v.string(),
 	lastActivityDescription: v.string(),
 	owner: v.union(dashboardPersonValidator, v.null()),
@@ -265,7 +265,7 @@ export const newBusinessTableRowReadModelValidator = v.object({
 	hasDetail: v.boolean(),
 	probability: v.number(),
 	activityLevel: activityLevelValidator,
-	deal: v.string(),
+	account: v.string(),
 	stage: v.string(),
 	lastActivity: newBusinessRowLastActivityValidator,
 	owner: v.union(dashboardPersonValidator, v.null())
@@ -281,7 +281,7 @@ export const newBusinessFilterDrawerDataValidator = v.object({
 	),
 	industries: v.array(
 		v.object({
-			id: dealIndustryValidator,
+			id: accountIndustryValidator,
 			label: v.string()
 		})
 	)
@@ -290,15 +290,15 @@ export const newBusinessFilterDrawerDataValidator = v.object({
 export const opportunityTileReadModelValidator = v.object({
 	key: v.string(),
 	title: v.string(),
-	dealNumber: v.number(),
-	dealLabel: v.optional(v.string()),
+	accountNumber: v.number(),
+	accountLabel: v.optional(v.string()),
 	avatars: v.optional(v.array(v.string())),
 	activityLevel: activityLevelValidator
 });
 
-export const sinceLastMeetingDealReadModelValidator = v.object({
+export const sinceLastMeetingAccountReadModelValidator = v.object({
 	key: v.string(),
-	deal: v.string(),
+	account: v.string(),
 	probability: v.number(),
 	activityLevel: activityLevelValidator,
 	stage: v.string(),
@@ -311,16 +311,16 @@ export const dashboardShellResultValidator = v.object({
 	defaultMeetingKey: v.union(v.string(), v.null())
 });
 
-export const myDealsListReadModelValidator = v.object({
-	rows: v.array(myDealsTableRowReadModelValidator),
-	newsItems: v.array(myDealsFeedItemReadModelValidator),
-	watchlistItems: v.array(myDealsFeedItemReadModelValidator)
+export const myAccountsListReadModelValidator = v.object({
+	rows: v.array(myAccountsTableRowReadModelValidator),
+	newsItems: v.array(myAccountsFeedItemReadModelValidator),
+	watchlistItems: v.array(myAccountsFeedItemReadModelValidator)
 });
 
-export const myDealsDetailReadModelValidator = v.object({
+export const myAccountsDetailReadModelValidator = v.object({
 	title: v.string(),
 	hero: canvasHeroValidator,
-	newsItems: v.array(myDealsFeedItemReadModelValidator),
+	newsItems: v.array(myAccountsFeedItemReadModelValidator),
 	activityItems: v.array(timelineItemValidator),
 	update: fileUploadFieldValidator,
 	rightRail: detailRightRailDataValidator
@@ -349,7 +349,7 @@ export const opportunitiesListReadModelValidator = v.object({
 export const opportunityDetailReadModelValidator = v.object({
 	title: v.string(),
 	hero: canvasHeroValidator,
-	kind: dealInsightKindValidator,
+	kind: accountInsightKindValidator,
 	activityItems: v.array(timelineItemValidator),
 	orgChartNodes: v.array(orgChartNodeRecordValidator),
 	update: fileUploadFieldValidator,
@@ -359,18 +359,18 @@ export const opportunityDetailReadModelValidator = v.object({
 export const sinceLastMeetingReadModelValidator = v.object({
 	referenceMeetingDateIso: v.string(),
 	timelineItems: v.array(timelineItemValidator),
-	deals: v.array(sinceLastMeetingDealReadModelValidator),
+	accounts: v.array(sinceLastMeetingAccountReadModelValidator),
 	update: fileUploadFieldValidator
 });
 
 export const sinceLastMeetingDetailReadModelValidator = newBusinessDetailReadModelValidator;
 
-export type MyDealsDetailRef = {
-	dealKey: DealKey;
-	defaultTab: MyDealsDetailTabId;
+export type MyAccountsDetailRef = {
+	accountKey: AccountKey;
+	defaultTab: MyAccountsDetailTabId;
 };
 
-export type MyDealsFeedItemReadModel =
+export type MyAccountsFeedItemReadModel =
 	| {
 			id: string;
 			title: string;
@@ -388,14 +388,14 @@ export type MyDealsFeedItemReadModel =
 			title: string;
 			kind: 'activity';
 			dateIso: IsoDate;
-			detail: MyDealsDetailRef;
+			detail: MyAccountsDetailRef;
 	  };
 
-export type MyDealsTableRowReadModel = {
-	key: DealKey;
-	detail: MyDealsDetailRef | null;
-	deal: string;
-	latestNewsSource: DealNewsSource | null;
+export type MyAccountsTableRowReadModel = {
+	key: AccountKey;
+	detail: MyAccountsDetailRef | null;
+	account: string;
+	latestNewsSource: AccountNewsSource | null;
 	latestNews: string;
 	lastActivityDescription: string;
 	owner: DashboardPerson | null;
@@ -403,11 +403,11 @@ export type MyDealsTableRowReadModel = {
 };
 
 export type NewBusinessTableRowReadModel = {
-	key: DealKey;
+	key: AccountKey;
 	hasDetail: boolean;
 	probability: number;
 	activityLevel: ActivityLevel;
-	deal: string;
+	account: string;
 	stage: string;
 	lastActivity:
 		| {
@@ -428,7 +428,7 @@ export type NewBusinessFilterDrawerData = {
 		label: string;
 	}[];
 	industries: {
-		id: DealIndustry;
+		id: AccountIndustry;
 		label: string;
 	}[];
 };
@@ -436,13 +436,13 @@ export type NewBusinessFilterDrawerData = {
 export type OpportunityTileReadModel = {
 	key: InsightKey;
 	title: string;
-	dealNumber: number;
-	dealLabel?: string;
+	accountNumber: number;
+	accountLabel?: string;
 	avatars?: string[];
 	activityLevel: ActivityLevel;
 };
 
-export type SinceLastMeetingDealReadModel = DealSummaryRow & {
+export type SinceLastMeetingAccountReadModel = AccountSummaryRow & {
 	hasDetail: boolean;
 };
 
@@ -452,16 +452,16 @@ export type DashboardShellReadModel = {
 	defaultMeetingKey: MeetingKey | null;
 };
 
-export type MyDealsListReadModel = {
-	rows: MyDealsTableRowReadModel[];
-	newsItems: MyDealsFeedItemReadModel[];
-	watchlistItems: MyDealsFeedItemReadModel[];
+export type MyAccountsListReadModel = {
+	rows: MyAccountsTableRowReadModel[];
+	newsItems: MyAccountsFeedItemReadModel[];
+	watchlistItems: MyAccountsFeedItemReadModel[];
 };
 
-export type MyDealsDetailReadModel = {
+export type MyAccountsDetailReadModel = {
 	title: string;
 	hero: CanvasHeroData;
-	newsItems: MyDealsFeedItemReadModel[];
+	newsItems: MyAccountsFeedItemReadModel[];
 	activityItems: TimelineItem[];
 	update: FileUploadFieldData;
 	rightRail: DetailRightRailData;
@@ -490,7 +490,7 @@ export type OpportunitiesListReadModel = {
 export type OpportunityDetailReadModel = {
 	title: string;
 	hero: CanvasHeroData;
-	kind: DealInsightKind;
+	kind: AccountInsightKind;
 	activityItems: TimelineItem[];
 	orgChartNodes: OrgChartNodeRecord[];
 	update: FileUploadFieldData;
@@ -500,7 +500,7 @@ export type OpportunityDetailReadModel = {
 export type SinceLastMeetingReadModel = {
 	referenceMeetingDateIso: IsoDate;
 	timelineItems: TimelineItem[];
-	deals: SinceLastMeetingDealReadModel[];
+	accounts: SinceLastMeetingAccountReadModel[];
 	update: FileUploadFieldData;
 };
 

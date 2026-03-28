@@ -1,7 +1,7 @@
 import { convexTest } from 'convex-test';
 import { describe, expect, it } from 'vitest';
 import type { OrgChartNodeRecord as InternalOrgChartNodeRecord } from '../lib/domain/org-chart';
-import type { BrokerKey, DealKey, InsightKey, MeetingKey } from '../lib/types/keys';
+import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import { api } from './_generated/api';
 import schema from './schema';
 import { convexTestModules } from './test.setup';
@@ -35,7 +35,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 	return t.run(async (ctx) => {
 		const ownerBrokerKey = 'julien' as BrokerKey;
 		const collaboratorBrokerKey = 'mina' as BrokerKey;
-		const dealKey = 'acme-expansion' as DealKey;
+		const accountKey = 'acme-expansion' as AccountKey;
 		const insightKey = 'expand-adjacent-services' as InsightKey;
 		const march20MeetingKey = '2026-03-20' as MeetingKey;
 		const march27MeetingKey = '2026-03-27' as MeetingKey;
@@ -60,7 +60,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			dateIso: '2026-03-27'
 		});
 
-		const dealOrgChartNodes: InternalOrgChartNodeRecord[] = [
+		const accountOrgChartNodes: InternalOrgChartNodeRecord[] = [
 			{
 				id: 'root',
 				name: 'Alex Morgan',
@@ -119,11 +119,11 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			}
 		];
 
-		const dealId = await ctx.db.insert('deals', {
-			key: dealKey,
-			dealNumber: 42,
+		const accountId = await ctx.db.insert('accounts', {
+			key: accountKey,
+			accountNumber: 42,
 			industry: 'Hospitality',
-			dealName: 'Acme Expansion',
+			accountName: 'Acme Expansion',
 			isRenewal: false,
 			isReservedInEpic: false,
 			probability: 70,
@@ -136,7 +136,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			context: {
 				summary: 'Needs support on procurement timing.',
 				claimedAtIso: '2026-03-10T09:00:00Z',
-				orgChartNodes: dealOrgChartNodes,
+				orgChartNodes: accountOrgChartNodes,
 				helpfulContacts: [
 					{
 						id: 'contact-1',
@@ -154,28 +154,28 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 		});
 
 		await ctx.db.insert('news', {
-			dealId,
+			accountId,
 			title: 'Acme opens a new distribution hub',
 			source: 'news',
 			publishedOnIso: '2026-03-25'
 		});
 		await ctx.db.insert('news', {
-			dealId,
+			accountId,
 			title: 'Older weekly note',
 			source: 'linkedin',
 			publishedOnIso: '2026-03-12'
 		});
 
 		await ctx.db.insert('activities', {
-			dealId,
-			stream: 'deal-detail',
+			accountId,
+			stream: 'account-detail',
 			occurredOnIso: '2026-03-24',
 			body: 'Discussed procurement blockers.',
 			marker: { kind: 'dot' },
 			title: 'Weekly follow-up'
 		});
 		await ctx.db.insert('activities', {
-			dealId,
+			accountId,
 			meetingId: march27MeetingId,
 			stream: 'meeting-update',
 			occurredOnIso: '2026-03-18',
@@ -184,7 +184,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			title: 'Old update'
 		});
 		await ctx.db.insert('activities', {
-			dealId,
+			accountId,
 			meetingId: march20MeetingId,
 			stream: 'meeting-update',
 			occurredOnIso: '2026-03-22',
@@ -195,7 +195,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 
 		const insightId = await ctx.db.insert('insights', {
 			key: insightKey,
-			dealId,
+			accountId,
 			meetingId: march20MeetingId,
 			kind: 'opportunity',
 			title: 'Expand into adjacent services',
@@ -204,8 +204,8 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			timeline: [
 				{
 					id: 'timeline-1',
-					dealId,
-					stream: 'deal-detail',
+					accountId,
+					stream: 'account-detail',
 					occurredOnIso: '2026-03-23',
 					body: 'Customer is receptive to a broader package.',
 					marker: { kind: 'dot' },
@@ -220,13 +220,13 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			ownerBrokerKey,
 			collaboratorBrokerId,
 			collaboratorBrokerKey,
-			dealId,
-			dealKey,
+			accountId,
+			accountKey,
 			insightId,
 			insightKey,
 			march20MeetingId,
 			march20MeetingKey,
-			dealOrgChartNodes,
+			accountOrgChartNodes,
 			insightOrgChartNodes
 		};
 	});
@@ -238,7 +238,7 @@ function getIndustryRow(result: {
 			kind: 'rows' | 'helpful-contacts';
 			rows?: {
 				kind: string;
-				dealKey?: string;
+				accountKey?: string;
 			}[];
 		}[];
 	};
@@ -263,23 +263,23 @@ describe('Convex feature contracts', () => {
 		const t = createConvex();
 		const seed = await seedDashboardRecords(t);
 
-		const myDealsList = await t.query(api.myDeals.getMyDealsList, {
+		const myAccountsList = await t.query(api.myAccounts.getMyAccountsList, {
 			brokerKey: seed.collaboratorBrokerKey,
 			view: 'news'
 		});
-		const myDealsDetail = await t.query(api.myDeals.getMyDealsDetail, {
-			dealKey: seed.dealKey,
+		const myAccountsDetail = await t.query(api.myAccounts.getMyAccountsDetail, {
+			accountKey: seed.accountKey,
 			brokerKey: seed.collaboratorBrokerKey,
 			view: 'news'
 		});
 		const newBusinessList = await t.query(api.newBusiness.getNewBusinessList, {
-			view: 'deals'
+			view: 'accounts'
 		});
 		const newBusinessDetail = await t.query(api.newBusiness.getNewBusinessDetail, {
-			dealKey: seed.dealKey
+			accountKey: seed.accountKey
 		});
 		const renewalsList = await t.query(api.renewals.getRenewalsList, {
-			view: 'deals'
+			view: 'accounts'
 		});
 		const renewalsAtRiskList = await t.query(api.renewals.getRenewalsList, {
 			view: 'at-risk'
@@ -292,7 +292,7 @@ describe('Convex feature contracts', () => {
 		});
 		const sinceLastMeetingDetail = await t.query(api.sinceLastMeeting.getSinceLastMeetingDetail, {
 			meetingKey: seed.march20MeetingKey,
-			dealKey: seed.dealKey
+			accountKey: seed.accountKey
 		});
 		const opportunitiesList = await t.query(api.opportunities.getOpportunitiesList, {
 			meetingKey: seed.march20MeetingKey
@@ -302,33 +302,33 @@ describe('Convex feature contracts', () => {
 			meetingKey: seed.march20MeetingKey
 		});
 
-		expect(myDealsList).not.toHaveProperty('header');
-		expect(myDealsList.rows).toEqual(
+		expect(myAccountsList).not.toHaveProperty('header');
+		expect(myAccountsList.rows).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					key: seed.dealKey,
+					key: seed.accountKey,
 					detail: {
-						dealKey: seed.dealKey,
+						accountKey: seed.accountKey,
 						defaultTab: 'news'
 					}
 				})
 			])
 		);
-		expect(myDealsDetail?.title).toBe('Acme Expansion');
-		expect(getIndustryRow(myDealsDetail!)).toMatchObject({ dealKey: seed.dealKey });
+		expect(myAccountsDetail?.title).toBe('Acme Expansion');
+		expect(getIndustryRow(myAccountsDetail!)).toMatchObject({ accountKey: seed.accountKey });
 
 		expect(newBusinessList).not.toHaveProperty('header');
 		expect(newBusinessList.rows).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					key: seed.dealKey,
+					key: seed.accountKey,
 					hasDetail: true
 				})
 			])
 		);
 		expect(newBusinessDetail?.title).toBe('Acme Expansion');
 		expect(newBusinessDetail?.orgChartNodes).toEqual(
-			toExpectedDashboardOrgChartNodes(seed.dealOrgChartNodes, seed)
+			toExpectedDashboardOrgChartNodes(seed.accountOrgChartNodes, seed)
 		);
 
 		expect(renewalsList).not.toHaveProperty('header');
@@ -336,17 +336,17 @@ describe('Convex feature contracts', () => {
 		expect(renewalsAtRiskList.rows).toEqual([]);
 		expect(renewalsLikelyOutOfDateList.rows).toEqual([]);
 
-		expect(sinceLastMeeting.deals).toEqual(
+		expect(sinceLastMeeting.accounts).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					key: seed.dealKey,
+					key: seed.accountKey,
 					hasDetail: true
 				})
 			])
 		);
 		expect(sinceLastMeetingDetail?.title).toBe('Acme Expansion');
 		expect(sinceLastMeetingDetail?.orgChartNodes).toEqual(
-			toExpectedDashboardOrgChartNodes(seed.dealOrgChartNodes, seed)
+			toExpectedDashboardOrgChartNodes(seed.accountOrgChartNodes, seed)
 		);
 
 		expect(opportunitiesList.opportunityTiles).toEqual(
@@ -368,26 +368,26 @@ describe('Convex feature contracts', () => {
 		const seed = await seedDashboardRecords(t);
 
 		await expect(
-			t.query(api.myDeals.getMyDealsDetail, {
-				dealKey: 'not-a-deal-key',
+			t.query(api.myAccounts.getMyAccountsDetail, {
+				accountKey: 'not-a-account-key',
 				brokerKey: seed.collaboratorBrokerKey,
 				view: 'news'
 			})
 		).resolves.toBeNull();
 		await expect(
 			t.query(api.newBusiness.getNewBusinessDetail, {
-				dealKey: 'bad-deal-key'
+				accountKey: 'bad-account-key'
 			})
 		).resolves.toBeNull();
 		await expect(
 			t.query(api.renewals.getRenewalsDetail, {
-				dealKey: 'bad-deal-key'
+				accountKey: 'bad-account-key'
 			})
 		).resolves.toBeNull();
 		await expect(
 			t.query(api.sinceLastMeeting.getSinceLastMeetingDetail, {
 				meetingKey: seed.march20MeetingKey,
-				dealKey: 'bad-deal-key'
+				accountKey: 'bad-account-key'
 			})
 		).resolves.toBeNull();
 		await expect(
@@ -398,17 +398,17 @@ describe('Convex feature contracts', () => {
 		).resolves.toBeNull();
 	});
 
-	it('routes renewal deals to renewals and excludes them from new business', async () => {
+	it('routes renewal accounts to renewals and excludes them from new business', async () => {
 		const t = createConvex();
 		const seed = await seedDashboardRecords(t);
-		const renewalDealKey = 'acme-renewal' as DealKey;
+		const renewalAccountKey = 'acme-renewal' as AccountKey;
 
 		await t.run(async (ctx) => {
-			await ctx.db.insert('deals', {
-				key: renewalDealKey,
-				dealNumber: 314,
+			await ctx.db.insert('accounts', {
+				key: renewalAccountKey,
+				accountNumber: 314,
 				industry: 'Hospitality',
-				dealName: 'Acme Renewal',
+				accountName: 'Acme Renewal',
 				isRenewal: true,
 				isReservedInEpic: false,
 				probability: 85,
@@ -421,7 +421,7 @@ describe('Convex feature contracts', () => {
 				context: {
 					summary: 'Renewal tracking started before pricing is finalized.',
 					claimedAtIso: '2026-03-11T09:00:00Z',
-					orgChartNodes: seed.dealOrgChartNodes
+					orgChartNodes: seed.accountOrgChartNodes
 				},
 				dashboardFlags: {
 					needsSupport: false,
@@ -431,29 +431,29 @@ describe('Convex feature contracts', () => {
 		});
 
 		const newBusinessList = await t.query(api.newBusiness.getNewBusinessList, {
-			view: 'deals'
+			view: 'accounts'
 		});
 		const renewalsList = await t.query(api.renewals.getRenewalsList, {
-			view: 'deals'
+			view: 'accounts'
 		});
 		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
 			view: 'likely-out-of-date'
 		});
 		const renewalsDetail = await t.query(api.renewals.getRenewalsDetail, {
-			dealKey: renewalDealKey
+			accountKey: renewalAccountKey
 		});
 
 		expect(newBusinessList.rows).not.toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					key: renewalDealKey
+					key: renewalAccountKey
 				})
 			])
 		);
 		expect(renewalsList.rows).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					key: renewalDealKey,
+					key: renewalAccountKey,
 					hasDetail: true
 				})
 			])
@@ -461,7 +461,7 @@ describe('Convex feature contracts', () => {
 		expect(renewalsLikelyOutOfDateList.rows).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
-					key: renewalDealKey,
+					key: renewalAccountKey,
 					hasDetail: true
 				})
 			])
@@ -469,20 +469,20 @@ describe('Convex feature contracts', () => {
 		expect(renewalsDetail?.title).toBe('Acme Renewal');
 	});
 
-	it('normalizes legacy nested org charts for deals and insights', async () => {
+	it('normalizes legacy nested org charts for accounts and insights', async () => {
 		const t = createConvex();
 		const seed = await seedDashboardRecords(t);
-		const legacyDealKey = 'legacy-org-chart' as DealKey;
+		const legacyAccountKey = 'legacy-org-chart' as AccountKey;
 		const legacyInsightKey = 'legacy-risk-insight' as InsightKey;
 
 		await t.run(async (ctx) => {
 			await ctx.db.insert(
-				'deals',
+				'accounts',
 				{
-					key: legacyDealKey,
-					dealNumber: 404,
+					key: legacyAccountKey,
+					accountNumber: 404,
 					industry: 'Industrials',
-					dealName: 'Legacy Org Chart',
+					accountName: 'Legacy Org Chart',
 					isRenewal: false,
 					isReservedInEpic: false,
 					probability: 55,
@@ -523,7 +523,7 @@ describe('Convex feature contracts', () => {
 				'insights',
 				{
 					key: legacyInsightKey,
-					dealId: seed.dealId,
+					accountId: seed.accountId,
 					meetingId: seed.march20MeetingId,
 					kind: 'risk',
 					title: 'Legacy Risk Insight',
@@ -532,8 +532,8 @@ describe('Convex feature contracts', () => {
 					timeline: [
 						{
 							id: 'legacy-risk-1',
-							dealId: seed.dealId,
-							stream: 'deal-detail',
+							accountId: seed.accountId,
+							stream: 'account-detail',
 							occurredOnIso: '2026-03-23',
 							body: 'Legacy insight still needs flattening.',
 							marker: { kind: 'dot' },
@@ -561,7 +561,7 @@ describe('Convex feature contracts', () => {
 		});
 
 		const newBusinessDetail = await t.query(api.newBusiness.getNewBusinessDetail, {
-			dealKey: legacyDealKey
+			accountKey: legacyAccountKey
 		});
 		const opportunityDetail = await t.query(api.opportunities.getOpportunityDetail, {
 			insightKey: legacyInsightKey,
@@ -621,14 +621,14 @@ describe('Convex feature contracts', () => {
 		);
 	});
 
-	it('scopes since-last-meeting activity and my-deals news to the selected reference period', async () => {
+	it('scopes since-last-meeting activity and my-accounts news to the selected reference period', async () => {
 		const t = createConvex();
 		const seed = await seedDashboardRecords(t);
 
 		const sinceLastMeeting = await t.query(api.sinceLastMeeting.getSinceLastMeeting, {
 			meetingKey: seed.march20MeetingKey
 		});
-		const myDealsList = await t.query(api.myDeals.getMyDealsList, {
+		const myAccountsList = await t.query(api.myAccounts.getMyAccountsList, {
 			brokerKey: seed.collaboratorBrokerKey,
 			view: 'news'
 		});
@@ -639,13 +639,13 @@ describe('Convex feature contracts', () => {
 			kind: 'headline',
 			title: 'Fresh update'
 		});
-		expect(sinceLastMeeting.deals).toEqual([
+		expect(sinceLastMeeting.accounts).toEqual([
 			expect.objectContaining({
-				key: seed.dealKey
+				key: seed.accountKey
 			})
 		]);
 
-		expect(myDealsList.newsItems).toEqual([
+		expect(myAccountsList.newsItems).toEqual([
 			expect.objectContaining({
 				title: 'Acme opens a new distribution hub',
 				dateIso: '2026-03-25'
@@ -653,24 +653,24 @@ describe('Convex feature contracts', () => {
 		]);
 	});
 
-	it('updates industry through the canonical deal key contract', async () => {
+	it('updates industry through the canonical account key contract', async () => {
 		const t = createConvex();
 		const seed = await seedDashboardRecords(t);
 
 		await expect(
-			t.action(api.mutations.updateDealIndustry, {
-				dealKey: seed.dealKey,
+			t.action(api.mutations.updateAccountIndustry, {
+				accountKey: seed.accountKey,
 				industry: 'Food & beverage'
 			})
 		).resolves.toBe('updated');
 		await expect(
-			t.action(api.mutations.updateDealIndustry, {
-				dealKey: 'not-a-deal-key' as DealKey,
+			t.action(api.mutations.updateAccountIndustry, {
+				accountKey: 'not-a-account-key' as AccountKey,
 				industry: 'Food & beverage'
 			})
 		).resolves.toBe('not-found');
 
-		const updatedDeal = await t.run(async (ctx) => ctx.db.get(seed.dealId));
-		expect(updatedDeal?.industry).toBe('Food & beverage');
+		const updatedAccount = await t.run(async (ctx) => ctx.db.get(seed.accountId));
+		expect(updatedAccount?.industry).toBe('Food & beverage');
 	});
 });

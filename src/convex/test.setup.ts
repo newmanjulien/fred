@@ -1,10 +1,10 @@
 /// <reference types="vite/client" />
 
 export const convexTestModules = import.meta.glob([
-	'./dealDetail.ts',
+	'./accountDetail.ts',
 	'./industryInternal.ts',
 	'./mutations.ts',
-	'./myDeals.ts',
+	'./myAccounts.ts',
 	'./newBusiness.ts',
 	'./opportunities.ts',
 	'./renewals.ts',

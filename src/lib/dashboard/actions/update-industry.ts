@@ -1,10 +1,10 @@
 import { error, redirect } from '@sveltejs/kit';
 import { api, createServerConvexClient } from '$lib/server/convex';
-import { parseDealKey } from '$lib/types/keys';
-import { DEAL_INDUSTRIES, type DealIndustry } from '$lib/types/vocab';
+import { parseAccountKey } from '$lib/types/keys';
+import { ACCOUNT_INDUSTRIES, type AccountIndustry } from '$lib/types/vocab';
 
-function isDealIndustry(value: string): value is DealIndustry {
-	return DEAL_INDUSTRIES.includes(value as DealIndustry);
+function isAccountIndustry(value: string): value is AccountIndustry {
+	return ACCOUNT_INDUSTRIES.includes(value as AccountIndustry);
 }
 
 function resolvePostActionRedirectUrl(url: URL) {
@@ -19,24 +19,24 @@ function resolvePostActionRedirectUrl(url: URL) {
 	return `${redirectUrl.pathname}${redirectUrl.search}`;
 }
 
-export async function applyDealIndustryUpdate(params: {
+export async function applyAccountIndustryUpdate(params: {
 	request: Request;
 	url: URL;
 }) {
 	const formData = await params.request.formData();
-	const dealKey = parseDealKey(formData.get('dealKey'));
+	const accountKey = parseAccountKey(formData.get('accountKey'));
 	const industry = formData.get('industry');
 
-	if (!dealKey) {
-		throw error(400, 'Invalid deal key.');
+	if (!accountKey) {
+		throw error(400, 'Invalid account key.');
 	}
 
-	if (typeof industry !== 'string' || !isDealIndustry(industry)) {
+	if (typeof industry !== 'string' || !isAccountIndustry(industry)) {
 		throw error(400, 'Invalid industry selection.');
 	}
 
-	const result = await createServerConvexClient().action(api.mutations.updateDealIndustry, {
-		dealKey,
+	const result = await createServerConvexClient().action(api.mutations.updateAccountIndustry, {
+		accountKey,
 		industry
 	});
 

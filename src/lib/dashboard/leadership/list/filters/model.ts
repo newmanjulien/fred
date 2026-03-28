@@ -1,5 +1,5 @@
-import { getActivityLevelLabel } from '$lib/dashboard/view-models/deal';
-import { ACTIVITY_LEVELS, DEAL_INDUSTRIES, type ActivityLevel, type DealIndustry } from '$lib/types/vocab';
+import { getActivityLevelLabel } from '$lib/dashboard/view-models/account';
+import { ACTIVITY_LEVELS, ACCOUNT_INDUSTRIES, type ActivityLevel, type AccountIndustry } from '$lib/types/vocab';
 import type {
 	NewBusinessListPageData,
 	RenewalsListPageData
@@ -16,7 +16,7 @@ export type LeadershipFilterSectionId = 'broker' | 'activity-level' | 'industry'
 export type LeadershipFilterOptionIdBySection = {
 	broker: BrokerOption['key'];
 	'activity-level': ActivityLevel;
-	industry: DealIndustry;
+	industry: AccountIndustry;
 };
 
 export type LeadershipFilterExpansionState = Record<LeadershipFilterSectionId, boolean>;
@@ -30,7 +30,7 @@ export type LeadershipFilterOptionToggle = {
 
 type CreateLeadershipFilterDrawerDataParams = {
 	brokers: readonly BrokerOption[];
-	industries: readonly DealIndustry[];
+	industries: readonly AccountIndustry[];
 };
 
 export function createLeadershipFilterDrawerData(
@@ -41,7 +41,7 @@ export function createLeadershipFilterDrawerData(
 		label: getActivityLevelLabel(activityLevel)
 	}));
 	const availableIndustries = new Set(params.industries);
-	const industries = DEAL_INDUSTRIES.filter((industry) => availableIndustries.has(industry)).map(
+	const industries = ACCOUNT_INDUSTRIES.filter((industry) => availableIndustries.has(industry)).map(
 		(industry) => ({
 			id: industry,
 			label: industry

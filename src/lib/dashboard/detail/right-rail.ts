@@ -1,5 +1,5 @@
-import type { BrokerKey, DealKey } from '$lib/types/keys';
-import type { ActivityLevel, DealIndustry } from '$lib/types/vocab';
+import type { BrokerKey, AccountKey } from '$lib/types/keys';
+import type { ActivityLevel, AccountIndustry } from '$lib/types/vocab';
 import type { IsoDateTime } from '$lib/types/dates';
 import {
 	formatIsoDateTimeRelative,
@@ -12,7 +12,7 @@ type PersonSummaryLike = {
 	avatar: string;
 };
 
-type DealHelpfulContactLike = {
+type AccountHelpfulContactLike = {
 	id: string;
 	name: string;
 	title: string;
@@ -20,18 +20,18 @@ type DealHelpfulContactLike = {
 	linkedInUrl: string;
 };
 
-type DealContextLike = {
+type AccountContextLike = {
 	summary: string;
 	claimedAtIso: IsoDateTime;
-	helpfulContacts?: readonly DealHelpfulContactLike[];
+	helpfulContacts?: readonly AccountHelpfulContactLike[];
 };
 
-type DealOverviewLike = {
-	key: DealKey;
-	dealName: string;
-	dealNumber: number;
+type AccountOverviewLike = {
+	key: AccountKey;
+	accountName: string;
+	accountNumber: number;
 	activityLevel: ActivityLevel;
-	industry: DealIndustry;
+	industry: AccountIndustry;
 	stage: string;
 	lastActivityAtIso?: IsoDateTime;
 };
@@ -47,14 +47,14 @@ export type DetailRightRailRow =
 			id: string;
 			label: string;
 			kind: 'industry';
-			value: DealIndustry;
-			dealKey: DealKey;
+			value: AccountIndustry;
+			accountKey: AccountKey;
 	  }
 	| {
 			id: string;
 			label: string;
-			kind: 'deal-number';
-			dealNumber: number;
+			kind: 'account-number';
+			accountNumber: number;
 	  }
 	| {
 			id: string;
@@ -102,7 +102,7 @@ function isDetailRightRailSection(
 }
 
 function toDetailRightRailHelpfulContacts(
-	helpfulContacts: readonly DealHelpfulContactLike[]
+	helpfulContacts: readonly AccountHelpfulContactLike[]
 ): DetailRightRailHelpfulContact[] {
 	return helpfulContacts.map<DetailRightRailHelpfulContact>((contact) => ({
 		id: contact.id,
@@ -122,37 +122,37 @@ export function toDetailRightRailData(
 }
 
 export function toDetailRightRailOverviewSection(
-	deal: DealOverviewLike,
+	account: AccountOverviewLike,
 	owner: PersonSummaryLike | null
 ): DetailRightRailSection {
 	return {
-		id: 'deal-overview',
+		id: 'account-overview',
 		kind: 'rows',
 		rows: [
 			{
-				id: 'deal',
-				label: 'Deal',
+				id: 'account',
+				label: 'Account',
 				kind: 'text',
-				value: deal.dealName
+				value: account.accountName
 			},
 			{
-				id: 'deal-number',
+				id: 'account-number',
 				label: 'ID',
-				kind: 'deal-number',
-				dealNumber: deal.dealNumber
+				kind: 'account-number',
+				accountNumber: account.accountNumber
 			},
 			{
 				id: 'activity-level',
 				label: 'Activity',
 				kind: 'activity-level',
-				activityLevel: deal.activityLevel
+				activityLevel: account.activityLevel
 			},
 			{
 				id: 'industry',
 				label: 'Industry',
 				kind: 'industry',
-				value: deal.industry,
-				dealKey: deal.key
+				value: account.industry,
+				accountKey: account.key
 			},
 			{
 				id: 'owner',
@@ -165,18 +165,18 @@ export function toDetailRightRailOverviewSection(
 				id: 'stage',
 				label: 'Stage',
 				kind: 'text',
-				value: deal.stage
+				value: account.stage
 			}
 		]
 	};
 }
 
 export function toDetailRightRailTimingSection(
-	deal: DealOverviewLike,
-	detailContext: DealContextLike
+	account: AccountOverviewLike,
+	detailContext: AccountContextLike
 ): DetailRightRailSection {
 	return {
-		id: 'deal-timing',
+		id: 'account-timing',
 		kind: 'rows',
 		rows: [
 			{
@@ -189,8 +189,8 @@ export function toDetailRightRailTimingSection(
 				id: 'last-activity',
 				label: 'Last activity',
 				kind: 'text',
-				value: deal.lastActivityAtIso
-					? formatIsoDateTimeRelative(deal.lastActivityAtIso)
+				value: account.lastActivityAtIso
+					? formatIsoDateTimeRelative(account.lastActivityAtIso)
 					: formatIsoDateTimeRelativeMonths(detailContext.claimedAtIso)
 			}
 		]
@@ -198,7 +198,7 @@ export function toDetailRightRailTimingSection(
 }
 
 export function toDetailRightRailHelpfulContactsSection(
-	detailContext: DealContextLike
+	detailContext: AccountContextLike
 ): DetailRightRailSection | null {
 	if (!detailContext.helpfulContacts?.length) {
 		return null;

@@ -1,15 +1,15 @@
 <script lang="ts">
 	import SearchableFilterPanel from '$lib/dashboard/ui/pickers/SearchableFilterPanel.svelte';
 	import type { SearchableFilterPanelOption } from '$lib/dashboard/ui/pickers/filter-panel';
-	import type { DealIndustry } from '$lib/types/vocab';
+	import type { AccountIndustry } from '$lib/types/vocab';
 
-	export type IndustryPickerOption = SearchableFilterPanelOption<DealIndustry>;
+	export type IndustryPickerOption = SearchableFilterPanelOption<AccountIndustry>;
 
 	type Props = {
 		mode?: 'single' | 'multiple';
 		options: readonly IndustryPickerOption[];
-		selectedValues?: readonly DealIndustry[];
-		onSelect: (industry: DealIndustry) => void;
+		selectedValues?: readonly AccountIndustry[];
+		onSelect: (industry: AccountIndustry) => void;
 		onRequestClose?: () => void;
 		searchLabel?: string;
 		searchPlaceholder?: string;
@@ -32,7 +32,7 @@
 	{mode}
 	{options}
 	selectedValues={selectedValues}
-	onSelect={(optionId) => onSelect(optionId as DealIndustry)}
+	onSelect={(optionId) => onSelect(optionId as AccountIndustry)}
 	{onRequestClose}
 	{searchLabel}
 	{searchPlaceholder}

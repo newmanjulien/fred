@@ -11,16 +11,16 @@ import type {
 } from '$lib/dashboard/read-models';
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 import {
-	buildDealDetailContentPageData,
-	type DealDetailContentPageData
-} from './dealDetail';
+	buildAccountDetailContentPageData,
+	type AccountDetailContentPageData
+} from './accountDetail';
 import {
 	createSinceLastMeetingDetailHeader,
 	createSinceLastMeetingHeader
 } from './headers';
 
-export type SinceLastMeetingDealPageData = Omit<
-	SinceLastMeetingReadModel['deals'][number],
+export type SinceLastMeetingAccountPageData = Omit<
+	SinceLastMeetingReadModel['accounts'][number],
 	'hasDetail'
 > & {
 	href: ReturnType<typeof resolveSinceLastMeetingDetailPath> | null;
@@ -35,14 +35,14 @@ export type SinceLastMeetingPageData = {
 	};
 	referenceMeetingDateIso: SinceLastMeetingReadModel['referenceMeetingDateIso'];
 	timelineItems: SinceLastMeetingReadModel['timelineItems'];
-	deals: SinceLastMeetingDealPageData[];
+	accounts: SinceLastMeetingAccountPageData[];
 	update: SinceLastMeetingReadModel['update'];
 };
 
 export type SinceLastMeetingDetailPageData = {
 	route: SinceLastMeetingDetailRouteRef;
 	header: DashboardHeader;
-} & DealDetailContentPageData;
+} & AccountDetailContentPageData;
 
 export function buildSinceLastMeetingPageData(params: {
 	route: SinceLastMeetingRouteRef;
@@ -60,14 +60,14 @@ export function buildSinceLastMeetingPageData(params: {
 		},
 		referenceMeetingDateIso: readModel.referenceMeetingDateIso,
 		timelineItems: readModel.timelineItems,
-		deals: readModel.deals.map((deal) => {
-			const { hasDetail, ...rest } = deal;
+		accounts: readModel.accounts.map((account) => {
+			const { hasDetail, ...rest } = account;
 
 			return {
 				...rest,
 				href: hasDetail
 					? resolveSinceLastMeetingDetailPath({
-							dealKey: deal.key,
+							accountKey: account.key,
 							meetingKey: route.meetingKey
 						})
 					: null
@@ -87,7 +87,7 @@ export function buildSinceLastMeetingDetailPageData(params: {
 	return {
 		route,
 		header: createSinceLastMeetingDetailHeader(readModel.title, route.meetingKey),
-		...buildDealDetailContentPageData({
+		...buildAccountDetailContentPageData({
 			readModel,
 			dashboardShell
 		})

@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { Rss } from 'lucide-svelte';
-	import type { DealNewsSource } from '$lib/types/vocab';
+	import type { AccountNewsSource } from '$lib/types/vocab';
 
 	type Props = {
-		source: DealNewsSource;
+		source: AccountNewsSource;
 		text: string;
 	};
 

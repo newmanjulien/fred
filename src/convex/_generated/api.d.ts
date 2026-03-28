@@ -8,11 +8,11 @@
  * @module
  */
 
-import type * as dealDetail from "../dealDetail.js";
+import type * as accountDetail from "../accountDetail.js";
 import type * as industryInternal from "../industryInternal.js";
 import type * as leadershipList from "../leadershipList.js";
 import type * as mutations from "../mutations.js";
-import type * as myDeals from "../myDeals.js";
+import type * as myAccounts from "../myAccounts.js";
 import type * as newBusiness from "../newBusiness.js";
 import type * as opportunities from "../opportunities.js";
 import type * as readModels from "../readModels.js";
@@ -28,11 +28,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
-  dealDetail: typeof dealDetail;
+  accountDetail: typeof accountDetail;
   industryInternal: typeof industryInternal;
   leadershipList: typeof leadershipList;
   mutations: typeof mutations;
-  myDeals: typeof myDeals;
+  myAccounts: typeof myAccounts;
   newBusiness: typeof newBusiness;
   opportunities: typeof opportunities;
   readModels: typeof readModels;

@@ -13,7 +13,7 @@ type RenewalsDetailLayoutData = {
 export async function loadRenewalsDetailPageData(layoutData: RenewalsDetailLayoutData) {
 	const route = requireDashboardRouteKind(layoutData.route, 'renewals-detail');
 	const readModel = await createServerConvexClient().query(api.renewals.getRenewalsDetail, {
-		dealKey: route.dealKey
+		accountKey: route.accountKey
 	});
 
 	if (!readModel) {

@@ -26,9 +26,9 @@
 		ariaLabel?: string;
 	};
 
-	let { rows, selection, ariaLabel = 'Leadership deals table' }: Props = $props();
+	let { rows, selection, ariaLabel = 'Leadership accounts table' }: Props = $props();
 
-	const headers = ['Deal', 'Probability', 'Activity level', 'Owner', 'Stage', 'Last activity'] as const;
+	const headers = ['Account', 'Probability', 'Activity level', 'Owner', 'Stage', 'Last activity'] as const;
 	let columnClass = $derived(
 		selection
 			? 'grid-cols-[4rem_minmax(10rem,1.35fr)_minmax(9rem,1fr)_minmax(7.5rem,0.75fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[4rem_minmax(10rem,1.40fr)_minmax(10rem,1fr)_minmax(8rem,0.75fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
@@ -47,7 +47,7 @@
 			<input
 				data-selection-checkbox
 				type="checkbox"
-				aria-label={`Select ${row.deal}`}
+				aria-label={`Select ${row.account}`}
 				class="h-3.5 w-3.5 rounded-[3px] border-zinc-300 accent-zinc-900"
 				checked={selection.selectedRowKeys.has(row.key)}
 				onchange={(event) =>
@@ -57,14 +57,14 @@
 	{/if}
 {/snippet}
 
-{#snippet dealCellContent(row: LeadershipTableRow, isLinked: boolean)}
+{#snippet accountCellContent(row: LeadershipTableRow, isLinked: boolean)}
 	<span
 		data-table-cell
 		class={`font-medium text-zinc-600${
 			isLinked ? ' transition-colors group-hover:text-zinc-900' : ''
 		}`}
 	>
-		{row.deal}
+		{row.account}
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-900">
 		{row.probability}% likely to close
@@ -125,7 +125,7 @@
 							data-table-cell
 							class="cursor-pointer font-medium text-zinc-600 transition-colors group-hover:text-zinc-900 no-underline"
 						>
-							{row.deal}
+							{row.account}
 						</a>
 						<a
 							href={resolve(row.href)}
@@ -177,12 +177,12 @@
 							data-table-row
 							class={cn(columnClass, 'group no-underline transition-colors hover:bg-zinc-50/80')}
 						>
-						{@render dealCellContent(row, true)}
+						{@render accountCellContent(row, true)}
 					</a>
 				{:else}
 					<div data-table-row class={columnClass}>
 						{@render selectionCell(row)}
-						{@render dealCellContent(row, false)}
+						{@render accountCellContent(row, false)}
 					</div>
 				{/if}
 			{/each}

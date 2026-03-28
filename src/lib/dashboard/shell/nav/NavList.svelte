@@ -2,7 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { fly } from 'svelte/transition';
 	import { isDashboardNavRouteActive, type DashboardRouteRef } from '$lib/dashboard/routing';
-	import { resolveMyDealsListPath } from '$lib/dashboard/routing/my-deals';
+	import { resolveMyAccountsListPath } from '$lib/dashboard/routing/my-accounts';
 	import { resolveNewBusinessListPath } from '$lib/dashboard/routing/new-business';
 	import { resolveOpportunitiesListPath } from '$lib/dashboard/routing/opportunities';
 	import { resolveRenewalsListPath } from '$lib/dashboard/routing/renewals';
@@ -127,9 +127,9 @@
 								{/if}
 							</span>
 						{:else}
-							{#if item.route.kind === 'my-deals-list'}
+							{#if item.route.kind === 'my-accounts-list'}
 								<a
-									href={resolve(resolveMyDealsListPath(item.route.view))}
+									href={resolve(resolveMyAccountsListPath(item.route.view))}
 									data-sidebar-indicator-key={renderMode === 'desktop' ? item.route.kind : undefined}
 									class={getItemClassName({
 										sectionId: section.id,

@@ -13,6 +13,6 @@ export function resolveDefaultBrokerKey(brokerEnv: BrokerEnv = env): BrokerKey {
 	}
 
 	throw new Error(
-		`Missing ${DEFAULT_BROKER_KEY_ENV_VAR}. Set it to the default broker key for My Deals.`
+		`Missing ${DEFAULT_BROKER_KEY_ENV_VAR}. Set it to the default broker key for My Accounts.`
 	);
 }

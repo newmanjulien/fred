@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { OrgChartNode } from '$lib/dashboard/view-models/deal-content';
+	import type { OrgChartNode } from '$lib/dashboard/view-models/account-content';
 
 	type Props = {
 		root: OrgChartNode;

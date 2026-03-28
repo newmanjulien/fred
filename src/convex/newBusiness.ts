@@ -1,17 +1,16 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
-import type { BrokerId } from '../lib/types/ids';
-import type { DealKey } from '../lib/types/keys';
+import type { AccountKey } from '../lib/types/keys';
 import { type NewBusinessView } from '../lib/dashboard/routing/new-business';
 import {
-	type DealRecordData,
+	type AccountRecordData,
 	createDashboardPersonByBrokerIdMap,
-	findDealDocumentByKey,
+	findAccountDocumentByKey,
 	toBrokerRecord,
 	toDashboardPeople,
-	toDealRecord
+	toAccountRecord
 } from './readModels';
-import { getDealDetailReadModel } from './dealDetail';
+import { getAccountDetailReadModel } from './accountDetail';
 import {
 	createLeadershipFilterDrawerData,
 	hasListActivityData,
@@ -42,38 +41,38 @@ type RowCollections = {
 }
 
 function filterFlaggedRows(
-	deals: readonly DealRecordData[],
+	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>,
-	flag: keyof DealRecordData['dashboardFlags']
+	flag: keyof AccountRecordData['dashboardFlags']
 ) {
-	return deals
-		.filter((deal) => deal.dashboardFlags[flag])
-		.map((deal) =>
-			hasListActivityData(deal)
-				? toRelativeLastActivityRow(deal, peopleByBrokerId)
-				: toNoActivityRow(deal, peopleByBrokerId)
+	return accounts
+		.filter((account) => account.dashboardFlags[flag])
+		.map((account) =>
+			hasListActivityData(account)
+				? toRelativeLastActivityRow(account, peopleByBrokerId)
+				: toNoActivityRow(account, peopleByBrokerId)
 		);
 }
 
 function buildRowCollections(
-	deals: readonly DealRecordData[],
+	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
-	const newBusinessRows = deals.filter(hasListActivityData);
-	const noActivityRows = deals.filter((deal) => !hasListActivityData(deal));
-	const likelyOutOfDateRows = deals.filter((deal) => deal.isLikelyOutOfDate);
+	const newBusinessRows = accounts.filter(hasListActivityData);
+	const noActivityRows = accounts.filter((account) => !hasListActivityData(account));
+	const likelyOutOfDateRows = accounts.filter((account) => account.isLikelyOutOfDate);
 
 	return {
-		newBusinessTableRows: newBusinessRows.map((deal) =>
-			toRelativeLastActivityRow(deal, peopleByBrokerId)
+		newBusinessTableRows: newBusinessRows.map((account) =>
+			toRelativeLastActivityRow(account, peopleByBrokerId)
 		),
-		needSupportRows: filterFlaggedRows(deals, peopleByBrokerId, 'needsSupport'),
-		duplicatedWorkRows: filterFlaggedRows(deals, peopleByBrokerId, 'duplicatedWork'),
-		noActivityTableRows: noActivityRows.map((deal) => toNoActivityRow(deal, peopleByBrokerId)),
-		likelyOutOfDateViewRows: likelyOutOfDateRows.map((deal) =>
-			hasListActivityData(deal)
-				? toRelativeLastActivityRow(deal, peopleByBrokerId)
-				: toNoActivityRow(deal, peopleByBrokerId)
+		needSupportRows: filterFlaggedRows(accounts, peopleByBrokerId, 'needsSupport'),
+		duplicatedWorkRows: filterFlaggedRows(accounts, peopleByBrokerId, 'duplicatedWork'),
+		noActivityTableRows: noActivityRows.map((account) => toNoActivityRow(account, peopleByBrokerId)),
+		likelyOutOfDateViewRows: likelyOutOfDateRows.map((account) =>
+			hasListActivityData(account)
+				? toRelativeLastActivityRow(account, peopleByBrokerId)
+				: toNoActivityRow(account, peopleByBrokerId)
 		)
 	};
 }
@@ -97,35 +96,35 @@ export const getNewBusinessList = query({
 	returns: newBusinessListReadModelValidator,
 	handler: async (ctx, args): Promise<NewBusinessListReadModel> => {
 		const selectedView = args.view as NewBusinessView;
-		const [brokers, deals] = await Promise.all([
+		const [brokers, accounts] = await Promise.all([
 			ctx.db.query('brokers').collect(),
-			ctx.db.query('deals').collect()
+			ctx.db.query('accounts').collect()
 		]);
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const people = toDashboardPeople(brokerRecords);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const dealRecords = deals.map((deal) => toDealRecord(deal)).filter((deal) => !deal.isRenewal);
-		const collections = buildRowCollections(dealRecords, peopleByBrokerId);
+		const accountRecords = accounts.map((account) => toAccountRecord(account)).filter((account) => !account.isRenewal);
+		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
 
 		return {
 			rows: resolveRowsForView(selectedView, collections),
-			filterDrawerData: createLeadershipFilterDrawerData(people, dealRecords)
+			filterDrawerData: createLeadershipFilterDrawerData(people, accountRecords)
 		};
 	}
 });
 
 export const getNewBusinessDetail = query({
 	args: {
-		dealKey: v.string()
+		accountKey: v.string()
 	},
 	returns: v.union(newBusinessDetailReadModelValidator, v.null()),
 	handler: async (ctx, args): Promise<NewBusinessDetailReadModel | null> => {
-		const deal = await findDealDocumentByKey(ctx, args.dealKey as DealKey);
+		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 
-		if (!deal || toDealRecord(deal).isRenewal) {
+		if (!account || toAccountRecord(account).isRenewal) {
 			return null;
 		}
 
-		return getDealDetailReadModel(ctx, args.dealKey as DealKey);
+		return getAccountDetailReadModel(ctx, args.accountKey as AccountKey);
 	}
 });

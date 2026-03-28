@@ -1,5 +1,5 @@
 import type { MeetingKey } from '$lib/types/keys';
-import type { MyDealsView } from '$lib/dashboard/routing/my-deals';
+import type { MyAccountsView } from '$lib/dashboard/routing/my-accounts';
 import type { NewBusinessView } from '$lib/dashboard/routing/new-business';
 import type { RenewalsView } from '$lib/dashboard/routing/renewals';
 
@@ -11,8 +11,8 @@ export type DashboardHeaderMeetingDateControl = {
 
 export type DashboardHeaderBackLinkControl =
 	| {
-			kind: 'my-deals-back-link';
-			view: MyDealsView;
+			kind: 'my-accounts-back-link';
+			view: MyAccountsView;
 			label: string;
 	  }
 	| {
@@ -42,15 +42,15 @@ export type DashboardHeaderControl =
 
 export type DashboardHeaderAction = 'share' | 'broker-switch';
 
-export type MyDealsHeaderTitleMenu = {
+export type MyAccountsHeaderTitleMenu = {
 	kind: 'link-menu';
-	pageKind: 'my-deals';
+	pageKind: 'my-accounts';
 	menuId: string;
 	ariaLabel: string;
 	sectionLabel: string;
 	activeLabel: string;
 	options: {
-		id: MyDealsView;
+		id: MyAccountsView;
 		label: string;
 		current: boolean;
 	}[];
@@ -85,7 +85,7 @@ export type RenewalsHeaderTitleMenu = {
 };
 
 export type DashboardHeaderTitleMenu =
-	| MyDealsHeaderTitleMenu
+	| MyAccountsHeaderTitleMenu
 	| NewBusinessHeaderTitleMenu
 	| RenewalsHeaderTitleMenu;
 

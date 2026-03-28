@@ -7,9 +7,9 @@ import type {
 	NewBusinessListReadModel
 } from '$lib/dashboard/read-models';
 import {
-	buildDealDetailContentPageData,
-	type DealDetailContentPageData
-} from './dealDetail';
+	buildAccountDetailContentPageData,
+	type AccountDetailContentPageData
+} from './accountDetail';
 import { createRenewalsDetailHeader, createRenewalsListHeader } from './headers';
 
 export type RenewalsTableRowPageData = Omit<NewBusinessListReadModel['rows'][number], 'hasDetail'> & {
@@ -26,7 +26,7 @@ export type RenewalsListPageData = {
 export type RenewalsDetailPageData = {
 	route: RenewalsDetailRouteRef;
 	header: DashboardHeader;
-} & DealDetailContentPageData;
+} & AccountDetailContentPageData;
 
 export function buildRenewalsListPageData(params: {
 	route: RenewalsListRouteRef;
@@ -44,7 +44,7 @@ export function buildRenewalsListPageData(params: {
 				...rest,
 				href: hasDetail
 					? resolveRenewalsDetailPath({
-							dealKey: row.key,
+							accountKey: row.key,
 							view: route.view
 						})
 					: null
@@ -64,7 +64,7 @@ export function buildRenewalsDetailPageData(params: {
 	return {
 		route,
 		header: createRenewalsDetailHeader(readModel.title, route.view),
-		...buildDealDetailContentPageData({
+		...buildAccountDetailContentPageData({
 			readModel,
 			dashboardShell
 		})

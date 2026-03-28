@@ -1,5 +1,5 @@
 import { error, redirect, type Actions } from '@sveltejs/kit';
-import { applyDealIndustryUpdate } from '$lib/dashboard/actions/update-industry';
+import { applyAccountIndustryUpdate } from '$lib/dashboard/actions/update-industry';
 import { resolveDashboardRoute } from '$lib/dashboard/routing';
 import { buildOpportunityDetailPageData } from '$lib/dashboard/page-models/opportunities';
 import { requireDashboardRouteKind } from '$lib/dashboard/page-models/layout';
@@ -41,5 +41,5 @@ export const load: PageServerLoad = async ({ parent }) => {
 };
 
 export const actions = {
-	updateIndustry: ({ request, url }) => applyDealIndustryUpdate({ request, url })
+	updateIndustry: ({ request, url }) => applyAccountIndustryUpdate({ request, url })
 } satisfies Actions;

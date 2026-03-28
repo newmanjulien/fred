@@ -1,16 +1,16 @@
 import { v } from 'convex/values';
 import { query } from './_generated/server';
-import type { DealKey } from '../lib/types/keys';
+import type { AccountKey } from '../lib/types/keys';
 import { type RenewalsView } from '../lib/dashboard/routing/renewals';
 import {
-	type DealRecordData,
+	type AccountRecordData,
 	createDashboardPersonByBrokerIdMap,
-	findDealDocumentByKey,
+	findAccountDocumentByKey,
 	toBrokerRecord,
 	toDashboardPeople,
-	toDealRecord
+	toAccountRecord
 } from './readModels';
-import { getDealDetailReadModel } from './dealDetail';
+import { getAccountDetailReadModel } from './accountDetail';
 import {
 	createLeadershipFilterDrawerData,
 	hasListActivityData,
@@ -27,28 +27,28 @@ import {
 } from './validators';
 
 type RowCollections = {
-	dealsRows: LeadershipListTableRow[];
+	accountsRows: LeadershipListTableRow[];
 	atRiskRows: LeadershipListTableRow[];
 	likelyOutOfDateRows: LeadershipListTableRow[];
 };
 
 function buildRowCollections(
-	deals: readonly DealRecordData[],
+	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
-	const likelyOutOfDateDeals = deals.filter((deal) => deal.isLikelyOutOfDate);
+	const likelyOutOfDateAccounts = accounts.filter((account) => account.isLikelyOutOfDate);
 
 	return {
-		dealsRows: deals.map((deal) =>
-			hasListActivityData(deal)
-				? toRelativeLastActivityRow(deal, peopleByBrokerId)
-				: toNoActivityRow(deal, peopleByBrokerId)
+		accountsRows: accounts.map((account) =>
+			hasListActivityData(account)
+				? toRelativeLastActivityRow(account, peopleByBrokerId)
+				: toNoActivityRow(account, peopleByBrokerId)
 		),
 		atRiskRows: [],
-		likelyOutOfDateRows: likelyOutOfDateDeals.map((deal) =>
-			hasListActivityData(deal)
-				? toRelativeLastActivityRow(deal, peopleByBrokerId)
-				: toNoActivityRow(deal, peopleByBrokerId)
+		likelyOutOfDateRows: likelyOutOfDateAccounts.map((account) =>
+			hasListActivityData(account)
+				? toRelativeLastActivityRow(account, peopleByBrokerId)
+				: toNoActivityRow(account, peopleByBrokerId)
 		)
 	};
 }
@@ -58,7 +58,7 @@ function resolveRowsForView(view: RenewalsView, collections: RowCollections) {
 		? collections.atRiskRows
 		: view === 'likely-out-of-date'
 			? collections.likelyOutOfDateRows
-			: collections.dealsRows;
+			: collections.accountsRows;
 }
 
 export const getRenewalsList = query({
@@ -68,35 +68,35 @@ export const getRenewalsList = query({
 	returns: newBusinessListReadModelValidator,
 	handler: async (ctx, args): Promise<NewBusinessListReadModel> => {
 		const selectedView = args.view as RenewalsView;
-		const [brokers, deals] = await Promise.all([
+		const [brokers, accounts] = await Promise.all([
 			ctx.db.query('brokers').collect(),
-			ctx.db.query('deals').collect()
+			ctx.db.query('accounts').collect()
 		]);
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const people = toDashboardPeople(brokerRecords);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const dealRecords = deals.map((deal) => toDealRecord(deal)).filter((deal) => deal.isRenewal);
-		const collections = buildRowCollections(dealRecords, peopleByBrokerId);
+		const accountRecords = accounts.map((account) => toAccountRecord(account)).filter((account) => account.isRenewal);
+		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
 
 		return {
 			rows: resolveRowsForView(selectedView, collections),
-			filterDrawerData: createLeadershipFilterDrawerData(people, dealRecords)
+			filterDrawerData: createLeadershipFilterDrawerData(people, accountRecords)
 		};
 	}
 });
 
 export const getRenewalsDetail = query({
 	args: {
-		dealKey: v.string()
+		accountKey: v.string()
 	},
 	returns: v.union(newBusinessDetailReadModelValidator, v.null()),
 	handler: async (ctx, args): Promise<NewBusinessDetailReadModel | null> => {
-		const deal = await findDealDocumentByKey(ctx, args.dealKey as DealKey);
+		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 
-		if (!deal || !toDealRecord(deal).isRenewal) {
+		if (!account || !toAccountRecord(account).isRenewal) {
 			return null;
 		}
 
-		return getDealDetailReadModel(ctx, args.dealKey as DealKey);
+		return getAccountDetailReadModel(ctx, args.accountKey as AccountKey);
 	}
 });

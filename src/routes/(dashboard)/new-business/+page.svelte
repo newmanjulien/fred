@@ -8,6 +8,6 @@
 <Page
 	{data}
 	scopeId="new-business-list"
-	tableAriaLabel="New business deals table"
-	likelyOutOfDateTableAriaLabel="New business likely out of date deals table"
+	tableAriaLabel="New business accounts table"
+	likelyOutOfDateTableAriaLabel="New business likely out of date accounts table"
 />

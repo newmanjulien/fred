@@ -4,13 +4,13 @@
 	import { dismissibleMenu } from '$lib/dashboard/shell/menus/menu-interactions';
 	import IndustryPickerPanel from '$lib/dashboard/ui/pickers/IndustryPickerPanel.svelte';
 	import type { IndustryPickerOption } from '$lib/dashboard/ui/pickers/IndustryPickerPanel.svelte';
-	import type { DealIndustry } from '$lib/types/vocab';
+	import type { AccountIndustry } from '$lib/types/vocab';
 
 	type Props = {
 		summary: string;
 		options: readonly IndustryPickerOption[];
-		selectedValue: DealIndustry;
-		onSelect: (industry: DealIndustry) => void;
+		selectedValue: AccountIndustry;
+		onSelect: (industry: AccountIndustry) => void;
 		searchLabel?: string;
 		searchPlaceholder?: string;
 		emptyLabel?: string;

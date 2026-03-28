@@ -1,7 +1,7 @@
 import type { QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import type { OrgChartNodeRecord as InternalOrgChartNodeRecord } from '../lib/domain/org-chart';
-import type { OrgChartNodeRecord as DashboardOrgChartNodeRecord } from '../lib/dashboard/view-models/deal-content';
+import type { OrgChartNodeRecord as DashboardOrgChartNodeRecord } from '../lib/dashboard/view-models/account-content';
 import {
 	parseIsoDate,
 	parseIsoDateTime,
@@ -9,15 +9,15 @@ import {
 	type IsoDate,
 	type IsoDateTime
 } from '../lib/types/dates';
-import type { BrokerId, DealId, InsightId, MeetingId } from '../lib/types/ids';
-import type { BrokerKey, DealKey, InsightKey, MeetingKey } from '../lib/types/keys';
+import type { BrokerId, AccountId, InsightId, MeetingId } from '../lib/types/ids';
+import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import type {
 	ActivityLevel,
-	DealActivityStream,
-	DealIndustry,
-	DealInsightKind,
-	DealNewsSource,
-	DealStage
+	AccountActivityStream,
+	AccountIndustry,
+	AccountInsightKind,
+	AccountNewsSource,
+	AccountStage
 } from '../lib/types/vocab';
 import type { DashboardMeeting, DashboardPerson } from './validators';
 
@@ -34,7 +34,7 @@ export type MeetingRecordData = {
 	dateIso: IsoDate;
 };
 
-export type DealContextRecordData = {
+export type AccountContextRecordData = {
 	summary: string;
 	claimedAtIso: IsoDateTime;
 	orgChartNodes: InternalOrgChartNodeRecord[];
@@ -47,22 +47,22 @@ export type DealContextRecordData = {
 	}[];
 };
 
-export type DealRecordData = {
-	id: DealId;
-	key: DealKey;
-	dealNumber: number;
-	industry: DealIndustry;
-	dealName: string;
+export type AccountRecordData = {
+	id: AccountId;
+	key: AccountKey;
+	accountNumber: number;
+	industry: AccountIndustry;
+	accountName: string;
 	isRenewal: boolean;
 	isReservedInEpic: boolean;
 	probability: number;
-	stage: DealStage;
+	stage: AccountStage;
 	isLikelyOutOfDate: boolean;
 	activityLevel: ActivityLevel;
 	lastActivityAtIso?: IsoDateTime;
 	ownerBrokerId: BrokerId | null;
 	collaboratorBrokerIds: BrokerId[];
-	context?: DealContextRecordData;
+	context?: AccountContextRecordData;
 	dashboardFlags: {
 		needsSupport: boolean;
 		duplicatedWork: boolean;
@@ -82,8 +82,8 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 	| {
 			kind: 'headline';
 			id: string;
-			dealId: DealId;
-			stream: DealActivityStream;
+			accountId: AccountId;
+			stream: AccountActivityStream;
 			occurredOnIso: IsoDate;
 			body: string;
 			marker: ActivityMarkerData<BrokerRef>;
@@ -92,8 +92,8 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 	| {
 			kind: 'actor-action';
 			id: string;
-			dealId: DealId;
-			stream: DealActivityStream;
+			accountId: AccountId;
+			stream: AccountActivityStream;
 			occurredOnIso: IsoDate;
 			body: string;
 			marker: ActivityMarkerData<BrokerRef>;
@@ -103,18 +103,18 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 
 export type NewsRecordData = {
 	id: string;
-	dealId: DealId;
+	accountId: AccountId;
 	title: string;
-	source: DealNewsSource;
+	source: AccountNewsSource;
 	publishedOnIso: IsoDate;
 };
 
 export type InsightRecordData = {
 	id: InsightId;
 	key: InsightKey;
-	dealId: DealId;
+	accountId: AccountId;
 	meetingId: MeetingId;
-	kind: DealInsightKind;
+	kind: AccountInsightKind;
 	title: string;
 	ownerBrokerId: BrokerId;
 	collaboratorBrokerIds: BrokerId[];
@@ -123,8 +123,8 @@ export type InsightRecordData = {
 };
 
 type DashboardActivityValue = Doc<'activities'> | Doc<'insights'>['timeline'][number];
-type DealContextDocument = NonNullable<Doc<'deals'>['context']>;
-type FlatDealContextDocument = Extract<DealContextDocument, { orgChartNodes: unknown[] }>;
+type AccountContextDocument = NonNullable<Doc<'accounts'>['context']>;
+type FlatAccountContextDocument = Extract<AccountContextDocument, { orgChartNodes: unknown[] }>;
 type InsightDocument = Doc<'insights'>;
 type FlatInsightDocument = Extract<InsightDocument, { orgChartNodes: unknown[] }>;
 
@@ -138,7 +138,7 @@ function requireString(value: unknown, path: string) {
 
 function toInternalOrgChartNodeRecord(
 	node:
-		| FlatDealContextDocument['orgChartNodes'][number]
+		| FlatAccountContextDocument['orgChartNodes'][number]
 		| FlatInsightDocument['orgChartNodes'][number]
 ): InternalOrgChartNodeRecord {
 	return {
@@ -194,7 +194,7 @@ function toLegacyOrgChartNodeRecords(
 	];
 }
 
-function hasFlatOrgChartNodes(context: DealContextDocument): context is FlatDealContextDocument {
+function hasFlatOrgChartNodes(context: AccountContextDocument): context is FlatAccountContextDocument {
 	return 'orgChartNodes' in context;
 }
 
@@ -344,13 +344,13 @@ export async function requireMeetingRecordByKey(
 	return meeting;
 }
 
-export async function findDealDocumentByKey(
+export async function findAccountDocumentByKey(
 	ctx: QueryCtx,
-	dealKey: DealKey
-): Promise<Doc<'deals'> | null> {
+	accountKey: AccountKey
+): Promise<Doc<'accounts'> | null> {
 	return ctx.db
-		.query('deals')
-		.withIndex('by_key', (query) => query.eq('key', dealKey))
+		.query('accounts')
+		.withIndex('by_key', (query) => query.eq('key', accountKey))
 		.unique();
 }
 
@@ -377,13 +377,13 @@ async function resolveBrokerAvatar(
 	}
 }
 
-export function toDealContextRecord(context: DealContextDocument): DealContextRecordData {
+export function toAccountContextRecord(context: AccountContextDocument): AccountContextRecordData {
 	return {
 		summary: context.summary,
-		claimedAtIso: parseIsoDateTime(context.claimedAtIso, 'deal.context.claimedAtIso'),
+		claimedAtIso: parseIsoDateTime(context.claimedAtIso, 'account.context.claimedAtIso'),
 		orgChartNodes: hasFlatOrgChartNodes(context)
 			? context.orgChartNodes.map((node) => toInternalOrgChartNodeRecord(node))
-			: toLegacyOrgChartNodeRecords(context.orgChartRoot, 'deal.context.orgChartRoot'),
+			: toLegacyOrgChartNodeRecords(context.orgChartRoot, 'account.context.orgChartRoot'),
 		helpfulContacts: context.helpfulContacts?.map((contact) => ({
 			id: contact.id,
 			name: contact.name,
@@ -394,29 +394,29 @@ export function toDealContextRecord(context: DealContextDocument): DealContextRe
 	};
 }
 
-export function toDealRecord(deal: Doc<'deals'>): DealRecordData {
+export function toAccountRecord(account: Doc<'accounts'>): AccountRecordData {
 	return {
-		id: deal._id,
-		key: deal.key as DealKey,
-		dealNumber: deal.dealNumber,
-		industry: deal.industry as DealIndustry,
-		dealName: deal.dealName,
-		isRenewal: deal.isRenewal,
-		isReservedInEpic: deal.isReservedInEpic,
-		probability: deal.probability,
-		stage: deal.stage as DealStage,
-		isLikelyOutOfDate: deal.isLikelyOutOfDate,
-		activityLevel: deal.activityLevel as ActivityLevel,
+		id: account._id,
+		key: account.key as AccountKey,
+		accountNumber: account.accountNumber,
+		industry: account.industry as AccountIndustry,
+		accountName: account.accountName,
+		isRenewal: account.isRenewal,
+		isReservedInEpic: account.isReservedInEpic,
+		probability: account.probability,
+		stage: account.stage as AccountStage,
+		isLikelyOutOfDate: account.isLikelyOutOfDate,
+		activityLevel: account.activityLevel as ActivityLevel,
 		lastActivityAtIso: parseOptionalIsoDateTime(
-			deal.lastActivityAtIso,
-			`deals["${deal._id}"].lastActivityAtIso`
+			account.lastActivityAtIso,
+			`accounts["${account._id}"].lastActivityAtIso`
 		),
-		ownerBrokerId: deal.ownerBrokerId ?? null,
-		collaboratorBrokerIds: deal.collaboratorBrokerIds,
-		context: deal.context ? toDealContextRecord(deal.context) : undefined,
+		ownerBrokerId: account.ownerBrokerId ?? null,
+		collaboratorBrokerIds: account.collaboratorBrokerIds,
+		context: account.context ? toAccountContextRecord(account.context) : undefined,
 		dashboardFlags: {
-			needsSupport: deal.dashboardFlags.needsSupport,
-			duplicatedWork: deal.dashboardFlags.duplicatedWork
+			needsSupport: account.dashboardFlags.needsSupport,
+			duplicatedWork: account.dashboardFlags.duplicatedWork
 		}
 	};
 }
@@ -464,8 +464,8 @@ export function toActivityRecord(activity: DashboardActivityValue): ActivityReco
 		return {
 			kind: 'headline',
 			id,
-			dealId: activity.dealId,
-			stream: activity.stream as DealActivityStream,
+			accountId: activity.accountId,
+			stream: activity.stream as AccountActivityStream,
 			occurredOnIso: parseIsoDate(activity.occurredOnIso, `activity["${id}"].occurredOnIso`),
 			body: activity.body,
 			marker,
@@ -475,8 +475,8 @@ export function toActivityRecord(activity: DashboardActivityValue): ActivityReco
 		return {
 			kind: 'actor-action',
 			id,
-			dealId: activity.dealId,
-			stream: activity.stream as DealActivityStream,
+			accountId: activity.accountId,
+			stream: activity.stream as AccountActivityStream,
 			occurredOnIso: parseIsoDate(activity.occurredOnIso, `activity["${id}"].occurredOnIso`),
 			body: activity.body,
 			marker,
@@ -489,9 +489,9 @@ export function toActivityRecord(activity: DashboardActivityValue): ActivityReco
 export function toNewsRecord(newsItem: Doc<'news'>): NewsRecordData {
 	return {
 		id: `news-${newsItem._creationTime}`,
-		dealId: newsItem.dealId,
+		accountId: newsItem.accountId,
 		title: newsItem.title,
-		source: newsItem.source as DealNewsSource,
+		source: newsItem.source as AccountNewsSource,
 		publishedOnIso: parseIsoDate(newsItem.publishedOnIso, `news["${newsItem._id}"].publishedOnIso`)
 	};
 }
@@ -500,9 +500,9 @@ export function toInsightRecord(insight: InsightDocument): InsightRecordData {
 	return {
 		id: insight._id,
 		key: insight.key as InsightKey,
-		dealId: insight.dealId,
+		accountId: insight.accountId,
 		meetingId: insight.meetingId,
-		kind: insight.kind as DealInsightKind,
+		kind: insight.kind as AccountInsightKind,
 		title: insight.title,
 		ownerBrokerId: insight.ownerBrokerId,
 		collaboratorBrokerIds: insight.collaboratorBrokerIds,

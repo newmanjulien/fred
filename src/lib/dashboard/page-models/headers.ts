@@ -2,10 +2,10 @@ import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 import { buildHeaderTitleMenuOptions } from '$lib/dashboard/shell/header/title-menu';
 import type { MeetingKey } from '$lib/types/keys';
 import {
-	MY_DEALS_VIEW_OPTIONS,
-	getMyDealsViewLabel,
-	type MyDealsView
-} from '$lib/dashboard/routing/my-deals';
+	MY_ACCOUNTS_VIEW_OPTIONS,
+	getMyAccountsViewLabel,
+	type MyAccountsView
+} from '$lib/dashboard/routing/my-accounts';
 import {
 	NEW_BUSINESS_VIEW_OPTIONS,
 	getNewBusinessViewLabel,
@@ -83,21 +83,21 @@ export function createOpportunitiesDetailHeader(
 	};
 }
 
-export function createMyDealsListHeader(selectedView: MyDealsView): DashboardHeader {
+export function createMyAccountsListHeader(selectedView: MyAccountsView): DashboardHeader {
 	return {
 		leading: {
 			kind: 'title-menu',
-			title: 'My deals',
+			title: 'My accounts',
 			menu: {
 				kind: 'link-menu',
-				pageKind: 'my-deals',
-				menuId: 'desktop-my-deals-view',
-				ariaLabel: 'Change my deals view',
+				pageKind: 'my-accounts',
+				menuId: 'desktop-my-accounts-view',
+				ariaLabel: 'Change my accounts view',
 				sectionLabel: 'Select view',
-				activeLabel: getMyDealsViewLabel(selectedView),
+				activeLabel: getMyAccountsViewLabel(selectedView),
 				options: buildHeaderTitleMenuOptions({
 					selectedId: selectedView,
-					options: MY_DEALS_VIEW_OPTIONS
+					options: MY_ACCOUNTS_VIEW_OPTIONS
 				})
 			}
 		},
@@ -105,18 +105,18 @@ export function createMyDealsListHeader(selectedView: MyDealsView): DashboardHea
 	};
 }
 
-export function createMyDealsDetailHeader(
+export function createMyAccountsDetailHeader(
 	title: string,
-	selectedView: MyDealsView
+	selectedView: MyAccountsView
 ): DashboardHeader {
 	return {
 		leading: {
 			kind: 'control-title',
 			title,
 			control: {
-				kind: 'my-deals-back-link',
+				kind: 'my-accounts-back-link',
 				view: selectedView,
-				label: getMyDealsViewLabel(selectedView)
+				label: getMyAccountsViewLabel(selectedView)
 			}
 		},
 		actions: ['share']

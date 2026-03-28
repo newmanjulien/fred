@@ -15,7 +15,7 @@ export async function loadNewBusinessDetailPageData(
 ) {
 	const route = requireDashboardRouteKind(layoutData.route, 'new-business-detail');
 	const readModel = await createServerConvexClient().query(api.newBusiness.getNewBusinessDetail, {
-		dealKey: route.dealKey
+		accountKey: route.accountKey
 	});
 
 	if (!readModel) {

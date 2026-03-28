@@ -8,6 +8,6 @@
 <Page
 	{data}
 	scopeId="renewals-list"
-	tableAriaLabel="Renewals deals table"
-	likelyOutOfDateTableAriaLabel="Renewals likely out of date deals table"
+	tableAriaLabel="Renewals accounts table"
+	likelyOutOfDateTableAriaLabel="Renewals likely out of date accounts table"
 />

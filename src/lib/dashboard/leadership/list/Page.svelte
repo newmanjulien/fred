@@ -5,7 +5,7 @@
 		type DashboardHeaderButtonHandler,
 		type DashboardHeaderUiScope
 	} from '$lib/dashboard/shell/header/ui-controller';
-	import type { ActivityLevel, DealIndustry } from '$lib/types/vocab';
+	import type { ActivityLevel, AccountIndustry } from '$lib/types/vocab';
 	import type {
 		NewBusinessListPageData,
 		RenewalsListPageData
@@ -42,7 +42,7 @@
 	let expandedSections = $state(createDefaultLeadershipFilterExpansionState());
 	let selectedBrokerKeys = $state<BrokerKey[]>([]);
 	let selectedActivityLevels = $state<ActivityLevel[]>([]);
-	let selectedIndustries = $state<DealIndustry[]>([]);
+	let selectedIndustries = $state<AccountIndustry[]>([]);
 	const filterDrawerSections = $derived(
 		buildLeadershipFilterDrawerSections({
 			data: filterDrawerData,

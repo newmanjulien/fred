@@ -6,16 +6,16 @@ import {
 	type PersonSummaryMap,
 	resolveOptionalBrokerPerson,
 	toTimelineItem
-} from '../lib/dashboard/view-models/deal-content';
+} from '../lib/dashboard/view-models/account-content';
 import {
-	buildDealUploadFieldData
+	buildAccountUploadFieldData
 } from '../lib/dashboard/view-models/detail-builders';
 import {
 	toDetailRightRailData,
 	toDetailRightRailOverviewSection
 } from '../lib/dashboard/detail/right-rail';
 import {
-	type DealRecordData,
+	type AccountRecordData,
 	type InsightRecordData,
 	createBrokerKeyByIdMap,
 	createDashboardPersonByBrokerIdMap,
@@ -23,7 +23,7 @@ import {
 	requireMeetingRecordByKey,
 	toBrokerRecord,
 	toDashboardOrgChartNodes,
-	toDealRecord,
+	toAccountRecord,
 	toInsightRecord
 } from './readModels';
 import {
@@ -63,27 +63,27 @@ function getOwnerAvatars(
 
 function toTile(
 	insight: InsightRecordData,
-	deal: DealRecordData,
+	account: AccountRecordData,
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ) {
 	return {
 		key: insight.key,
 		title: insight.title,
-		dealNumber: deal.dealNumber,
-		dealLabel: deal.dealName,
+		accountNumber: account.accountNumber,
+		accountLabel: account.accountName,
 		avatars: getOwnerAvatars(insight, peopleByBrokerId),
-		activityLevel: deal.activityLevel
+		activityLevel: account.activityLevel
 	};
 }
 
 function toRightRailData(
-	deal: DealRecordData,
+	account: AccountRecordData,
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ) {
 	return toDetailRightRailData([
 		toDetailRightRailOverviewSection(
-			deal,
-			resolveOptionalBrokerPerson(peopleByBrokerId, deal.ownerBrokerId)
+			account,
+			resolveOptionalBrokerPerson(peopleByBrokerId, account.ownerBrokerId)
 		)
 	]);
 }
@@ -94,10 +94,10 @@ export const getOpportunitiesList = query({
 	},
 	returns: opportunitiesListReadModelValidator,
 	handler: async (ctx, args): Promise<OpportunitiesListReadModel> => {
-		const [meeting, brokers, deals] = await Promise.all([
+		const [meeting, brokers, accounts] = await Promise.all([
 			requireMeetingRecordByKey(ctx, args.meetingKey as MeetingKey),
 			ctx.db.query('brokers').collect(),
-			ctx.db.query('deals').collect()
+			ctx.db.query('accounts').collect()
 		]);
 		const insights = await ctx.db
 			.query('insights')
@@ -105,36 +105,36 @@ export const getOpportunitiesList = query({
 			.collect();
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const dealsById = new Map(deals.map((deal) => [deal._id, toDealRecord(deal)] as const));
+		const accountsById = new Map(accounts.map((account) => [account._id, toAccountRecord(account)] as const));
 		const insightRecords = insights.map((insight) => toInsightRecord(insight));
 
 		const opportunityTiles = insightRecords
 			.filter((insight) => insight.kind === 'opportunity')
 			.map((insight) => {
-				const deal = dealsById.get(insight.dealId);
+				const account = accountsById.get(insight.accountId);
 
-				if (!deal) {
-					throw new Error(`Unknown deal "${insight.dealId}" for insight "${insight.id}".`);
+				if (!account) {
+					throw new Error(`Unknown account "${insight.accountId}" for insight "${insight.id}".`);
 				}
 
-				return toTile(insight, deal, peopleByBrokerId);
+				return toTile(insight, account, peopleByBrokerId);
 			});
 		const riskTiles = insightRecords
 			.filter((insight) => insight.kind === 'risk')
 			.map((insight) => {
-				const deal = dealsById.get(insight.dealId);
+				const account = accountsById.get(insight.accountId);
 
-				if (!deal) {
-					throw new Error(`Unknown deal "${insight.dealId}" for insight "${insight.id}".`);
+				if (!account) {
+					throw new Error(`Unknown account "${insight.accountId}" for insight "${insight.id}".`);
 				}
 
-				return toTile(insight, deal, peopleByBrokerId);
+				return toTile(insight, account, peopleByBrokerId);
 			});
 
 		return {
 			opportunityTiles,
 			riskTiles,
-			update: buildDealUploadFieldData(
+			update: buildAccountUploadFieldData(
 				'your opportunities and risks',
 				'Upload call notes, screenshots, or procurement docs that add context to'
 			)
@@ -163,32 +163,32 @@ export const getOpportunityDetail = query({
 			return null;
 		}
 
-		const deal = await ctx.db.get(insight.dealId);
+		const account = await ctx.db.get(insight.accountId);
 
-		if (!deal) {
-			throw new Error(`Unknown deal "${insight.dealId}" for insight "${insight._id}".`);
+		if (!account) {
+			throw new Error(`Unknown account "${insight.accountId}" for insight "${insight._id}".`);
 		}
 
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
 		const brokerKeyById = createBrokerKeyByIdMap(brokerRecords);
-		const dealRecord = toDealRecord(deal);
+		const accountRecord = toAccountRecord(account);
 		const insightRecord = toInsightRecord(insight);
 
 		return {
 			title: insightRecord.title,
 			hero: {
-				dealNumber: dealRecord.dealNumber,
+				accountNumber: accountRecord.accountNumber,
 				title: insightRecord.title
 			},
 			kind: insightRecord.kind,
 			activityItems: insightRecord.timeline.map((activity) => toTimelineItem(activity, peopleByBrokerId)),
 			orgChartNodes: toDashboardOrgChartNodes(insightRecord.orgChartNodes, brokerKeyById),
-			update: buildDealUploadFieldData(
+			update: buildAccountUploadFieldData(
 				'this opportunity or risk',
 				'Upload call notes, screenshots, or procurement docs that add context to'
 			),
-			rightRail: toRightRailData(dealRecord, peopleByBrokerId)
+			rightRail: toRightRailData(accountRecord, peopleByBrokerId)
 		};
 	}
 });

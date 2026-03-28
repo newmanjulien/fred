@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { formatIsoDate } from '$lib/format/date-time';
-	import type { TimelineItem } from '$lib/dashboard/view-models/deal-content';
+	import type { TimelineItem } from '$lib/dashboard/view-models/account-content';
 	import PersonAvatar from '$lib/dashboard/ui/people/PersonAvatar.svelte';
 
 	type Props = {

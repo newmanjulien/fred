@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { DetailRightRailData } from '$lib/dashboard/detail/right-rail';
-	import { formatDealNumber } from '$lib/dashboard/view-models/deal';
+	import { formatAccountNumber } from '$lib/dashboard/view-models/account';
 	import ActivityLevelLabel from '$lib/dashboard/ui/activity-level/ActivityLevelLabel.svelte';
 	import DetailRightRailIndustryField from '$lib/dashboard/ui/detail/DetailRightRailIndustryField.svelte';
 	import LinkedInGlyph from '$lib/dashboard/ui/icons/LinkedInGlyph.svelte';
@@ -37,10 +37,10 @@
 										{:else}
 											<span>{row.emptyValue ?? 'Unassigned'}</span>
 										{/if}
-									{:else if row.kind === 'deal-number'}
-										<span>{formatDealNumber(row.dealNumber)}</span>
+									{:else if row.kind === 'account-number'}
+										<span>{formatAccountNumber(row.accountNumber)}</span>
 									{:else if row.kind === 'industry'}
-										<DetailRightRailIndustryField dealKey={row.dealKey} industry={row.value} />
+										<DetailRightRailIndustryField accountKey={row.accountKey} industry={row.value} />
 									{:else if row.kind === 'text'}
 										<span>{row.value}</span>
 									{/if}

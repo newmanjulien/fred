@@ -8,7 +8,7 @@ import {
 	createPersonSummaryMap,
 	toOrgChartRoot,
 	type OrgChartNode
-} from '$lib/dashboard/view-models/deal-content';
+} from '$lib/dashboard/view-models/account-content';
 import type {
 	DashboardShellReadModel,
 	OpportunityDetailReadModel,

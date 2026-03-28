@@ -1,19 +1,19 @@
-import type { DealKey } from '$lib/types/keys';
+import type { AccountKey } from '$lib/types/keys';
 
 const RENEWALS_BASE_PATH = '/renewals';
 
-export const DEFAULT_RENEWALS_VIEW = 'deals' as const;
+export const DEFAULT_RENEWALS_VIEW = 'accounts' as const;
 export const RENEWALS_NON_DEFAULT_VIEWS = ['at-risk', 'likely-out-of-date'] as const;
 
 export type NonDefaultRenewalsView = (typeof RENEWALS_NON_DEFAULT_VIEWS)[number];
 export type RenewalsView = typeof DEFAULT_RENEWALS_VIEW | NonDefaultRenewalsView;
 export type RenewalsListPath = '/renewals' | `/renewals/${NonDefaultRenewalsView}`;
 export type RenewalsDetailPath =
-	| `/renewals/detail/${DealKey}`
-	| `/renewals/${NonDefaultRenewalsView}/detail/${DealKey}`;
+	| `/renewals/detail/${AccountKey}`
+	| `/renewals/${NonDefaultRenewalsView}/detail/${AccountKey}`;
 
 export const RENEWALS_VIEW_OPTIONS = [
-	{ id: DEFAULT_RENEWALS_VIEW, label: 'Deals' },
+	{ id: DEFAULT_RENEWALS_VIEW, label: 'Accounts' },
 	{ id: 'at-risk', label: 'At risk' },
 	{ id: 'likely-out-of-date', label: 'Likely out of date' }
 ] as const;
@@ -38,8 +38,8 @@ export function resolveRenewalsListPath(view: RenewalsView): RenewalsListPath {
 }
 
 export function resolveRenewalsDetailPath(params: {
-	dealKey: DealKey;
+	accountKey: AccountKey;
 	view: RenewalsView;
 }): RenewalsDetailPath {
-	return `${resolveRenewalsListPath(params.view)}/detail/${params.dealKey}` as RenewalsDetailPath;
+	return `${resolveRenewalsListPath(params.view)}/detail/${params.accountKey}` as RenewalsDetailPath;
 }

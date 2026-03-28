@@ -100,11 +100,17 @@ function isMyAccountsDetailEligible(input: MyAccountsEntryBundle) {
 }
 
 function toMyAccountsNewsItem(newsItem: NewsRecordData) {
+	const fallbackUrlBase =
+		newsItem.source === 'linkedin'
+			? 'https://www.linkedin.com/feed/update/'
+			: 'https://news.example.com/articles/';
+
 	return {
 		id: newsItem.id,
 		title: newsItem.title,
 		kind: newsItem.source === 'linkedin' ? 'linkedin' : 'news',
-		dateIso: newsItem.publishedOnIso
+		dateIso: newsItem.publishedOnIso,
+		url: newsItem.url ?? `${fallbackUrlBase}${newsItem.id}`
 	} as const;
 }
 

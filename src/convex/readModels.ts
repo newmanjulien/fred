@@ -108,6 +108,7 @@ export type NewsRecordData = {
 	title: string;
 	source: AccountNewsSource;
 	publishedOnIso: IsoDate;
+	url?: string;
 };
 
 export type InsightRecordData = {
@@ -445,7 +446,8 @@ export function toNewsRecord(newsItem: Doc<'news'>): NewsRecordData {
 		accountId: newsItem.accountId,
 		title: newsItem.title,
 		source: newsItem.source as AccountNewsSource,
-		publishedOnIso: parseIsoDate(newsItem.publishedOnIso, `news["${newsItem._id}"].publishedOnIso`)
+		publishedOnIso: parseIsoDate(newsItem.publishedOnIso, `news["${newsItem._id}"].publishedOnIso`),
+		url: newsItem.url
 	};
 }
 

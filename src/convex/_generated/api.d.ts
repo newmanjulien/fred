@@ -9,6 +9,7 @@
  */
 
 import type * as accountDetail from "../accountDetail.js";
+import type * as admin from "../admin.js";
 import type * as industryInternal from "../industryInternal.js";
 import type * as leadershipList from "../leadershipList.js";
 import type * as migrations from "../migrations.js";
@@ -31,6 +32,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   accountDetail: typeof accountDetail;
+  admin: typeof admin;
   industryInternal: typeof industryInternal;
   leadershipList: typeof leadershipList;
   migrations: typeof migrations;

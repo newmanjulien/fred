@@ -1,6 +1,8 @@
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 import type { MyAccountsDetailRouteRef, MyAccountsListRouteRef } from '$lib/dashboard/routing';
 import { resolveMyAccountsDetailPath } from '$lib/dashboard/routing/my-accounts';
+import type { AbsoluteUrl } from '$lib/types/url';
+import { parseAbsoluteUrl } from '$lib/types/url';
 import type { CanvasHeroData } from '$lib/dashboard/ui/detail/CanvasHero.types';
 import type {
 	MyAccountsDetailReadModel,
@@ -21,6 +23,10 @@ type MyAccountsNavigation =
 	| {
 			kind: 'internal';
 			href: ReturnType<typeof resolveMyAccountsDetailPath>;
+	  }
+	| {
+			kind: 'external';
+			href: AbsoluteUrl;
 	  }
 	| {
 			kind: 'none';
@@ -50,20 +56,27 @@ function toFeedItemNavigation(
 	route: MyAccountsListRouteRef,
 	item: MyAccountsFeedItemReadModel
 ): MyAccountsNavigation {
-	if (item.kind !== 'activity') {
+	if (item.kind === 'activity') {
 		return {
-			kind: 'none'
+			kind: 'internal',
+			href: resolveMyAccountsDetailPath({
+				accountKey: item.detail.accountKey,
+				view: route.view,
+				tab: item.detail.defaultTab
+			})
 		};
 	}
 
-	return {
-		kind: 'internal',
-		href: resolveMyAccountsDetailPath({
-			accountKey: item.detail.accountKey,
-			view: route.view,
-			tab: item.detail.defaultTab
-		})
-	};
+	const href = parseAbsoluteUrl(item.url);
+
+	return href
+		? {
+				kind: 'external',
+				href
+			}
+		: {
+				kind: 'none'
+			};
 }
 
 export type MyAccountsFeedItemPageData = {
@@ -150,9 +163,23 @@ export function buildMyAccountsDetailPageData(params: {
 			title: item.title,
 			kind: item.kind,
 			dateIso: item.dateIso,
-			navigation: {
-				kind: 'none'
-			}
+			navigation:
+				item.kind === 'activity'
+					? {
+							kind: 'none'
+						}
+					: (() => {
+							const href = parseAbsoluteUrl(item.url);
+
+							return href
+								? {
+										kind: 'external' as const,
+										href
+									}
+								: {
+										kind: 'none' as const
+									};
+						})()
 		})),
 		activityItems: readModel.activityItems,
 		update: readModel.update,

@@ -143,7 +143,8 @@ export default defineSchema({
 		accountId: v.id('accounts'),
 		title: v.string(),
 		source: accountNewsSourceValidator,
-		publishedOnIso: v.string()
+		publishedOnIso: v.string(),
+		url: v.optional(v.string())
 	})
 		.index('by_published_on_iso', ['publishedOnIso'])
 		.index('by_account_id_published_on_iso', ['accountId', 'publishedOnIso']),

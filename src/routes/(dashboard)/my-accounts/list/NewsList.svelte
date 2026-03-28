@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { formatIsoDate } from '$lib/format/date-time';
 	import type { MyAccountsListPageData } from '$lib/dashboard/page-models/myAccounts';
+	import type { MyAccountsDetailPageData } from '$lib/dashboard/page-models/myAccounts';
 	import { Activity, Rss } from 'lucide-svelte';
 	import LinkedInGlyph from '$lib/dashboard/ui/icons/LinkedInGlyph.svelte';
 	import InlineInfoBar from '$lib/dashboard/ui/shared/InlineInfoBar.svelte';
@@ -8,7 +9,9 @@
 	import FeedEmptyState from './FeedEmptyState.svelte';
 	import type { FeedTabId } from './feed-tabs';
 
-	type MyAccountsFeedItem = MyAccountsListPageData['newsItems'][number];
+	type MyAccountsFeedItem =
+		| MyAccountsListPageData['newsItems'][number]
+		| MyAccountsDetailPageData['newsItems'][number];
 
 	type Props = {
 		items: readonly MyAccountsFeedItem[];
@@ -32,9 +35,15 @@
 									kind: 'my-accounts',
 									href: item.navigation.href
 								}
-							: {
-									kind: 'none'
-								}}
+							: item.navigation.kind === 'external'
+								? {
+										kind: 'external',
+										href: item.navigation.href,
+										target: '_blank'
+									}
+								: {
+										kind: 'none'
+									}}
 					>
 						{#snippet body()}
 							<div class="flex items-start justify-between gap-3">

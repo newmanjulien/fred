@@ -34,11 +34,11 @@
 		probabilityLabel = 'likely to close'
 	}: Props = $props();
 
-	const headers = ['Account', 'Probability', 'Activity level', 'Owner', 'Stage', 'Last activity'] as const;
+	const headers = ['Account', 'Activity level', 'Probability', 'Owner', 'Stage', 'Last activity'] as const;
 	let columnClass = $derived(
 		selection
-			? 'grid-cols-[4rem_minmax(10rem,1.35fr)_minmax(9rem,1fr)_minmax(7.5rem,0.75fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[4rem_minmax(10rem,1.40fr)_minmax(10rem,1fr)_minmax(8rem,0.75fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
-			: 'grid-cols-[minmax(10rem,1.35fr)_minmax(9rem,1fr)_minmax(7.5rem,0.75fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[minmax(10rem,1.40fr)_minmax(10rem,1fr)_minmax(8rem,0.75fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
+			? 'grid-cols-[4rem_minmax(10rem,1.35fr)_minmax(7.5rem,0.75fr)_minmax(7.75rem,0.8fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[4rem_minmax(10rem,1.40fr)_minmax(8rem,0.75fr)_minmax(8.5rem,0.85fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
+			: 'grid-cols-[minmax(10rem,1.35fr)_minmax(7.5rem,0.75fr)_minmax(7.75rem,0.8fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[minmax(10rem,1.40fr)_minmax(8rem,0.75fr)_minmax(8.5rem,0.85fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
 	);
 	let minWidthClass = $derived(selection ? 'min-w-[59rem] md:min-w-full' : 'min-w-[55rem] md:min-w-full');
 </script>
@@ -72,11 +72,11 @@
 	>
 		{row.account}
 	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-900">
-		{row.probability}% {probabilityLabel}
-	</span>
 	<span data-table-cell class="whitespace-nowrap">
 		<ActivityLevelLabel activityLevel={row.activityLevel} />
+	</span>
+	<span data-table-cell class="whitespace-nowrap text-zinc-900">
+		{row.probability}% {probabilityLabel}
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-600">
 		{#if row.owner}
@@ -136,16 +136,16 @@
 						<a
 							href={resolve(row.href)}
 							data-table-cell
-							class="cursor-pointer whitespace-nowrap text-zinc-900 no-underline"
+							class="cursor-pointer whitespace-nowrap no-underline"
 						>
-							{row.probability}% {probabilityLabel}
+							<ActivityLevelLabel activityLevel={row.activityLevel} />
 						</a>
 						<a
 							href={resolve(row.href)}
 							data-table-cell
-							class="cursor-pointer whitespace-nowrap no-underline"
+							class="cursor-pointer whitespace-nowrap text-zinc-900 no-underline"
 						>
-							<ActivityLevelLabel activityLevel={row.activityLevel} />
+							{row.probability}% {probabilityLabel}
 						</a>
 						<a
 							href={resolve(row.href)}

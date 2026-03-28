@@ -217,13 +217,15 @@ export const myAccountsFeedItemReadModelValidator = v.union(
 		id: v.string(),
 		title: v.string(),
 		kind: v.literal('news'),
-		dateIso: v.string()
+		dateIso: v.string(),
+		url: v.string()
 	}),
 	v.object({
 		id: v.string(),
 		title: v.string(),
 		kind: v.literal('linkedin'),
-		dateIso: v.string()
+		dateIso: v.string(),
+		url: v.string()
 	}),
 	v.object({
 		id: v.string(),
@@ -371,12 +373,14 @@ export type MyAccountsFeedItemReadModel =
 			title: string;
 			kind: 'news';
 			dateIso: IsoDate;
+			url: string;
 	  }
 	| {
 			id: string;
 			title: string;
 			kind: 'linkedin';
 			dateIso: IsoDate;
+			url: string;
 	  }
 	| {
 			id: string;

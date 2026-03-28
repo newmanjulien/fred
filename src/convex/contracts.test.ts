@@ -174,13 +174,15 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			accountId,
 			title: 'Acme opens a new distribution hub',
 			source: 'news',
-			publishedOnIso: '2026-03-25'
+			publishedOnIso: '2026-03-25',
+			url: 'https://news.example.com/articles/acme-distribution-hub'
 		});
 		await ctx.db.insert('news', {
 			accountId,
 			title: 'Older weekly note',
 			source: 'linkedin',
-			publishedOnIso: '2026-03-12'
+			publishedOnIso: '2026-03-12',
+			url: 'https://www.linkedin.com/posts/acme-weekly-note'
 		});
 
 		await ctx.db.insert('activities', {
@@ -587,7 +589,8 @@ describe('Convex feature contracts', () => {
 		expect(myAccountsList.newsItems).toEqual([
 			expect.objectContaining({
 				title: 'Acme opens a new distribution hub',
-				dateIso: '2026-03-25'
+				dateIso: '2026-03-25',
+				url: 'https://news.example.com/articles/acme-distribution-hub'
 			})
 		]);
 	});

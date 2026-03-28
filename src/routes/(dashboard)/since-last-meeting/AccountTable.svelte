@@ -13,9 +13,9 @@
 
 	let { rows }: Props = $props();
 
-	const headers = ['Account', 'Probability', 'Activity level', 'Stage'] as const;
+	const headers = ['Account', 'Activity level', 'Probability', 'Stage'] as const;
 	const columnClass =
-		'grid-cols-[minmax(9rem,1.15fr)_minmax(9rem,1fr)_minmax(8.5rem,0.95fr)_minmax(8rem,0.9fr)] md:grid-cols-4';
+		'grid-cols-[minmax(9.5rem,1.2fr)_minmax(7.5rem,0.8fr)_minmax(7.5rem,0.8fr)_minmax(5.5rem,0.5fr)] md:grid-cols-[minmax(10rem,1.3fr)_minmax(7.5rem,0.8fr)_minmax(7.5rem,0.8fr)_minmax(5.5rem,0.5fr)]';
 	const minWidthClass = 'min-w-[40rem] md:min-w-full';
 </script>
 
@@ -26,11 +26,11 @@
 	>
 		{row.account}
 	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-900">
-		{row.probability}% likely to close
-	</span>
 	<span data-table-cell class="whitespace-nowrap">
 		<ActivityLevelLabel activityLevel={row.activityLevel} />
+	</span>
+	<span data-table-cell class="whitespace-nowrap text-zinc-900">
+		{row.probability}% likely to close
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-600">
 		{row.stage}

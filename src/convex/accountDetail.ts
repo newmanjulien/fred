@@ -27,7 +27,8 @@ import {
 	toDashboardOrgChartNodes,
 	toAccountRecord
 } from './readModels';
-import type { DashboardPerson, NewBusinessDetailReadModel } from './validators';
+import type { DashboardPerson } from '../lib/models/person';
+import type { AccountDetailReadModel } from './validators';
 
 async function resolveAccountActivities(
 	ctx: QueryCtx,
@@ -48,7 +49,7 @@ function buildDetailReadModel(params: {
 	activities: Awaited<ReturnType<typeof resolveAccountActivities>>;
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>;
 	brokerKeyById: ReturnType<typeof createBrokerKeyByIdMap>;
-}): NewBusinessDetailReadModel {
+}): AccountDetailReadModel {
 	const { accountRecord, activities, peopleByBrokerId, brokerKeyById } = params;
 
 	return {
@@ -80,7 +81,7 @@ function buildDetailReadModel(params: {
 export async function getAccountDetailReadModel(
 	ctx: QueryCtx,
 	accountKey: AccountKey
-): Promise<NewBusinessDetailReadModel | null> {
+): Promise<AccountDetailReadModel | null> {
 	const [account, brokers] = await Promise.all([
 		findAccountDocumentByKey(ctx, accountKey),
 		ctx.db.query('brokers').collect()

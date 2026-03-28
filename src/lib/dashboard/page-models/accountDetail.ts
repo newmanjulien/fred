@@ -1,6 +1,6 @@
 import type {
+	AccountDetailReadModel,
 	DashboardShellReadModel,
-	NewBusinessDetailReadModel,
 	SinceLastMeetingDetailReadModel
 } from '$lib/dashboard/read-models';
 import {
@@ -10,15 +10,15 @@ import {
 } from '$lib/dashboard/view-models/account-content';
 
 export type AccountDetailContentPageData = {
-	hero: NewBusinessDetailReadModel['hero'];
-	activityItems: NewBusinessDetailReadModel['activityItems'];
+	hero: AccountDetailReadModel['hero'];
+	activityItems: AccountDetailReadModel['activityItems'];
 	orgChartRoot: OrgChartNode;
-	update: NewBusinessDetailReadModel['update'];
-	rightRail: NewBusinessDetailReadModel['rightRail'];
+	update: AccountDetailReadModel['update'];
+	rightRail: AccountDetailReadModel['rightRail'];
 };
 
 export function buildAccountDetailContentPageData(params: {
-	readModel: NewBusinessDetailReadModel | SinceLastMeetingDetailReadModel;
+	readModel: AccountDetailReadModel | SinceLastMeetingDetailReadModel;
 	dashboardShell: DashboardShellReadModel;
 }): AccountDetailContentPageData {
 	const { readModel, dashboardShell } = params;

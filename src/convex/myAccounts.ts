@@ -36,8 +36,8 @@ import {
 	toBrokerRecord,
 	toNewsRecord
 } from './readModels';
+import type { DashboardPerson } from '../lib/models/person';
 import {
-	type DashboardPerson,
 	type MyAccountsDetailReadModel,
 	type MyAccountsListReadModel,
 	myAccountsDetailReadModelValidator,

@@ -13,6 +13,7 @@ import {
 } from './readModels';
 import { getAccountDetailReadModel } from './accountDetail';
 import {
+	type AccountDetailReadModel,
 	type SinceLastMeetingDetailReadModel,
 	type SinceLastMeetingAccountReadModel,
 	type SinceLastMeetingReadModel,
@@ -21,6 +22,7 @@ import {
 } from './validators';
 
 export type {
+	AccountDetailReadModel,
 	SinceLastMeetingDetailReadModel,
 	SinceLastMeetingAccountReadModel,
 	SinceLastMeetingReadModel
@@ -105,7 +107,7 @@ export const getSinceLastMeetingDetail = query({
 		accountKey: v.string()
 	},
 	returns: v.union(sinceLastMeetingDetailReadModelValidator, v.null()),
-	handler: async (ctx, args): Promise<SinceLastMeetingDetailReadModel | null> => {
+	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
 		const [meeting, account] = await Promise.all([
 			requireMeetingRecordByKey(ctx, args.meetingKey as MeetingKey),
 			findAccountDocumentByKey(ctx, args.accountKey as AccountKey)

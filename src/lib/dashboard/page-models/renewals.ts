@@ -2,6 +2,8 @@ import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 import type { RenewalsDetailRouteRef, RenewalsListRouteRef } from '$lib/dashboard/routing';
 import { resolveRenewalsDetailPath } from '$lib/dashboard/routing/renewals';
 import type {
+	AccountDetailReadModel,
+	AccountListReadModel,
 	DashboardShellReadModel,
 	NewBusinessDetailReadModel,
 	NewBusinessListReadModel
@@ -12,7 +14,7 @@ import {
 } from './accountDetail';
 import { createRenewalsDetailHeader, createRenewalsListHeader } from './headers';
 
-export type RenewalsTableRowPageData = Omit<NewBusinessListReadModel['rows'][number], 'hasDetail'> & {
+export type RenewalsTableRowPageData = Omit<AccountListReadModel['rows'][number], 'hasDetail'> & {
 	href: ReturnType<typeof resolveRenewalsDetailPath> | null;
 };
 
@@ -20,7 +22,7 @@ export type RenewalsListPageData = {
 	route: RenewalsListRouteRef;
 	header: DashboardHeader;
 	rows: RenewalsTableRowPageData[];
-	filterDrawerData: NewBusinessListReadModel['filterDrawerData'];
+	filterDrawerData: AccountListReadModel['filterDrawerData'];
 };
 
 export type RenewalsDetailPageData = {
@@ -30,7 +32,7 @@ export type RenewalsDetailPageData = {
 
 export function buildRenewalsListPageData(params: {
 	route: RenewalsListRouteRef;
-	readModel: NewBusinessListReadModel;
+	readModel: AccountListReadModel;
 }): RenewalsListPageData {
 	const { route, readModel } = params;
 
@@ -56,7 +58,7 @@ export function buildRenewalsListPageData(params: {
 
 export function buildRenewalsDetailPageData(params: {
 	route: RenewalsDetailRouteRef;
-	readModel: NewBusinessDetailReadModel;
+	readModel: AccountDetailReadModel;
 	dashboardShell: DashboardShellReadModel;
 }): RenewalsDetailPageData {
 	const { route, readModel, dashboardShell } = params;

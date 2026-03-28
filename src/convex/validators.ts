@@ -17,13 +17,17 @@ import {
 	type MyAccountsView
 } from '../lib/dashboard/routing/my-accounts';
 import type { DetailRightRailData } from '../lib/dashboard/detail/right-rail';
-import type { OrgChartNodeRecord as SharedOrgChartNodeRecord } from '../lib/dashboard/view-models/account-content';
 import type { CanvasHeroData } from '../lib/dashboard/ui/detail/CanvasHero.types';
 import type { FileUploadFieldData } from '../lib/dashboard/ui/detail/FileUploadField.types';
-import type { AccountSummaryRow } from '../lib/dashboard/view-models/account';
-import type { TimelineItem } from '../lib/dashboard/view-models/account-content';
 import type { IsoDate, IsoDateTime } from '../lib/types/dates';
 import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
+import type { AccountSummaryRow } from '../lib/models/account';
+import type { OrgChartNodeRecord as SharedOrgChartNodeRecord } from '../lib/models/org-chart';
+import type {
+	DashboardMeeting as SharedDashboardMeeting,
+	DashboardPerson as SharedDashboardPerson
+} from '../lib/models/person';
+import type { TimelineItem } from '../lib/models/timeline';
 import {
 	ACTIVITY_LEVELS,
 	ACCOUNT_ACTIVITY_STREAMS,
@@ -82,16 +86,8 @@ export const dashboardMeetingValidator = v.object({
 	dateIso: v.string()
 });
 
-export type DashboardPerson = {
-	key: BrokerKey;
-	name: string;
-	avatar: string;
-};
-
-export type DashboardMeeting = {
-	key: MeetingKey;
-	dateIso: IsoDate;
-};
+export type DashboardPerson = SharedDashboardPerson;
+export type DashboardMeeting = SharedDashboardMeeting;
 
 export const myAccountsDetailRefValidator = v.object({
 	accountKey: v.string(),
@@ -260,7 +256,7 @@ export const newBusinessRowLastActivityValidator = v.union(
 	})
 );
 
-export const newBusinessTableRowReadModelValidator = v.object({
+export const accountListRowReadModelValidator = v.object({
 	key: v.string(),
 	hasDetail: v.boolean(),
 	probability: v.number(),
@@ -270,8 +266,9 @@ export const newBusinessTableRowReadModelValidator = v.object({
 	lastActivity: newBusinessRowLastActivityValidator,
 	owner: v.union(dashboardPersonValidator, v.null())
 });
+export const newBusinessTableRowReadModelValidator = accountListRowReadModelValidator;
 
-export const newBusinessFilterDrawerDataValidator = v.object({
+export const accountListFilterDrawerDataValidator = v.object({
 	brokers: v.array(dashboardPersonValidator),
 	activityLevels: v.array(
 		v.object({
@@ -286,6 +283,7 @@ export const newBusinessFilterDrawerDataValidator = v.object({
 		})
 	)
 });
+export const newBusinessFilterDrawerDataValidator = accountListFilterDrawerDataValidator;
 
 export const opportunityTileReadModelValidator = v.object({
 	key: v.string(),
@@ -326,12 +324,13 @@ export const myAccountsDetailReadModelValidator = v.object({
 	rightRail: detailRightRailDataValidator
 });
 
-export const newBusinessListReadModelValidator = v.object({
-	rows: v.array(newBusinessTableRowReadModelValidator),
-	filterDrawerData: newBusinessFilterDrawerDataValidator
+export const accountListReadModelValidator = v.object({
+	rows: v.array(accountListRowReadModelValidator),
+	filterDrawerData: accountListFilterDrawerDataValidator
 });
+export const newBusinessListReadModelValidator = accountListReadModelValidator;
 
-export const newBusinessDetailReadModelValidator = v.object({
+export const accountDetailReadModelValidator = v.object({
 	title: v.string(),
 	hero: canvasHeroValidator,
 	activityItems: v.array(timelineItemValidator),
@@ -339,6 +338,7 @@ export const newBusinessDetailReadModelValidator = v.object({
 	update: fileUploadFieldValidator,
 	rightRail: detailRightRailDataValidator
 });
+export const newBusinessDetailReadModelValidator = accountDetailReadModelValidator;
 
 export const opportunitiesListReadModelValidator = v.object({
 	opportunityTiles: v.array(opportunityTileReadModelValidator),
@@ -363,7 +363,7 @@ export const sinceLastMeetingReadModelValidator = v.object({
 	update: fileUploadFieldValidator
 });
 
-export const sinceLastMeetingDetailReadModelValidator = newBusinessDetailReadModelValidator;
+export const sinceLastMeetingDetailReadModelValidator = accountDetailReadModelValidator;
 
 export type MyAccountsDetailRef = {
 	accountKey: AccountKey;
@@ -402,7 +402,7 @@ export type MyAccountsTableRowReadModel = {
 	isReservedInEpic: boolean;
 };
 
-export type NewBusinessTableRowReadModel = {
+export type AccountListRowReadModel = {
 	key: AccountKey;
 	hasDetail: boolean;
 	probability: number;
@@ -420,8 +420,9 @@ export type NewBusinessTableRowReadModel = {
 		  };
 	owner: DashboardPerson | null;
 };
+export type NewBusinessTableRowReadModel = AccountListRowReadModel;
 
-export type NewBusinessFilterDrawerData = {
+export type AccountListFilterDrawerData = {
 	brokers: DashboardPerson[];
 	activityLevels: {
 		id: ActivityLevel;
@@ -432,6 +433,7 @@ export type NewBusinessFilterDrawerData = {
 		label: string;
 	}[];
 };
+export type NewBusinessFilterDrawerData = AccountListFilterDrawerData;
 
 export type OpportunityTileReadModel = {
 	key: InsightKey;
@@ -467,12 +469,12 @@ export type MyAccountsDetailReadModel = {
 	rightRail: DetailRightRailData;
 };
 
-export type NewBusinessListReadModel = {
-	rows: NewBusinessTableRowReadModel[];
-	filterDrawerData: NewBusinessFilterDrawerData;
+export type AccountListReadModel = {
+	rows: AccountListRowReadModel[];
+	filterDrawerData: AccountListFilterDrawerData;
 };
 
-export type NewBusinessDetailReadModel = {
+export type AccountDetailReadModel = {
 	title: string;
 	hero: CanvasHeroData;
 	activityItems: TimelineItem[];
@@ -480,6 +482,9 @@ export type NewBusinessDetailReadModel = {
 	update: FileUploadFieldData;
 	rightRail: DetailRightRailData;
 };
+
+export type NewBusinessListReadModel = AccountListReadModel;
+export type NewBusinessDetailReadModel = AccountDetailReadModel;
 
 export type OpportunitiesListReadModel = {
 	opportunityTiles: OpportunityTileReadModel[];
@@ -504,4 +509,4 @@ export type SinceLastMeetingReadModel = {
 	update: FileUploadFieldData;
 };
 
-export type SinceLastMeetingDetailReadModel = NewBusinessDetailReadModel;
+export type SinceLastMeetingDetailReadModel = AccountDetailReadModel;

@@ -1,6 +1,8 @@
 import type { IsoDate } from '$lib/types/dates';
-import type { AccountKey } from '$lib/types/keys';
 import type { ActivityLevel } from '$lib/types/vocab';
+import type { AccountSummaryRow } from '$lib/models/account';
+
+export type { AccountSummaryRow } from '$lib/models/account';
 
 export type ActivityLevelIconVariant = 'full-grid' | 'half-grid' | 'quarter-grid';
 
@@ -24,14 +26,6 @@ type ActivityRecordLike = {
 type NewsRecordLike = {
 	id: string;
 	publishedOnIso: IsoDate;
-};
-
-export type AccountSummaryRow = {
-	key: AccountKey;
-	account: string;
-	probability: number;
-	activityLevel: ActivityLevel;
-	stage: string;
 };
 
 export function getActivityLevelLabel(activityLevel: ActivityLevel) {

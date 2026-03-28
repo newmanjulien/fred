@@ -1,7 +1,7 @@
 import type { QueryCtx } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import type { OrgChartNodeRecord as InternalOrgChartNodeRecord } from '../lib/domain/org-chart';
-import type { OrgChartNodeRecord as DashboardOrgChartNodeRecord } from '../lib/dashboard/view-models/account-content';
+import type { OrgChartNodeRecord as DashboardOrgChartNodeRecord } from '../lib/models/org-chart';
 import {
 	parseIsoDate,
 	parseIsoDateTime,
@@ -19,7 +19,7 @@ import type {
 	AccountNewsSource,
 	AccountStage
 } from '../lib/types/vocab';
-import type { DashboardMeeting, DashboardPerson } from './validators';
+import type { DashboardMeeting, DashboardPerson } from '../lib/models/person';
 
 export type BrokerRecordData = {
 	id: BrokerId;

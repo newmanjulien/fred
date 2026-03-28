@@ -5,8 +5,8 @@ import {
 	resolveOptionalBrokerPerson
 } from '../lib/dashboard/view-models/account-content';
 import { ACCOUNT_INDUSTRIES, type ActivityLevel, type AccountIndustry } from '../lib/types/vocab';
+import type { DashboardPerson } from '../lib/models/person';
 import type { AccountRecordData } from './readModels';
-import type { DashboardPerson } from './validators';
 
 const NO_ACTIVITY_LABEL = 'No recorded activity';
 

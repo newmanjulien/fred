@@ -5,10 +5,7 @@ import {
 	toDashboardMeeting,
 	toDashboardPeople
 } from './readModels';
-import {
-	dashboardShellResultValidator,
-	type DashboardShellReadModel
-} from './validators';
+import { dashboardShellResultValidator, type DashboardShellReadModel } from './validators';
 
 export type { DashboardShellReadModel } from './validators';
 

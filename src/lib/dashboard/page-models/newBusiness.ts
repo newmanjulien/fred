@@ -2,6 +2,8 @@ import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 import type { NewBusinessDetailRouteRef, NewBusinessListRouteRef } from '$lib/dashboard/routing';
 import { resolveNewBusinessDetailPath } from '$lib/dashboard/routing/new-business';
 import type {
+	AccountDetailReadModel,
+	AccountListReadModel,
 	DashboardShellReadModel,
 	NewBusinessDetailReadModel,
 	NewBusinessListReadModel
@@ -12,7 +14,7 @@ import {
 } from './accountDetail';
 import { createNewBusinessDetailHeader, createNewBusinessListHeader } from './headers';
 
-export type NewBusinessTableRowPageData = Omit<NewBusinessListReadModel['rows'][number], 'hasDetail'> & {
+export type NewBusinessTableRowPageData = Omit<AccountListReadModel['rows'][number], 'hasDetail'> & {
 	href: ReturnType<typeof resolveNewBusinessDetailPath> | null;
 };
 
@@ -20,7 +22,7 @@ export type NewBusinessListPageData = {
 	route: NewBusinessListRouteRef;
 	header: DashboardHeader;
 	rows: NewBusinessTableRowPageData[];
-	filterDrawerData: NewBusinessListReadModel['filterDrawerData'];
+	filterDrawerData: AccountListReadModel['filterDrawerData'];
 };
 
 export type NewBusinessDetailPageData = {
@@ -30,7 +32,7 @@ export type NewBusinessDetailPageData = {
 
 export function buildNewBusinessListPageData(params: {
 	route: NewBusinessListRouteRef;
-	readModel: NewBusinessListReadModel;
+	readModel: AccountListReadModel;
 }): NewBusinessListPageData {
 	const { route, readModel } = params;
 
@@ -56,7 +58,7 @@ export function buildNewBusinessListPageData(params: {
 
 export function buildNewBusinessDetailPageData(params: {
 	route: NewBusinessDetailRouteRef;
-	readModel: NewBusinessDetailReadModel;
+	readModel: AccountDetailReadModel;
 	dashboardShell: DashboardShellReadModel;
 }): NewBusinessDetailPageData {
 	const { route, readModel, dashboardShell } = params;

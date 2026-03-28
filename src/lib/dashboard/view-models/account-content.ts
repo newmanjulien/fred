@@ -1,92 +1,18 @@
-import type { BrokerKey } from '$lib/types/keys';
-import type { IsoDate } from '$lib/types/dates';
 import { formatIsoDateLong } from '$lib/format/date-time';
+import type { OrgChartNode, OrgChartNodeRecord } from '$lib/models/org-chart';
+import type {
+	PersonSummaryLike,
+	PersonSummaryMap
+} from '$lib/models/person';
+import type {
+	AccountActivityRecordLike,
+	TimelineItem,
+	TimelineMarker
+} from '$lib/models/timeline';
 
-type PersonSummaryLike = {
-	key: string;
-	name: string;
-	avatar: string;
-};
-
-type TimelineMarkerRecord<BrokerRef extends string = string> =
-	| {
-			kind: 'dot';
-	  }
-	| {
-			kind: 'broker-avatar';
-			brokerRef: BrokerRef;
-	  };
-
-type AccountActivityRecordLike<BrokerRef extends string = string> =
-	| {
-			kind: 'headline';
-			id: string;
-			occurredOnIso: IsoDate;
-			body: string;
-			marker: TimelineMarkerRecord<BrokerRef>;
-			title: string;
-	  }
-	| {
-			kind: 'actor-action';
-			id: string;
-			occurredOnIso: IsoDate;
-			body: string;
-			marker: TimelineMarkerRecord<BrokerRef>;
-			actorBrokerRef: BrokerRef;
-			action: string;
-	  };
-
-export type TimelineMarker =
-	| {
-			kind: 'dot';
-	  }
-	| {
-			kind: 'avatar';
-			person: PersonSummaryLike;
-	  };
-
-type TimelineItemBase = {
-	id: string;
-	occurredOnIso: IsoDate;
-	body: string;
-	marker: TimelineMarker;
-};
-
-export type TimelineItem =
-	| (TimelineItemBase & {
-			kind: 'headline';
-			title: string;
-	  })
-	| (TimelineItemBase & {
-			kind: 'actor-action';
-			actor: PersonSummaryLike;
-			action: string;
-	  });
-
-export type OrgChartNode = {
-	id: string;
-	name: string;
-	role: string;
-	lastContacted: {
-		by: string;
-		on: string;
-	};
-	directReports?: OrgChartNode[];
-};
-
-export type OrgChartNodeRecord<BrokerRef extends string = BrokerKey> = {
-	id: string;
-	name: string;
-	role: string;
-	lastContactedByBrokerKey: BrokerRef;
-	lastContactedOnIso: IsoDate;
-	parentId?: string;
-};
-
-export type PersonSummaryMap<
-	TPerson extends PersonSummaryLike = PersonSummaryLike,
-	TRef extends string = TPerson['key']
-> = ReadonlyMap<TRef, TPerson>;
+export type { OrgChartNode, OrgChartNodeRecord } from '$lib/models/org-chart';
+export type { PersonSummaryMap } from '$lib/models/person';
+export type { TimelineItem, TimelineMarker } from '$lib/models/timeline';
 
 export function createPersonSummaryMap<TPerson extends PersonSummaryLike>(
 	people: readonly TPerson[]

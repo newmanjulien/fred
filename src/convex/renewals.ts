@@ -19,8 +19,8 @@ import {
 	type LeadershipListTableRow
 } from './leadershipList';
 import {
-	type NewBusinessDetailReadModel,
-	type NewBusinessListReadModel,
+	type AccountDetailReadModel,
+	type AccountListReadModel,
 	newBusinessDetailReadModelValidator,
 	newBusinessListReadModelValidator,
 	renewalsViewValidator
@@ -66,7 +66,7 @@ export const getRenewalsList = query({
 		view: renewalsViewValidator
 	},
 	returns: newBusinessListReadModelValidator,
-	handler: async (ctx, args): Promise<NewBusinessListReadModel> => {
+	handler: async (ctx, args): Promise<AccountListReadModel> => {
 		const selectedView = args.view as RenewalsView;
 		const [brokers, accounts] = await Promise.all([
 			ctx.db.query('brokers').collect(),
@@ -90,7 +90,7 @@ export const getRenewalsDetail = query({
 		accountKey: v.string()
 	},
 	returns: v.union(newBusinessDetailReadModelValidator, v.null()),
-	handler: async (ctx, args): Promise<NewBusinessDetailReadModel | null> => {
+	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
 		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 
 		if (!account || !toAccountRecord(account).isRenewal) {

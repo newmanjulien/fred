@@ -1,6 +1,8 @@
 export type {
-	DashboardMeeting,
-	DashboardPerson,
+	AccountDetailReadModel,
+	AccountListFilterDrawerData,
+	AccountListReadModel,
+	AccountListRowReadModel,
 	DashboardShellReadModel,
 	MyAccountsDetailReadModel,
 	MyAccountsDetailRef,
@@ -8,10 +10,12 @@ export type {
 	MyAccountsListReadModel,
 	NewBusinessDetailReadModel,
 	NewBusinessListReadModel,
-	NewBusinessListReadModel as RenewalsListReadModel,
+	AccountListReadModel as RenewalsListReadModel,
 	OpportunityDetailReadModel,
 	OpportunitiesListReadModel,
 	SinceLastMeetingDetailReadModel,
 	SinceLastMeetingAccountReadModel,
 	SinceLastMeetingReadModel
 } from '../../convex/validators';
+
+export type { DashboardMeeting, DashboardPerson } from '$lib/models/person';

@@ -26,8 +26,8 @@ import {
 	toAccountRecord,
 	toInsightRecord
 } from './readModels';
+import type { DashboardPerson } from '../lib/models/person';
 import {
-	type DashboardPerson,
 	type OpportunityDetailReadModel,
 	type OpportunitiesListReadModel,
 	opportunityDetailReadModelValidator,

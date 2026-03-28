@@ -57,7 +57,7 @@
 	{#if menu.isOpen}
 		<DashboardMenuPanel
 			panelId={menu.panelId}
-			class={menu.menuPanelClass}
+			class={menu.menuSurfaceClass}
 			title="Filter by activity level"
 		>
 			{#snippet body()}

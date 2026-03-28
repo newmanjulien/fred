@@ -1,7 +1,6 @@
 import type { Action } from 'svelte/action';
 
-export const DASHBOARD_MENU_PANEL_CLASS =
-	'app-layer-floating absolute min-w-56 rounded-md border border-zinc-100 bg-white p-1 shadow-sm';
+export const DASHBOARD_MENU_SURFACE_CLASS = 'app-layer-floating absolute min-w-56';
 
 export const DASHBOARD_MENU_PLACEMENT_CLASS = {
 	'bottom-start': 'left-0 top-full mt-1',

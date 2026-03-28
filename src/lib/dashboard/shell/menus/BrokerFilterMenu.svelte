@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { ListFilter } from 'lucide-svelte';
-	import SelectableAvatarRow from '$lib/dashboard/ui/shared/SelectableAvatarRow.svelte';
-	import DashboardMenuPanel from './DashboardMenuPanel.svelte';
+	import BrokerPickerPanel from '$lib/dashboard/ui/pickers/BrokerPickerPanel.svelte';
+	import { toBrokerPickerOptions } from '$lib/dashboard/ui/pickers/broker-picker-options';
+	import SearchableMenuSurface from './SearchableMenuSurface.svelte';
 	import { dismissibleMenu } from './menu-interactions';
 	import { useDashboardMenu } from './menu-state.svelte';
 
@@ -64,24 +65,14 @@
 	</button>
 
 	{#if menu.isOpen}
-		<DashboardMenuPanel panelId={menu.panelId} class={menu.menuPanelClass} title="Filter by broker">
-			{#snippet body()}
-				<ul class="mt-1 space-y-1">
-					{#each people as person (person.key)}
-						{@const selected = isSelected(person.key)}
-						<li>
-							<SelectableAvatarRow
-								label={person.name}
-								avatar={person.avatar}
-								selected={selected}
-								role="menuitemcheckbox"
-								ariaChecked={selected}
-								onClick={() => toggleSelectedId(person.key, !selected)}
-							/>
-						</li>
-					{/each}
-				</ul>
-			{/snippet}
-		</DashboardMenuPanel>
+		<SearchableMenuSurface panelId={menu.panelId} class={menu.menuSurfaceClass}>
+			<BrokerPickerPanel
+				mode="multiple"
+				surface="raised"
+				options={toBrokerPickerOptions(people)}
+				selectedValues={selectedIds}
+				onSelect={(brokerKey) => toggleSelectedId(brokerKey, !isSelected(brokerKey))}
+			/>
+		</SearchableMenuSurface>
 	{/if}
 </div>

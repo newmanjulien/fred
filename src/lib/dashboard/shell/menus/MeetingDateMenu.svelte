@@ -1,12 +1,13 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import type { DashboardMeeting } from '$lib/dashboard/read-models';
 	import { formatIsoDateMonthDayLong } from '$lib/format/date-time';
 	import type { DashboardHeaderMeetingDateControl } from '$lib/dashboard/shell/header/types';
-	import { cn } from '$lib/support/cn';
+	import MeetingPickerPanel from '$lib/dashboard/ui/pickers/MeetingPickerPanel.svelte';
 	import { resolveOpportunitiesListPath } from '$lib/dashboard/routing/opportunities';
 	import { resolveSinceLastMeetingPath } from '$lib/dashboard/routing/since-last-meeting';
-	import DashboardMenuPanel from './DashboardMenuPanel.svelte';
+	import SearchableMenuSurface from './SearchableMenuSurface.svelte';
 	import {
 		type DashboardMenuPlacement,
 		dismissibleMenu
@@ -36,7 +37,6 @@
 	const meetings = $derived(
 		[...unsortedMeetings].sort((left, right) => right.dateIso.localeCompare(left.dateIso))
 	);
-	const meetingDateLabels = $derived(meetings.map((meeting) => formatIsoDateMonthDayLong(meeting.dateIso)));
 	const triggerMeeting = $derived(
 		meetings.find((meeting) => meeting.key === control.meetingKey) ?? meetings[0] ?? null
 	);
@@ -48,6 +48,11 @@
 		return control.pageKind === 'opportunities'
 			? resolveOpportunitiesListPath(meetingKey)
 			: resolveSinceLastMeetingPath(meetingKey);
+	}
+
+	function selectMeeting(meetingKey: DashboardMeeting['key']) {
+		menu.close();
+		void goto(resolve(resolveMeetingHref(meetingKey)));
 	}
 </script>
 
@@ -68,27 +73,14 @@
 	</button>
 
 	{#if menu.isOpen}
-		<DashboardMenuPanel panelId={menu.panelId} class={menu.menuPanelClass} title="Select meeting date">
-			{#snippet body()}
-				<ul class="mt-1 space-y-1">
-					{#each meetings as meeting, index (meeting.key)}
-						<li>
-							<a
-								role="menuitemradio"
-								aria-checked={meeting.key === triggerMeeting?.key}
-								href={resolve(resolveMeetingHref(meeting.key))}
-								class={cn(
-									'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-xs transition-colors hover:bg-zinc-100',
-									meeting.key === triggerMeeting?.key ? 'bg-zinc-50 text-zinc-900' : 'text-zinc-700'
-								)}
-								onclick={menu.close}
-							>
-								<span class="font-medium">{meetingDateLabels[index] ?? meeting.dateIso}</span>
-							</a>
-						</li>
-					{/each}
-				</ul>
-			{/snippet}
-		</DashboardMenuPanel>
+		<SearchableMenuSurface panelId={menu.panelId} class={menu.menuSurfaceClass}>
+			<MeetingPickerPanel
+				surface="raised"
+				{meetings}
+				selectedMeetingKey={triggerMeeting?.key ?? null}
+				onSelect={selectMeeting}
+				onRequestClose={menu.close}
+			/>
+		</SearchableMenuSurface>
 	{/if}
 </div>

@@ -4,9 +4,8 @@
 	import { fade } from 'svelte/transition';
 	import { getDashboardDetailRailWidth } from '$lib/dashboard/layout/tokens';
 	import ActivityLevelGridIcon from '$lib/dashboard/ui/activity-level/ActivityLevelGridIcon.svelte';
+	import BrokerPickerPanel from '$lib/dashboard/ui/pickers/BrokerPickerPanel.svelte';
 	import SearchableFilterPanel from '$lib/dashboard/ui/pickers/SearchableFilterPanel.svelte';
-	import type { SearchableFilterPanelOption } from '$lib/dashboard/ui/pickers/filter-panel';
-	import SelectableAvatarRow from '$lib/dashboard/ui/shared/SelectableAvatarRow.svelte';
 	import SelectableIconRow from '$lib/dashboard/ui/shared/SelectableIconRow.svelte';
 	import Section from './Section.svelte';
 	import type { LeadershipFilterOptionToggle, LeadershipFilterSectionId } from './model';
@@ -64,26 +63,6 @@
 	});
 </script>
 
-{#snippet brokerOptionRow(
-	option: SearchableFilterPanelOption,
-	state: {
-		selected: boolean;
-		highlighted: boolean;
-		onClick: () => void;
-		onMouseEnter: () => void;
-	}
-)}
-	<SelectableAvatarRow
-		label={option.label}
-		avatar={option.avatar as string}
-		selected={state.selected}
-		highlighted={state.highlighted}
-		ariaPressed={state.selected}
-		onClick={state.onClick}
-		onMouseEnter={state.onMouseEnter}
-	/>
-{/snippet}
-
 {#if open}
 	<div class="app-layer-drawer pointer-events-none absolute inset-0 hidden md:block" data-leadership-filter-drawer-root>
 		<button
@@ -115,23 +94,25 @@
 			<div class="min-h-0 flex-1 overflow-y-auto bg-white">
 				{#each sections as section, sectionIndex (section.id)}
 					{#if section.id !== 'activity-level'}
-						<Section {section} showDivider={sectionIndex > 0} {onToggleSection}>
-							{#if section.id === 'broker'}
-								<SearchableFilterPanel
-									mode="multiple"
-									options={section.options}
-									selectedValues={section.options.filter((option) => option.selected).map((option) => option.id)}
-									onSelect={(optionId) =>
-										onToggleOption({
+							<Section {section} showDivider={sectionIndex > 0} {onToggleSection}>
+								{#if section.id === 'broker'}
+									<BrokerPickerPanel
+										mode="multiple"
+										options={section.options.map((option) => ({
+											id: option.id,
+											label: option.label,
+											avatar: option.avatar as string
+										}))}
+										selectedValues={section.options.filter((option) => option.selected).map((option) => option.id)}
+										onSelect={(optionId) =>
+											onToggleOption({
 											sectionId: 'broker',
 											optionId: optionId as LeadershipBrokerFilterSection['options'][number]['id']
 										})}
-									searchLabel={section.searchLabel}
-									searchPlaceholder={section.searchPlaceholder}
-									emptyLabel={section.emptyLabel}
-									listClass="max-h-40"
-									optionRow={brokerOptionRow}
-								/>
+										searchLabel={section.searchLabel}
+										searchPlaceholder={section.searchPlaceholder}
+										emptyLabel={section.emptyLabel}
+									/>
 							{:else}
 								<SearchableFilterPanel
 									mode="multiple"

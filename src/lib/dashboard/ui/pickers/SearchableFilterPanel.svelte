@@ -18,6 +18,7 @@
 
 	type Props = {
 		mode?: 'single' | 'multiple';
+		surface?: 'embedded' | 'raised';
 		options: readonly SearchableFilterPanelOption[];
 		selectedValues?: readonly string[];
 		onSelect: (optionId: string) => void;
@@ -31,6 +32,7 @@
 
 	let {
 		mode = 'single',
+		surface = 'embedded',
 		options,
 		selectedValues = [],
 		onSelect,
@@ -113,7 +115,12 @@
 	});
 </script>
 
-<div class="rounded-md border border-zinc-100 bg-white p-0">
+<div
+	class={cn(
+		'rounded-md border border-zinc-100 bg-white p-0',
+		surface === 'raised' && 'shadow-sm'
+	)}
+>
 	<div class="border-b border-zinc-100 p-2">
 		<div class="relative">
 			<div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-2.5">

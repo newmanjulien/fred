@@ -55,7 +55,7 @@
 	{#if menuState.isOpen}
 		<DashboardMenuPanel
 			panelId={menuState.panelId}
-			class={menuState.menuPanelClass}
+			class={menuState.menuSurfaceClass}
 			title={menu.sectionLabel}
 		>
 			{#snippet body()}

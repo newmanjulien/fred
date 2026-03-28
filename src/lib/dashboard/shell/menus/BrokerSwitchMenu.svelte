@@ -1,6 +1,7 @@
 <script lang="ts">
-	import SelectableAvatarRow from '$lib/dashboard/ui/shared/SelectableAvatarRow.svelte';
-	import DashboardMenuPanel from './DashboardMenuPanel.svelte';
+	import BrokerPickerPanel from '$lib/dashboard/ui/pickers/BrokerPickerPanel.svelte';
+	import { toBrokerPickerOptions } from '$lib/dashboard/ui/pickers/broker-picker-options';
+	import SearchableMenuSurface from './SearchableMenuSurface.svelte';
 	import { dismissibleMenu } from './menu-interactions';
 	import { useDashboardMenu } from './menu-state.svelte';
 
@@ -37,22 +38,13 @@
 	</button>
 
 	{#if menu.isOpen}
-		<DashboardMenuPanel panelId={menu.panelId} class={menu.menuPanelClass} title="Switch broker">
-			{#snippet body()}
-				<ul class="mt-1 space-y-1">
-					{#each people as person (person.key)}
-						<li>
-							<SelectableAvatarRow
-								label={person.name}
-								avatar={person.avatar}
-								role="menuitem"
-								weight="medium"
-								onClick={menu.close}
-							/>
-						</li>
-					{/each}
-				</ul>
-			{/snippet}
-		</DashboardMenuPanel>
+		<SearchableMenuSurface panelId={menu.panelId} class={menu.menuSurfaceClass}>
+			<BrokerPickerPanel
+				surface="raised"
+				options={toBrokerPickerOptions(people)}
+				onSelect={() => menu.close()}
+				onRequestClose={menu.close}
+			/>
+		</SearchableMenuSurface>
 	{/if}
 </div>

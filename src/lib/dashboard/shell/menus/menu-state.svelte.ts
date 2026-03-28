@@ -1,6 +1,6 @@
 import { cn } from '$lib/support/cn';
 import {
-	DASHBOARD_MENU_PANEL_CLASS,
+	DASHBOARD_MENU_SURFACE_CLASS,
 	DASHBOARD_MENU_PLACEMENT_CLASS,
 	type DashboardMenuPlacement
 } from './menu-interactions';
@@ -9,7 +9,7 @@ export type DashboardMenuState = {
 	isOpen: boolean;
 	triggerElement: HTMLButtonElement | null;
 	panelId: string;
-	menuPanelClass: string;
+	menuSurfaceClass: string;
 	close: () => void;
 	toggle: () => void;
 };
@@ -21,8 +21,8 @@ export function useDashboardMenu(
 	let isOpen = $state(false);
 	let triggerElement = $state<HTMLButtonElement | null>(null);
 	const panelId = $derived(`dashboard-menu-${menuId()}`);
-	const menuPanelClass = $derived(
-		cn(DASHBOARD_MENU_PANEL_CLASS, DASHBOARD_MENU_PLACEMENT_CLASS[placement()])
+	const menuSurfaceClass = $derived(
+		cn(DASHBOARD_MENU_SURFACE_CLASS, DASHBOARD_MENU_PLACEMENT_CLASS[placement()])
 	);
 
 	return {
@@ -41,8 +41,8 @@ export function useDashboardMenu(
 		get panelId() {
 			return panelId;
 		},
-		get menuPanelClass() {
-			return menuPanelClass;
+		get menuSurfaceClass() {
+			return menuSurfaceClass;
 		},
 		close() {
 			isOpen = false;

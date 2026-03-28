@@ -15,7 +15,6 @@ import {
 	createLeadershipFilterDrawerData,
 	hasListActivityData,
 	toNoActivityRow,
-	toNonNavigableRow,
 	toRelativeLastActivityRow,
 	type LeadershipListTableRow
 } from './leadershipList';
@@ -47,11 +46,9 @@ function buildRowCollections(
 		),
 		atRiskRows: [],
 		likelyOutOfDateRows: likelyOutOfDateDeals.map((deal) =>
-			toNonNavigableRow(
-				hasListActivityData(deal)
-					? toRelativeLastActivityRow(deal, peopleByBrokerId)
-					: toNoActivityRow(deal, peopleByBrokerId)
-			)
+			hasListActivityData(deal)
+				? toRelativeLastActivityRow(deal, peopleByBrokerId)
+				: toNoActivityRow(deal, peopleByBrokerId)
 		)
 	};
 }

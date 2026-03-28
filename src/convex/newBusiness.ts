@@ -16,7 +16,6 @@ import {
 	createLeadershipFilterDrawerData,
 	hasListActivityData,
 	toNoActivityRow,
-	toNonNavigableRow,
 	toRelativeLastActivityRow,
 	type LeadershipListTableRow
 } from './leadershipList';
@@ -72,11 +71,9 @@ function buildRowCollections(
 		duplicatedWorkRows: filterFlaggedRows(deals, peopleByBrokerId, 'duplicatedWork'),
 		noActivityTableRows: noActivityRows.map((deal) => toNoActivityRow(deal, peopleByBrokerId)),
 		likelyOutOfDateViewRows: likelyOutOfDateRows.map((deal) =>
-			toNonNavigableRow(
-				hasListActivityData(deal)
-					? toRelativeLastActivityRow(deal, peopleByBrokerId)
-					: toNoActivityRow(deal, peopleByBrokerId)
-			)
+			hasListActivityData(deal)
+				? toRelativeLastActivityRow(deal, peopleByBrokerId)
+				: toNoActivityRow(deal, peopleByBrokerId)
 		)
 	};
 }

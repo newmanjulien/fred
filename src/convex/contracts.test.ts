@@ -462,7 +462,7 @@ describe('Convex feature contracts', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					key: renewalDealKey,
-					hasDetail: false
+					hasDetail: true
 				})
 			])
 		);

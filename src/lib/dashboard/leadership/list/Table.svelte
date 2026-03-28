@@ -37,7 +37,7 @@
 	let minWidthClass = $derived(selection ? 'min-w-[59rem] md:min-w-full' : 'min-w-[55rem] md:min-w-full');
 </script>
 
-{#snippet rowCells(row: LeadershipTableRow, isLinked: boolean)}
+{#snippet selectionCell(row: LeadershipTableRow)}
 	{#if selection}
 		<label
 			data-table-cell
@@ -55,6 +55,9 @@
 			/>
 		</label>
 	{/if}
+{/snippet}
+
+{#snippet dealCellContent(row: LeadershipTableRow, isLinked: boolean)}
 	<span
 		data-table-cell
 		class={`font-medium text-zinc-600${
@@ -94,7 +97,7 @@
 	{minWidthClass}
 	{ariaLabel}
 	rowsLength={rows.length}
-	interactiveRows={!selection}
+	interactiveRows={false}
 >
 	{#snippet headerLeading()}
 		{#if selection}
@@ -111,17 +114,75 @@
 	{#snippet body()}
 		<div class="divide-y divide-zinc-100">
 			{#each rows as row (row.key)}
-				{#if !selection && row.href}
-					<a
-						href={resolve(row.href)}
-						data-table-row
-						class={cn(columnClass, 'group no-underline')}
-					>
-						{@render rowCells(row, true)}
+					{#if selection && row.href}
+						<div
+							data-table-row
+							class={cn(columnClass, 'group bg-white transition-colors hover:bg-zinc-50/80')}
+						>
+						{@render selectionCell(row)}
+						<a
+							href={resolve(row.href)}
+							data-table-cell
+							class="cursor-pointer font-medium text-zinc-600 transition-colors group-hover:text-zinc-900 no-underline"
+						>
+							{row.deal}
+						</a>
+						<a
+							href={resolve(row.href)}
+							data-table-cell
+							class="cursor-pointer whitespace-nowrap text-zinc-900 no-underline"
+						>
+							{row.probability}% likely to close
+						</a>
+						<a
+							href={resolve(row.href)}
+							data-table-cell
+							class="cursor-pointer whitespace-nowrap no-underline"
+						>
+							<ActivityLevelLabel activityLevel={row.activityLevel} />
+						</a>
+						<a
+							href={resolve(row.href)}
+							data-table-cell
+							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
+						>
+							{#if row.owner}
+								<PersonInline person={row.owner} />
+							{:else}
+								Unassigned
+							{/if}
+						</a>
+						<a
+							href={resolve(row.href)}
+							data-table-cell
+							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
+						>
+							{row.stage}
+						</a>
+						<a
+							href={resolve(row.href)}
+							data-table-cell
+							class="cursor-pointer whitespace-nowrap text-zinc-500 no-underline"
+						>
+							{#if row.lastActivity.kind === 'relative'}
+								{formatIsoDateTimeRelative(row.lastActivity.atIso)}
+							{:else}
+								{row.lastActivity.label}
+							{/if}
+						</a>
+					</div>
+					{:else if !selection && row.href}
+						<a
+							href={resolve(row.href)}
+							data-table-row
+							class={cn(columnClass, 'group no-underline transition-colors hover:bg-zinc-50/80')}
+						>
+						{@render dealCellContent(row, true)}
 					</a>
 				{:else}
 					<div data-table-row class={columnClass}>
-						{@render rowCells(row, false)}
+						{@render selectionCell(row)}
+						{@render dealCellContent(row, false)}
 					</div>
 				{/if}
 			{/each}

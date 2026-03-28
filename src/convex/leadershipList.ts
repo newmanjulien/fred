@@ -80,19 +80,8 @@ export function toNoActivityRow(
 			kind: 'text',
 			label: NO_ACTIVITY_LABEL
 		},
-		peopleByBrokerId
-	);
-}
-
-export function toNonNavigableRow(row: LeadershipListTableRow) {
-	if (!row.hasDetail) {
-		return row;
-	}
-
-	return {
-		...row,
-		hasDetail: false
-	};
+			peopleByBrokerId
+		);
 }
 
 export function createLeadershipFilterDrawerData(

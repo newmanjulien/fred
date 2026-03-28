@@ -124,6 +124,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			dealNumber: 42,
 			industry: 'Hospitality',
 			dealName: 'Acme Expansion',
+			isRenewal: false,
 			isReservedInEpic: false,
 			probability: 70,
 			stage: 'Discovery',
@@ -277,6 +278,15 @@ describe('Convex feature contracts', () => {
 		const newBusinessDetail = await t.query(api.newBusiness.getNewBusinessDetail, {
 			dealKey: seed.dealKey
 		});
+		const renewalsList = await t.query(api.renewals.getRenewalsList, {
+			view: 'deals'
+		});
+		const renewalsAtRiskList = await t.query(api.renewals.getRenewalsList, {
+			view: 'at-risk'
+		});
+		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
+			view: 'likely-out-of-date'
+		});
 		const sinceLastMeeting = await t.query(api.sinceLastMeeting.getSinceLastMeeting, {
 			meetingKey: seed.march20MeetingKey
 		});
@@ -320,6 +330,11 @@ describe('Convex feature contracts', () => {
 		expect(newBusinessDetail?.orgChartNodes).toEqual(
 			toExpectedDashboardOrgChartNodes(seed.dealOrgChartNodes, seed)
 		);
+
+		expect(renewalsList).not.toHaveProperty('header');
+		expect(renewalsList.rows).toEqual([]);
+		expect(renewalsAtRiskList.rows).toEqual([]);
+		expect(renewalsLikelyOutOfDateList.rows).toEqual([]);
 
 		expect(sinceLastMeeting.deals).toEqual(
 			expect.arrayContaining([
@@ -365,6 +380,11 @@ describe('Convex feature contracts', () => {
 			})
 		).resolves.toBeNull();
 		await expect(
+			t.query(api.renewals.getRenewalsDetail, {
+				dealKey: 'bad-deal-key'
+			})
+		).resolves.toBeNull();
+		await expect(
 			t.query(api.sinceLastMeeting.getSinceLastMeetingDetail, {
 				meetingKey: seed.march20MeetingKey,
 				dealKey: 'bad-deal-key'
@@ -376,6 +396,77 @@ describe('Convex feature contracts', () => {
 				meetingKey: seed.march20MeetingKey
 			})
 		).resolves.toBeNull();
+	});
+
+	it('routes renewal deals to renewals and excludes them from new business', async () => {
+		const t = createConvex();
+		const seed = await seedDashboardRecords(t);
+		const renewalDealKey = 'acme-renewal' as DealKey;
+
+		await t.run(async (ctx) => {
+			await ctx.db.insert('deals', {
+				key: renewalDealKey,
+				dealNumber: 314,
+				industry: 'Hospitality',
+				dealName: 'Acme Renewal',
+				isRenewal: true,
+				isReservedInEpic: false,
+				probability: 85,
+				stage: 'Proposal',
+				isLikelyOutOfDate: true,
+				activityLevel: 'medium',
+				lastActivityAtIso: '2026-03-26T10:00:00Z',
+				ownerBrokerId: seed.ownerBrokerId,
+				collaboratorBrokerIds: [seed.collaboratorBrokerId],
+				context: {
+					summary: 'Renewal tracking started before pricing is finalized.',
+					claimedAtIso: '2026-03-11T09:00:00Z',
+					orgChartNodes: seed.dealOrgChartNodes
+				},
+				dashboardFlags: {
+					needsSupport: false,
+					duplicatedWork: false
+				}
+			});
+		});
+
+		const newBusinessList = await t.query(api.newBusiness.getNewBusinessList, {
+			view: 'deals'
+		});
+		const renewalsList = await t.query(api.renewals.getRenewalsList, {
+			view: 'deals'
+		});
+		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
+			view: 'likely-out-of-date'
+		});
+		const renewalsDetail = await t.query(api.renewals.getRenewalsDetail, {
+			dealKey: renewalDealKey
+		});
+
+		expect(newBusinessList.rows).not.toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					key: renewalDealKey
+				})
+			])
+		);
+		expect(renewalsList.rows).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					key: renewalDealKey,
+					hasDetail: true
+				})
+			])
+		);
+		expect(renewalsLikelyOutOfDateList.rows).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					key: renewalDealKey,
+					hasDetail: false
+				})
+			])
+		);
+		expect(renewalsDetail?.title).toBe('Acme Renewal');
 	});
 
 	it('normalizes legacy nested org charts for deals and insights', async () => {
@@ -392,6 +483,7 @@ describe('Convex feature contracts', () => {
 					dealNumber: 404,
 					industry: 'Industrials',
 					dealName: 'Legacy Org Chart',
+					isRenewal: false,
 					isReservedInEpic: false,
 					probability: 55,
 					stage: 'Proposal',

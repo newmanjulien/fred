@@ -1,25 +1,32 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatIsoDateTimeRelative } from '$lib/format/date-time';
-	import type { NewBusinessListPageData } from '$lib/dashboard/page-models/newBusiness';
+	import type {
+		NewBusinessListPageData,
+		RenewalsListPageData
+	} from '$lib/dashboard/page-models';
 	import ActivityLevelLabel from '$lib/dashboard/ui/activity-level/ActivityLevelLabel.svelte';
 	import PersonInline from '$lib/dashboard/ui/people/PersonInline.svelte';
 	import DashboardTableShell from '$lib/dashboard/ui/shared/DashboardTableShell.svelte';
 	import { cn } from '$lib/support/cn';
-	type NewBusinessTableRow = NewBusinessListPageData['rows'][number];
 
-	type NewBusinessTableSelection = {
+	type LeadershipTableRow =
+		| NewBusinessListPageData['rows'][number]
+		| RenewalsListPageData['rows'][number];
+
+	type LeadershipTableSelection = {
 		headerLabel: 'Select';
-		selectedRowKeys: ReadonlySet<NewBusinessTableRow['key']>;
-		onToggleRow: (rowKey: NewBusinessTableRow['key'], checked: boolean) => void;
+		selectedRowKeys: ReadonlySet<LeadershipTableRow['key']>;
+		onToggleRow: (rowKey: LeadershipTableRow['key'], checked: boolean) => void;
 	};
 
 	type Props = {
-		rows: readonly NewBusinessTableRow[];
-		selection?: NewBusinessTableSelection;
+		rows: readonly LeadershipTableRow[];
+		selection?: LeadershipTableSelection;
+		ariaLabel?: string;
 	};
 
-	let { rows, selection }: Props = $props();
+	let { rows, selection, ariaLabel = 'Leadership deals table' }: Props = $props();
 
 	const headers = ['Deal', 'Probability', 'Activity level', 'Owner', 'Stage', 'Last activity'] as const;
 	let columnClass = $derived(
@@ -30,7 +37,7 @@
 	let minWidthClass = $derived(selection ? 'min-w-[59rem] md:min-w-full' : 'min-w-[55rem] md:min-w-full');
 </script>
 
-{#snippet rowCells(row: NewBusinessTableRow, isLinked: boolean)}
+{#snippet rowCells(row: LeadershipTableRow, isLinked: boolean)}
 	{#if selection}
 		<label
 			data-table-cell
@@ -85,7 +92,7 @@
 	{headers}
 	{columnClass}
 	{minWidthClass}
-	ariaLabel="New business deals table"
+	{ariaLabel}
 	rowsLength={rows.length}
 	interactiveRows={!selection}
 >

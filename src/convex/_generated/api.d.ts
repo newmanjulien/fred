@@ -10,11 +10,13 @@
 
 import type * as dealDetail from "../dealDetail.js";
 import type * as industryInternal from "../industryInternal.js";
+import type * as leadershipList from "../leadershipList.js";
 import type * as mutations from "../mutations.js";
 import type * as myDeals from "../myDeals.js";
 import type * as newBusiness from "../newBusiness.js";
 import type * as opportunities from "../opportunities.js";
 import type * as readModels from "../readModels.js";
+import type * as renewals from "../renewals.js";
 import type * as shell from "../shell.js";
 import type * as sinceLastMeeting from "../sinceLastMeeting.js";
 import type * as validators from "../validators.js";
@@ -28,11 +30,13 @@ import type {
 declare const fullApi: ApiFromModules<{
   dealDetail: typeof dealDetail;
   industryInternal: typeof industryInternal;
+  leadershipList: typeof leadershipList;
   mutations: typeof mutations;
   myDeals: typeof myDeals;
   newBusiness: typeof newBusiness;
   opportunities: typeof opportunities;
   readModels: typeof readModels;
+  renewals: typeof renewals;
   shell: typeof shell;
   sinceLastMeeting: typeof sinceLastMeeting;
   validators: typeof validators;

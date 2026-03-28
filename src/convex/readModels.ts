@@ -53,6 +53,7 @@ export type DealRecordData = {
 	dealNumber: number;
 	industry: DealIndustry;
 	dealName: string;
+	isRenewal: boolean;
 	isReservedInEpic: boolean;
 	probability: number;
 	stage: DealStage;
@@ -400,6 +401,7 @@ export function toDealRecord(deal: Doc<'deals'>): DealRecordData {
 		dealNumber: deal.dealNumber,
 		industry: deal.industry as DealIndustry,
 		dealName: deal.dealName,
+		isRenewal: deal.isRenewal,
 		isReservedInEpic: deal.isReservedInEpic,
 		probability: deal.probability,
 		stage: deal.stage as DealStage,

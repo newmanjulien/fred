@@ -3,22 +3,24 @@ import { query } from './_generated/server';
 import type { BrokerId } from '../lib/types/ids';
 import type { DealKey } from '../lib/types/keys';
 import { type NewBusinessView } from '../lib/dashboard/routing/new-business';
-import { getActivityLevelLabel } from '../lib/dashboard/view-models/deal';
-import {
-	type PersonSummaryMap,
-	resolveOptionalBrokerPerson
-} from '../lib/dashboard/view-models/deal-content';
-import { DEAL_INDUSTRIES, type ActivityLevel, type DealIndustry } from '../lib/types/vocab';
 import {
 	type DealRecordData,
 	createDashboardPersonByBrokerIdMap,
+	findDealDocumentByKey,
 	toBrokerRecord,
 	toDashboardPeople,
 	toDealRecord
 } from './readModels';
 import { getDealDetailReadModel } from './dealDetail';
 import {
-	type DashboardPerson,
+	createLeadershipFilterDrawerData,
+	hasListActivityData,
+	toNoActivityRow,
+	toNonNavigableRow,
+	toRelativeLastActivityRow,
+	type LeadershipListTableRow
+} from './leadershipList';
+import {
 	type NewBusinessDetailReadModel,
 	type NewBusinessListReadModel,
 	newBusinessDetailReadModelValidator,
@@ -32,93 +34,17 @@ export type {
 	NewBusinessListReadModel
 } from './validators';
 
-const NO_ACTIVITY_LABEL = 'No recorded activity';
-
 type RowCollections = {
-	newBusinessTableRows: ReturnType<typeof toNewBusinessTableRow>[];
-	needSupportRows: ReturnType<typeof toNewBusinessTableRow>[];
-	duplicatedWorkRows: ReturnType<typeof toNewBusinessTableRow>[];
-	noActivityTableRows: ReturnType<typeof toNewBusinessTableRow>[];
-	likelyOutOfDateViewRows: ReturnType<typeof toNewBusinessTableRow>[];
-};
-
-function hasListActivityData(
-	deal: DealRecordData
-): deal is DealRecordData & {
-	lastActivityAtIso: NonNullable<DealRecordData['lastActivityAtIso']>;
-} {
-	return Boolean(deal.lastActivityAtIso);
-}
-
-function toNewBusinessTableRow(
-	deal: DealRecordData,
-	lastActivity:
-		| {
-				kind: 'relative';
-				atIso: NonNullable<DealRecordData['lastActivityAtIso']>;
-		  }
-		| {
-				kind: 'text';
-				label: string;
-		  },
-	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
-) {
-	return {
-		key: deal.key,
-		hasDetail: Boolean(deal.context),
-		probability: deal.probability,
-		activityLevel: deal.activityLevel,
-		deal: deal.dealName,
-		stage: deal.stage,
-		lastActivity,
-		owner: resolveOptionalBrokerPerson(peopleByBrokerId, deal.ownerBrokerId)
-	};
-}
-
-function toRelativeLastActivityRow(
-	deal: DealRecordData & {
-		lastActivityAtIso: NonNullable<DealRecordData['lastActivityAtIso']>;
-	},
-	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
-) {
-	return toNewBusinessTableRow(
-		deal,
-		{
-			kind: 'relative',
-			atIso: deal.lastActivityAtIso
-		},
-		peopleByBrokerId
-	);
-}
-
-function toNoActivityRow(
-	deal: DealRecordData,
-	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
-) {
-	return toNewBusinessTableRow(
-		deal,
-		{
-			kind: 'text',
-			label: NO_ACTIVITY_LABEL
-		},
-		peopleByBrokerId
-	);
-}
-
-function toNonNavigableRow(row: ReturnType<typeof toNewBusinessTableRow>) {
-	if (!row.hasDetail) {
-		return row;
-	}
-
-	return {
-		...row,
-		hasDetail: false
-	};
+	newBusinessTableRows: LeadershipListTableRow[];
+	needSupportRows: LeadershipListTableRow[];
+	duplicatedWorkRows: LeadershipListTableRow[];
+	noActivityTableRows: LeadershipListTableRow[];
+	likelyOutOfDateViewRows: LeadershipListTableRow[];
 }
 
 function filterFlaggedRows(
 	deals: readonly DealRecordData[],
-	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>,
+	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>,
 	flag: keyof DealRecordData['dashboardFlags']
 ) {
 	return deals
@@ -132,7 +58,7 @@ function filterFlaggedRows(
 
 function buildRowCollections(
 	deals: readonly DealRecordData[],
-	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
+	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
 	const newBusinessRows = deals.filter(hasListActivityData);
 	const noActivityRows = deals.filter((deal) => !hasListActivityData(deal));
@@ -167,23 +93,6 @@ function resolveRowsForView(view: NewBusinessView, collections: RowCollections) 
 					: collections.newBusinessTableRows;
 }
 
-function createFilterDrawerData(people: DashboardPerson[], deals: readonly DealRecordData[]) {
-	const industries = new Set(deals.map((deal) => deal.industry));
-
-	return {
-		brokers: people,
-		activityLevels: [
-			{ id: 'high' as ActivityLevel, label: getActivityLevelLabel('high') },
-			{ id: 'medium' as ActivityLevel, label: getActivityLevelLabel('medium') },
-			{ id: 'low' as ActivityLevel, label: getActivityLevelLabel('low') }
-		],
-		industries: DEAL_INDUSTRIES.filter((industry) => industries.has(industry)).map((industry) => ({
-			id: industry as DealIndustry,
-			label: industry
-		}))
-	};
-}
-
 export const getNewBusinessList = query({
 	args: {
 		view: newBusinessViewValidator
@@ -198,12 +107,12 @@ export const getNewBusinessList = query({
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const people = toDashboardPeople(brokerRecords);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const dealRecords = deals.map((deal) => toDealRecord(deal));
+		const dealRecords = deals.map((deal) => toDealRecord(deal)).filter((deal) => !deal.isRenewal);
 		const collections = buildRowCollections(dealRecords, peopleByBrokerId);
 
 		return {
 			rows: resolveRowsForView(selectedView, collections),
-			filterDrawerData: createFilterDrawerData(people, dealRecords)
+			filterDrawerData: createLeadershipFilterDrawerData(people, dealRecords)
 		};
 	}
 });
@@ -213,6 +122,13 @@ export const getNewBusinessDetail = query({
 		dealKey: v.string()
 	},
 	returns: v.union(newBusinessDetailReadModelValidator, v.null()),
-	handler: async (ctx, args): Promise<NewBusinessDetailReadModel | null> =>
-		getDealDetailReadModel(ctx, args.dealKey as DealKey)
+	handler: async (ctx, args): Promise<NewBusinessDetailReadModel | null> => {
+		const deal = await findDealDocumentByKey(ctx, args.dealKey as DealKey);
+
+		if (!deal || toDealRecord(deal).isRenewal) {
+			return null;
+		}
+
+		return getDealDetailReadModel(ctx, args.dealKey as DealKey);
+	}
 });

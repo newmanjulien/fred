@@ -5,6 +5,11 @@ import {
 	NEW_BUSINESS_NON_DEFAULT_VIEWS
 } from '../lib/dashboard/routing/new-business';
 import {
+	DEFAULT_RENEWALS_VIEW,
+	RENEWALS_NON_DEFAULT_VIEWS,
+	type RenewalsView
+} from '../lib/dashboard/routing/renewals';
+import {
 	DEFAULT_MY_DEALS_VIEW,
 	MY_DEALS_DETAIL_TAB_IDS,
 	MY_DEALS_NON_DEFAULT_VIEWS,
@@ -51,6 +56,10 @@ export const newBusinessViewValidator = literalUnion([
 	DEFAULT_NEW_BUSINESS_VIEW,
 	...NEW_BUSINESS_NON_DEFAULT_VIEWS
 ] as const);
+export const renewalsViewValidator = literalUnion([
+	DEFAULT_RENEWALS_VIEW,
+	...RENEWALS_NON_DEFAULT_VIEWS
+] as const);
 export const myDealsViewValidator = literalUnion([
 	DEFAULT_MY_DEALS_VIEW,
 	...MY_DEALS_NON_DEFAULT_VIEWS
@@ -58,6 +67,7 @@ export const myDealsViewValidator = literalUnion([
 export const myDealsDetailTabIdValidator = literalUnion(MY_DEALS_DETAIL_TAB_IDS);
 
 export type NewBusinessViewValue = NewBusinessView;
+export type RenewalsViewValue = RenewalsView;
 export type MyDealsViewValue = MyDealsView;
 export type MyDealsDetailTabIdValue = MyDealsDetailTabId;
 

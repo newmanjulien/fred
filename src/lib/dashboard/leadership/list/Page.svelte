@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { NewBusinessListPageData } from '$lib/dashboard/page-models/newBusiness';
 	import DashboardPageLayout from '$lib/dashboard/layout/DashboardPageLayout.svelte';
 	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
 	import {
@@ -7,34 +6,45 @@
 		type DashboardHeaderUiScope
 	} from '$lib/dashboard/shell/header/ui-controller';
 	import type { ActivityLevel, DealIndustry } from '$lib/types/vocab';
+	import type {
+		NewBusinessListPageData,
+		RenewalsListPageData
+	} from '$lib/dashboard/page-models';
 	import Drawer from './filters/Drawer.svelte';
 	import Table from './Table.svelte';
 	import LikelyOutOfDateTable from './LikelyOutOfDateTable.svelte';
 	import {
-		createDefaultNewBusinessFilterExpansionState,
-		type NewBusinessFilterDrawerData,
-		type NewBusinessFilterOptionToggle,
-		type NewBusinessFilterSectionId
+		createDefaultLeadershipFilterExpansionState,
+		type LeadershipFilterDrawerData,
+		type LeadershipFilterOptionToggle,
+		type LeadershipFilterSectionId
 	} from './filters/model';
-	import { buildNewBusinessFilterDrawerSections } from './filters/sections';
+	import { buildLeadershipFilterDrawerSections } from './filters/sections';
 
-	type BrokerKey = NewBusinessFilterDrawerData['brokers'][number]['key'];
+	type LeadershipListPageData = NewBusinessListPageData | RenewalsListPageData;
+	type BrokerKey = LeadershipFilterDrawerData['brokers'][number]['key'];
 
 	type Props = {
-		data: NewBusinessListPageData;
+		data: LeadershipListPageData;
+		scopeId: string;
+		tableAriaLabel: string;
+		likelyOutOfDateTableAriaLabel: string;
 	};
 
-	const HEADER_SCOPE_ID = 'new-business-list';
-
-	let { data }: Props = $props();
+	let {
+		data,
+		scopeId,
+		tableAriaLabel,
+		likelyOutOfDateTableAriaLabel
+	}: Props = $props();
 	const filterDrawerData = $derived(data.filterDrawerData);
 	let isFilterDrawerOpen = $state(false);
-	let expandedSections = $state(createDefaultNewBusinessFilterExpansionState());
+	let expandedSections = $state(createDefaultLeadershipFilterExpansionState());
 	let selectedBrokerKeys = $state<BrokerKey[]>([]);
 	let selectedActivityLevels = $state<ActivityLevel[]>([]);
 	let selectedIndustries = $state<DealIndustry[]>([]);
 	const filterDrawerSections = $derived(
-		buildNewBusinessFilterDrawerSections({
+		buildLeadershipFilterDrawerSections({
 			data: filterDrawerData,
 			selectedBrokerKeys,
 			selectedActivityLevels,
@@ -63,7 +73,7 @@
 			: [...selectedValues, value];
 	}
 
-	function toggleFilterSection(sectionId: NewBusinessFilterSectionId) {
+	function toggleFilterSection(sectionId: LeadershipFilterSectionId) {
 		const isExpanding = !expandedSections[sectionId];
 
 		expandedSections = {
@@ -74,7 +84,7 @@
 		};
 	}
 
-	function toggleFilterOption(toggle: NewBusinessFilterOptionToggle) {
+	function toggleFilterOption(toggle: LeadershipFilterOptionToggle) {
 		if (toggle.sectionId === 'broker') {
 			selectedBrokerKeys = toggleSelectedValue(selectedBrokerKeys, toggle.optionId);
 			return;
@@ -88,9 +98,7 @@
 		selectedIndustries = toggleSelectedValue(selectedIndustries, toggle.optionId);
 	}
 
-	function getNewBusinessHeaderUiScope(
-		filterHandler: DashboardHeaderButtonHandler
-	): DashboardHeaderUiScope {
+	function getHeaderUiScope(filterHandler: DashboardHeaderButtonHandler): DashboardHeaderUiScope {
 		return {
 			buttons: [
 				{
@@ -114,18 +122,15 @@
 	onToggleOption={toggleFilterOption}
 />
 
-<DashboardHeaderScope
-	scopeId={HEADER_SCOPE_ID}
-	scope={getNewBusinessHeaderUiScope(toggleFilterDrawer)}
-/>
+<DashboardHeaderScope scopeId={scopeId} scope={getHeaderUiScope(toggleFilterDrawer)} />
 
 <DashboardPageLayout width="wide">
 	{#snippet body()}
 		<div class="pt-1">
 			{#if data.route.view === 'likely-out-of-date'}
-				<LikelyOutOfDateTable rows={data.rows} />
+				<LikelyOutOfDateTable rows={data.rows} ariaLabel={likelyOutOfDateTableAriaLabel} />
 			{:else}
-				<Table rows={data.rows} />
+				<Table rows={data.rows} ariaLabel={tableAriaLabel} />
 			{/if}
 		</div>
 	{/snippet}

@@ -1,23 +1,29 @@
 <script lang="ts">
 	import { SvelteSet } from 'svelte/reactivity';
-	import type { NewBusinessListPageData } from '$lib/dashboard/page-models/newBusiness';
+	import type {
+		NewBusinessListPageData,
+		RenewalsListPageData
+	} from '$lib/dashboard/page-models';
 	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
 	import InlineInfoBar from '$lib/dashboard/ui/shared/InlineInfoBar.svelte';
 	import Table from './Table.svelte';
 	import {
 		getLikelyOutOfDateHeaderUiScope,
+		getStaleLikelyOutOfDateSelectionRowKeys,
 		LIKELY_OUT_OF_DATE_HEADER_SCOPE_ID
 	} from './likely-out-of-date';
-	import { getStaleLikelyOutOfDateSelectionRowKeys } from './likely-out-of-date';
 
-	type NewBusinessTableRow = NewBusinessListPageData['rows'][number];
+	type LeadershipTableRow =
+		| NewBusinessListPageData['rows'][number]
+		| RenewalsListPageData['rows'][number];
 
 	type Props = {
-		rows: readonly NewBusinessTableRow[];
+		rows: readonly LeadershipTableRow[];
+		ariaLabel?: string;
 	};
 
-	let { rows }: Props = $props();
-	let selectedRowKeys = new SvelteSet<NewBusinessTableRow['key']>();
+	let { rows, ariaLabel = 'Leadership likely out of date deals table' }: Props = $props();
+	let selectedRowKeys = new SvelteSet<LeadershipTableRow['key']>();
 	const selection = {
 		headerLabel: 'Select' as const,
 		selectedRowKeys,
@@ -32,7 +38,7 @@
 		}
 	});
 
-	function toggleSelectedRow(rowKey: NewBusinessTableRow['key'], checked: boolean) {
+	function toggleSelectedRow(rowKey: LeadershipTableRow['key'], checked: boolean) {
 		if (checked) {
 			selectedRowKeys.add(rowKey);
 		} else {
@@ -46,7 +52,7 @@
 	scope={getLikelyOutOfDateHeaderUiScope(selectedRowKeys.size)}
 />
 
-<Table {rows} {selection} />
+<Table {rows} {selection} {ariaLabel} />
 
 {#if rows.length > 0}
 	<InlineInfoBar

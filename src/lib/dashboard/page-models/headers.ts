@@ -11,6 +11,11 @@ import {
 	getNewBusinessViewLabel,
 	type NewBusinessView
 } from '$lib/dashboard/routing/new-business';
+import {
+	RENEWALS_VIEW_OPTIONS,
+	getRenewalsViewLabel,
+	type RenewalsView
+} from '$lib/dashboard/routing/renewals';
 
 export function createSinceLastMeetingHeader(meetingKey: MeetingKey | null): DashboardHeader {
 	return {
@@ -152,6 +157,46 @@ export function createNewBusinessDetailHeader(
 				kind: 'new-business-back-link',
 				view: selectedView,
 				label: getNewBusinessViewLabel(selectedView)
+			}
+		},
+		actions: ['share']
+	};
+}
+
+export function createRenewalsListHeader(selectedView: RenewalsView): DashboardHeader {
+	return {
+		leading: {
+			kind: 'title-menu',
+			title: 'Renewals',
+			menu: {
+				kind: 'link-menu',
+				pageKind: 'renewals',
+				menuId: 'desktop-renewals-view',
+				ariaLabel: 'Change renewals view',
+				sectionLabel: 'Select renewals view',
+				activeLabel: getRenewalsViewLabel(selectedView),
+				options: buildHeaderTitleMenuOptions({
+					selectedId: selectedView,
+					options: RENEWALS_VIEW_OPTIONS
+				})
+			}
+		},
+		actions: ['share']
+	};
+}
+
+export function createRenewalsDetailHeader(
+	title: string,
+	selectedView: RenewalsView
+): DashboardHeader {
+	return {
+		leading: {
+			kind: 'control-title',
+			title,
+			control: {
+				kind: 'renewals-back-link',
+				view: selectedView,
+				label: getRenewalsViewLabel(selectedView)
 			}
 		},
 		actions: ['share']

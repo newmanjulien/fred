@@ -7,7 +7,7 @@
 
 <Page
 	{data}
-	scopeId="new-business-list"
-	tableAriaLabel="New business deals table"
-	likelyOutOfDateTableAriaLabel="New business likely out of date deals table"
+	scopeId="renewals-list"
+	tableAriaLabel="Renewals deals table"
+	likelyOutOfDateTableAriaLabel="Renewals likely out of date deals table"
 />

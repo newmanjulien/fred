@@ -134,6 +134,7 @@ export default defineSchema({
 		dealNumber: v.number(),
 		industry: dealIndustryValidator,
 		dealName: v.string(),
+		isRenewal: v.boolean(),
 		isReservedInEpic: v.boolean(),
 		probability: v.number(),
 		stage: dealStageValidator,

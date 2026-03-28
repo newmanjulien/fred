@@ -9,31 +9,22 @@
 	import SelectableAvatarRow from '$lib/dashboard/ui/shared/SelectableAvatarRow.svelte';
 	import SelectableIconRow from '$lib/dashboard/ui/shared/SelectableIconRow.svelte';
 	import Section from './Section.svelte';
+	import type { LeadershipFilterOptionToggle, LeadershipFilterSectionId } from './model';
 	import type {
-		NewBusinessFilterOptionToggle,
-		NewBusinessFilterSectionId
-	} from './model';
-	import type {
-		NewBusinessBrokerFilterSection,
-		NewBusinessFilterDrawerSection,
-		NewBusinessIndustryFilterSection
+		LeadershipBrokerFilterSection,
+		LeadershipFilterDrawerSection,
+		LeadershipIndustryFilterSection
 	} from './sections';
 
 	type Props = {
 		open: boolean;
-		sections: readonly NewBusinessFilterDrawerSection[];
+		sections: readonly LeadershipFilterDrawerSection[];
 		onClose: () => void;
-		onToggleSection: (sectionId: NewBusinessFilterSectionId) => void;
-		onToggleOption: (toggle: NewBusinessFilterOptionToggle) => void;
+		onToggleSection: (sectionId: LeadershipFilterSectionId) => void;
+		onToggleOption: (toggle: LeadershipFilterOptionToggle) => void;
 	};
 
-	let {
-		open,
-		sections,
-		onClose,
-		onToggleSection,
-		onToggleOption
-	}: Props = $props();
+	let { open, sections, onClose, onToggleSection, onToggleOption }: Props = $props();
 
 	const drawerWidth = getDashboardDetailRailWidth('standard');
 
@@ -94,10 +85,7 @@
 {/snippet}
 
 {#if open}
-	<div
-		class="app-layer-drawer pointer-events-none absolute inset-0 hidden md:block"
-		data-new-business-filter-drawer-root
-	>
+	<div class="app-layer-drawer pointer-events-none absolute inset-0 hidden md:block" data-leadership-filter-drawer-root>
 		<button
 			type="button"
 			aria-label="Close filters"
@@ -107,7 +95,7 @@
 		></button>
 
 		<aside
-			data-new-business-filter-drawer
+			data-leadership-filter-drawer
 			class="pointer-events-auto absolute inset-y-0 right-0 flex flex-col border-l border-zinc-100 bg-white shadow-[0_18px_60px_rgba(24,24,27,0.14)] will-change-transform"
 			style={`width: ${drawerWidth};`}
 			transition:drawerSlide
@@ -127,22 +115,16 @@
 			<div class="min-h-0 flex-1 overflow-y-auto bg-white">
 				{#each sections as section, sectionIndex (section.id)}
 					{#if section.id !== 'activity-level'}
-						<Section
-							{section}
-							showDivider={sectionIndex > 0}
-							{onToggleSection}
-						>
+						<Section {section} showDivider={sectionIndex > 0} {onToggleSection}>
 							{#if section.id === 'broker'}
 								<SearchableFilterPanel
 									mode="multiple"
 									options={section.options}
-									selectedValues={section.options
-										.filter((option) => option.selected)
-										.map((option) => option.id)}
+									selectedValues={section.options.filter((option) => option.selected).map((option) => option.id)}
 									onSelect={(optionId) =>
 										onToggleOption({
 											sectionId: 'broker',
-											optionId: optionId as NewBusinessBrokerFilterSection['options'][number]['id']
+											optionId: optionId as LeadershipBrokerFilterSection['options'][number]['id']
 										})}
 									searchLabel={section.searchLabel}
 									searchPlaceholder={section.searchPlaceholder}
@@ -154,13 +136,11 @@
 								<SearchableFilterPanel
 									mode="multiple"
 									options={section.options}
-									selectedValues={section.options
-										.filter((option) => option.selected)
-										.map((option) => option.id)}
+									selectedValues={section.options.filter((option) => option.selected).map((option) => option.id)}
 									onSelect={(optionId) =>
 										onToggleOption({
 											sectionId: 'industry',
-											optionId: optionId as NewBusinessIndustryFilterSection['options'][number]['id']
+											optionId: optionId as LeadershipIndustryFilterSection['options'][number]['id']
 										})}
 									searchLabel={section.searchLabel}
 									searchPlaceholder={section.searchPlaceholder}
@@ -170,11 +150,7 @@
 							{/if}
 						</Section>
 					{:else}
-						<Section
-							{section}
-							showDivider={sectionIndex > 0}
-							{onToggleSection}
-						>
+						<Section {section} showDivider={sectionIndex > 0} {onToggleSection}>
 							<ul class="space-y-1">
 								{#each section.options as option (option.id)}
 									<li>

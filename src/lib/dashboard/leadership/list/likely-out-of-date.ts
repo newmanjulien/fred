@@ -1,10 +1,15 @@
 import type { DashboardHeaderUiScope } from '$lib/dashboard/shell/header/ui-controller';
-import type { NewBusinessListPageData } from '$lib/dashboard/page-models/newBusiness';
+import type {
+	NewBusinessListPageData,
+	RenewalsListPageData
+} from '$lib/dashboard/page-models';
 
-export const LIKELY_OUT_OF_DATE_HEADER_SCOPE_ID = 'new-business-likely-out-of-date';
+export const LIKELY_OUT_OF_DATE_HEADER_SCOPE_ID = 'leadership-likely-out-of-date';
 
-type NewBusinessTableRow = NewBusinessListPageData['rows'][number];
-type LikelyOutOfDateRow = Pick<NewBusinessTableRow, 'key'>;
+type LeadershipTableRow =
+	| NewBusinessListPageData['rows'][number]
+	| RenewalsListPageData['rows'][number];
+type LikelyOutOfDateRow = Pick<LeadershipTableRow, 'key'>;
 
 export function getLikelyOutOfDateHeaderUiScope(
 	selectedRowCount: number

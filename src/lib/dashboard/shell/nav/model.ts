@@ -1,4 +1,4 @@
-import { Activity, CircleQuestionMark, Lightbulb, List, Rss } from 'lucide-svelte';
+import { Activity, CircleQuestionMark, Lightbulb, List, RefreshCcw, Rss } from 'lucide-svelte';
 import {
 	type DashboardNavRouteRef,
 	type DashboardRouteRef,
@@ -6,6 +6,7 @@ import {
 } from '$lib/dashboard/routing';
 import { DEFAULT_NEW_BUSINESS_VIEW } from '$lib/dashboard/routing/new-business';
 import { DEFAULT_MY_DEALS_VIEW } from '$lib/dashboard/routing/my-deals';
+import { DEFAULT_RENEWALS_VIEW } from '$lib/dashboard/routing/renewals';
 
 export type { DashboardNavRouteRef } from '$lib/dashboard/routing';
 
@@ -108,6 +109,14 @@ export const DASHBOARD_NAV_SECTIONS: readonly DashboardNavSection[] = [
 				},
 				label: 'New business',
 				icon: List
+			}),
+			createRouteItem({
+				route: {
+					kind: 'renewals-list',
+					view: DEFAULT_RENEWALS_VIEW
+				},
+				label: 'Renewals',
+				icon: RefreshCcw
 			})
 		]
 	},

@@ -17,6 +17,13 @@ import {
 	type NewBusinessView
 } from './new-business';
 import {
+	DEFAULT_RENEWALS_VIEW,
+	isNonDefaultRenewalsView,
+	resolveRenewalsDetailPath,
+	resolveRenewalsListPath,
+	type RenewalsView
+} from './renewals';
+import {
 	resolveOpportunitiesDetailPath,
 	resolveOpportunitiesListPath
 } from './opportunities';
@@ -39,6 +46,11 @@ const DASHBOARD_ROUTE_IDS = {
 	newBusinessDetail: [
 		'/(dashboard)/new-business/detail/[dealKey]',
 		'/(dashboard)/new-business/[view=newBusinessView]/detail/[dealKey]'
+	],
+	renewalsList: ['/(dashboard)/renewals', '/(dashboard)/renewals/[view=renewalsView]'],
+	renewalsDetail: [
+		'/(dashboard)/renewals/detail/[dealKey]',
+		'/(dashboard)/renewals/[view=renewalsView]/detail/[dealKey]'
 	],
 	opportunities: ['/(dashboard)/opportunities', '/(dashboard)/opportunities/detail/[insightKey]'],
 	sinceLastMeeting: ['/(dashboard)/since-last-meeting'],
@@ -68,6 +80,17 @@ export type NewBusinessDetailRouteRef = {
 	view: NewBusinessView;
 };
 
+export type RenewalsListRouteRef = {
+	kind: 'renewals-list';
+	view: RenewalsView;
+};
+
+export type RenewalsDetailRouteRef = {
+	kind: 'renewals-detail';
+	dealKey: DealKey;
+	view: RenewalsView;
+};
+
 export type OpportunitiesListRouteRef = {
 	kind: 'opportunities-list';
 	meetingKey: MeetingKey | null;
@@ -93,6 +116,7 @@ export type SinceLastMeetingDetailRouteRef = {
 export type DashboardNavRouteRef =
 	| MyDealsListRouteRef
 	| NewBusinessListRouteRef
+	| RenewalsListRouteRef
 	| OpportunitiesListRouteRef
 	| SinceLastMeetingRouteRef;
 
@@ -100,6 +124,7 @@ export type DashboardRouteRef =
 	| DashboardNavRouteRef
 	| MyDealsDetailRouteRef
 	| NewBusinessDetailRouteRef
+	| RenewalsDetailRouteRef
 	| OpportunitiesDetailRouteRef
 	| SinceLastMeetingDetailRouteRef;
 
@@ -279,6 +304,62 @@ const dashboardRouteDefinitions = {
 			};
 		}
 	},
+	'renewals-list': {
+		routeIds: DASHBOARD_ROUTE_IDS.renewalsList,
+		parse: ({ routeId, params, searchParams }) => {
+			if (searchParams.size > 0) {
+				return null;
+			}
+
+			if (routeId === DASHBOARD_ROUTE_IDS.renewalsList[0]) {
+				return {
+					kind: 'renewals-list',
+					view: DEFAULT_RENEWALS_VIEW
+				};
+			}
+
+			if (!params.view || !isNonDefaultRenewalsView(params.view)) {
+				return null;
+			}
+
+			return {
+				kind: 'renewals-list',
+				view: params.view
+			};
+		}
+	},
+	'renewals-detail': {
+		routeIds: DASHBOARD_ROUTE_IDS.renewalsDetail,
+		parse: ({ routeId, params, searchParams }) => {
+			if (searchParams.size > 0) {
+				return null;
+			}
+
+			const dealKey = resolveRequiredRouteParam(params.dealKey);
+
+			if (!dealKey) {
+				return null;
+			}
+
+			if (routeId === DASHBOARD_ROUTE_IDS.renewalsDetail[0]) {
+				return {
+					kind: 'renewals-detail',
+					dealKey: dealKey as DealKey,
+					view: DEFAULT_RENEWALS_VIEW
+				};
+			}
+
+			if (!params.view || !isNonDefaultRenewalsView(params.view)) {
+				return null;
+			}
+
+			return {
+				kind: 'renewals-detail',
+				dealKey: dealKey as DealKey,
+				view: params.view
+			};
+		}
+	},
 	'opportunities-list': {
 		routeIds: [DASHBOARD_ROUTE_IDS.opportunities[0]],
 		parse: ({ searchParams }) => {
@@ -361,6 +442,10 @@ export function resolveDashboardRoute(route: DashboardRouteRef): DashboardPath {
 			return resolveNewBusinessListPath(route.view);
 		case 'new-business-detail':
 			return resolveNewBusinessDetailPath(route);
+		case 'renewals-list':
+			return resolveRenewalsListPath(route.view);
+		case 'renewals-detail':
+			return resolveRenewalsDetailPath(route);
 		case 'opportunities-list':
 			return resolveOpportunitiesListPath(route.meetingKey);
 		case 'opportunities-detail':
@@ -407,6 +492,8 @@ export function isDashboardNavRouteActive(
 			return (
 				currentRoute.kind === 'new-business-list' || currentRoute.kind === 'new-business-detail'
 			);
+		case 'renewals-list':
+			return currentRoute.kind === 'renewals-list' || currentRoute.kind === 'renewals-detail';
 		case 'opportunities-list':
 			return (
 				currentRoute.kind === 'opportunities-list' ||

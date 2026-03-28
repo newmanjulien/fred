@@ -8,6 +8,7 @@ export type {
 	MyDealsListReadModel,
 	NewBusinessDetailReadModel,
 	NewBusinessListReadModel,
+	NewBusinessListReadModel as RenewalsListReadModel,
 	OpportunityDetailReadModel,
 	OpportunitiesListReadModel,
 	SinceLastMeetingDetailReadModel,

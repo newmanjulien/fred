@@ -2,6 +2,7 @@
 	import { resolve } from '$app/paths';
 	import { resolveMyDealsListPath } from '$lib/dashboard/routing/my-deals';
 	import { resolveNewBusinessListPath } from '$lib/dashboard/routing/new-business';
+	import { resolveRenewalsListPath } from '$lib/dashboard/routing/renewals';
 	import type { DashboardHeaderTitleMenu } from '$lib/dashboard/shell/header/types';
 	import { cn } from '$lib/support/cn';
 	import DashboardMenuPanel from './DashboardMenuPanel.svelte';
@@ -77,11 +78,29 @@
 								</a>
 							</li>
 						{/each}
-					{:else}
+					{:else if menu.pageKind === 'new-business'}
 						{#each menu.options as option (option.id)}
 							<li>
 								<a
 									href={resolve(resolveNewBusinessListPath(option.id))}
+									role="menuitemradio"
+									aria-checked={option.current}
+									aria-current={option.current ? 'page' : undefined}
+									class={cn(
+										'flex w-full items-center rounded-md px-3 py-2 text-left text-xs transition-colors hover:bg-zinc-100',
+										option.current ? 'bg-zinc-50 text-zinc-900' : 'text-zinc-700'
+									)}
+									onclick={menuState.close}
+								>
+									<span>{option.label}</span>
+								</a>
+							</li>
+						{/each}
+					{:else}
+						{#each menu.options as option (option.id)}
+							<li>
+								<a
+									href={resolve(resolveRenewalsListPath(option.id))}
 									role="menuitemradio"
 									aria-checked={option.current}
 									aria-current={option.current ? 'page' : undefined}

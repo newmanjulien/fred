@@ -49,6 +49,7 @@ function toSinceLastMeetingAccounts(
 			{
 				key: account.key,
 				account: account.accountName,
+				isRenewal: account.isRenewal,
 				probability: account.probability,
 				activityLevel: account.activityLevel,
 				stage: account.stage,

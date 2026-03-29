@@ -1,13 +1,15 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatIsoDateTimeRelative } from '$lib/format/date-time';
+	import { isInternalDashboardLink } from '$lib/dashboard/links';
 	import type {
 		NewBusinessListPageData,
 		RenewalsListPageData
 	} from '$lib/dashboard/page-models';
 	import ActivityLevelLabel from '$lib/dashboard/ui/activity-level/ActivityLevelLabel.svelte';
 	import PersonInline from '$lib/dashboard/ui/people/PersonInline.svelte';
-	import DashboardTableShell from '$lib/dashboard/ui/shared/DashboardTableShell.svelte';
+	import DashboardResponsiveTable from '$lib/dashboard/ui/shared/DashboardResponsiveTable.svelte';
+	import { getProbabilityLabel } from '$lib/dashboard/view-models/account';
 	import { cn } from '$lib/support/cn';
 	import {
 		LEADERSHIP_TABLE_COLUMN_CLASS,
@@ -31,26 +33,17 @@
 		rows: readonly LeadershipTableRow[];
 		selection?: LeadershipTableSelection;
 		ariaLabel?: string;
-		probabilityLabel?: string;
+		infoText?: string | null;
 	};
 
 	let {
 		rows,
 		selection,
 		ariaLabel = 'Leadership accounts table',
-		probabilityLabel = 'likely to close'
+		infoText
 	}: Props = $props();
 
 	const headers = LEADERSHIP_TABLE_HEADERS;
-	let selectAllCheckbox = $state<HTMLInputElement | null>(null);
-	const selectableRowKeys = $derived(rows.map((row) => row.key));
-	const allRowsSelected = $derived(
-		selectableRowKeys.length > 0 &&
-			selectableRowKeys.every((rowKey) => selection?.selectedRowKeys.has(rowKey))
-	);
-	const someRowsSelected = $derived(
-		selectableRowKeys.some((rowKey) => selection?.selectedRowKeys.has(rowKey))
-	);
 	let columnClass = $derived(
 		selection ? LEADERSHIP_TABLE_COLUMN_CLASS_WITH_SELECTION : LEADERSHIP_TABLE_COLUMN_CLASS
 	);
@@ -60,11 +53,34 @@
 			: LEADERSHIP_TABLE_MIN_WIDTH_CLASS
 	);
 
-	$effect(() => {
-		if (selectAllCheckbox) {
-			selectAllCheckbox.indeterminate = someRowsSelected && !allRowsSelected;
-		}
-	});
+	function toLeadershipRows(value: readonly unknown[]) {
+		return value as readonly LeadershipTableRow[];
+	}
+
+	function getVisibleSelectableRowKeys(visibleRows: readonly LeadershipTableRow[]) {
+		return visibleRows.map((row) => row.key);
+	}
+
+	function areAllVisibleRowsSelected(visibleRows: readonly LeadershipTableRow[]) {
+		return (
+			visibleRows.length > 0 &&
+			visibleRows.every((row) => selection?.selectedRowKeys.has(row.key))
+		);
+	}
+
+	function areSomeVisibleRowsSelected(visibleRows: readonly LeadershipTableRow[]) {
+		return visibleRows.some((row) => selection?.selectedRowKeys.has(row.key));
+	}
+
+	function getLastActivityText(row: LeadershipTableRow) {
+		return row.lastActivity.kind === 'relative'
+			? formatIsoDateTimeRelative(row.lastActivity.atIso)
+			: row.lastActivity.label;
+	}
+
+	function getProbabilityText(row: LeadershipTableRow) {
+		return `${row.probability}% ${getProbabilityLabel(row.isRenewal)}`;
+	}
 </script>
 
 {#snippet selectionCell(row: LeadershipTableRow)}
@@ -90,9 +106,7 @@
 {#snippet accountCellContent(row: LeadershipTableRow, isLinked: boolean)}
 	<span
 		data-table-cell
-		class={`font-medium text-zinc-600${
-			isLinked ? ' transition-colors group-hover:text-zinc-900' : ''
-		}`}
+		class={`font-medium text-zinc-600${isLinked ? ' transition-colors group-hover:text-zinc-900' : ''}`}
 	>
 		{row.account}
 	</span>
@@ -100,7 +114,7 @@
 		<ActivityLevelLabel activityLevel={row.activityLevel} />
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-900">
-		{row.probability}% {probabilityLabel}
+		{getProbabilityText(row)}
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-600">
 		{#if row.owner}
@@ -113,23 +127,23 @@
 		{row.stage}
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-500">
-		{#if row.lastActivity.kind === 'relative'}
-			{formatIsoDateTimeRelative(row.lastActivity.atIso)}
-		{:else}
-			{row.lastActivity.label}
-		{/if}
+		{getLastActivityText(row)}
 	</span>
 {/snippet}
 
-<DashboardTableShell
+<DashboardResponsiveTable
+	class="pt-1"
 	{headers}
 	{columnClass}
 	{minWidthClass}
 	{ariaLabel}
-	rowsLength={rows.length}
+	rows={rows}
+	infoText={infoText}
+	dataAttribute="data-leadership-table-info-bar"
 	interactiveRows={false}
 >
-	{#snippet headerLeading()}
+	{#snippet headerLeading(visibleRows)}
+		{@const pageRows = toLeadershipRows(visibleRows)}
 		{#if selection}
 			<label
 				data-table-header-cell
@@ -137,15 +151,15 @@
 				class="flex items-center justify-center"
 			>
 				<input
-					bind:this={selectAllCheckbox}
 					data-selection-checkbox
 					type="checkbox"
-					aria-label="Select all rows"
+					aria-label="Select visible rows"
 					class="h-3.5 w-3.5 rounded-[3px]"
-					checked={allRowsSelected}
+					checked={areAllVisibleRowsSelected(pageRows)}
+					indeterminate={areSomeVisibleRowsSelected(pageRows) && !areAllVisibleRowsSelected(pageRows)}
 					onchange={(event) =>
 						selection.onToggleAllRows(
-							selectableRowKeys,
+							getVisibleSelectableRowKeys(pageRows),
 							(event.currentTarget as HTMLInputElement).checked
 						)}
 				/>
@@ -153,38 +167,41 @@
 		{/if}
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body(visibleRows)}
+		{@const pageRows = toLeadershipRows(visibleRows)}
 		<div class="divide-y divide-zinc-100">
-			{#each rows as row (row.key)}
-					{#if selection && row.href}
-						<div
-							data-table-row
-							class={cn(columnClass, 'group bg-white transition-colors hover:bg-zinc-50/80')}
-						>
+			{#each pageRows as row (row.key)}
+				{@const internalNavigation =
+					isInternalDashboardLink(row.navigation) ? row.navigation : null}
+				{#if selection && internalNavigation}
+					<div
+						data-table-row
+						class={cn(columnClass, 'group bg-white transition-colors hover:bg-zinc-50/80')}
+					>
 						{@render selectionCell(row)}
 						<a
-							href={resolve(row.href)}
+							href={resolve(internalNavigation.href)}
 							data-table-cell
 							class="cursor-pointer font-medium text-zinc-600 transition-colors group-hover:text-zinc-900 no-underline"
 						>
 							{row.account}
 						</a>
 						<a
-							href={resolve(row.href)}
+							href={resolve(internalNavigation.href)}
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap no-underline"
 						>
 							<ActivityLevelLabel activityLevel={row.activityLevel} />
 						</a>
 						<a
-							href={resolve(row.href)}
+							href={resolve(internalNavigation.href)}
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap text-zinc-900 no-underline"
 						>
-							{row.probability}% {probabilityLabel}
+							{getProbabilityText(row)}
 						</a>
 						<a
-							href={resolve(row.href)}
+							href={resolve(internalNavigation.href)}
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
 						>
@@ -195,30 +212,26 @@
 							{/if}
 						</a>
 						<a
-							href={resolve(row.href)}
+							href={resolve(internalNavigation.href)}
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
 						>
 							{row.stage}
 						</a>
 						<a
-							href={resolve(row.href)}
+							href={resolve(internalNavigation.href)}
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap text-zinc-500 no-underline"
 						>
-							{#if row.lastActivity.kind === 'relative'}
-								{formatIsoDateTimeRelative(row.lastActivity.atIso)}
-							{:else}
-								{row.lastActivity.label}
-							{/if}
+							{getLastActivityText(row)}
 						</a>
 					</div>
-					{:else if !selection && row.href}
-						<a
-							href={resolve(row.href)}
-							data-table-row
-							class={cn(columnClass, 'group no-underline transition-colors hover:bg-zinc-50/80')}
-						>
+				{:else if !selection && internalNavigation}
+					<a
+						href={resolve(internalNavigation.href)}
+						data-table-row
+						class={cn(columnClass, 'group no-underline transition-colors hover:bg-zinc-50/80')}
+					>
 						{@render accountCellContent(row, true)}
 					</a>
 				{:else}
@@ -230,4 +243,4 @@
 			{/each}
 		</div>
 	{/snippet}
-</DashboardTableShell>
+</DashboardResponsiveTable>

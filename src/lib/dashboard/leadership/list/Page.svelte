@@ -6,7 +6,6 @@
 		type DashboardHeaderButtonHandler,
 		type DashboardHeaderUiScope
 	} from '$lib/dashboard/shell/header/ui-controller';
-	import InlineInfoBar from '$lib/dashboard/ui/shared/InlineInfoBar.svelte';
 	import type { ActivityLevel, AccountIndustry } from '$lib/types/vocab';
 	import type {
 		NewBusinessListPageData,
@@ -60,15 +59,13 @@
 		scopeId: string;
 		tableAriaLabel: string;
 		likelyOutOfDateTableAriaLabel: string;
-		probabilityLabel?: string;
 	};
 
 	let {
 		data,
 		scopeId,
 		tableAriaLabel,
-		likelyOutOfDateTableAriaLabel,
-		probabilityLabel = 'likely to close'
+		likelyOutOfDateTableAriaLabel
 	}: Props = $props();
 	const filterDrawerData = $derived(data.filterDrawerData);
 	let isFilterDrawerOpen = $state(false);
@@ -208,24 +205,20 @@
 
 <DashboardPageLayout width="wide">
 	{#snippet body()}
-		<div class="pt-1">
-			{#if data.route.view === 'likely-out-of-date'}
-				<LikelyOutOfDateTable
-					rows={data.rows}
-					{selection}
-					ariaLabel={likelyOutOfDateTableAriaLabel}
-					{probabilityLabel}
-				/>
-			{:else}
-				<Table rows={data.rows} {selection} ariaLabel={tableAriaLabel} {probabilityLabel} />
-			{/if}
-
-			{#if data.rows.length > 0}
-				<InlineInfoBar
-					dataAttribute="data-leadership-table-info-bar"
-					text={getInfoBarText(data)}
-				/>
-			{/if}
-		</div>
+		{#if data.route.view === 'likely-out-of-date'}
+			<LikelyOutOfDateTable
+				rows={data.rows}
+				{selection}
+				ariaLabel={likelyOutOfDateTableAriaLabel}
+				infoText={getInfoBarText(data)}
+			/>
+		{:else}
+			<Table
+				rows={data.rows}
+				{selection}
+				ariaLabel={tableAriaLabel}
+				infoText={getInfoBarText(data)}
+			/>
+		{/if}
 	{/snippet}
 </DashboardPageLayout>

@@ -261,6 +261,7 @@ export const newBusinessRowLastActivityValidator = v.union(
 export const accountListRowReadModelValidator = v.object({
 	key: v.string(),
 	hasDetail: v.boolean(),
+	isRenewal: v.boolean(),
 	probability: v.number(),
 	activityLevel: activityLevelValidator,
 	account: v.string(),
@@ -296,6 +297,7 @@ export const opportunityTileReadModelValidator = v.object({
 export const sinceLastMeetingAccountReadModelValidator = v.object({
 	key: v.string(),
 	account: v.string(),
+	isRenewal: v.boolean(),
 	probability: v.number(),
 	activityLevel: activityLevelValidator,
 	stage: v.string(),
@@ -404,6 +406,7 @@ export type MyAccountsTableRowReadModel = {
 export type AccountListRowReadModel = {
 	key: AccountKey;
 	hasDetail: boolean;
+	isRenewal: boolean;
 	probability: number;
 	activityLevel: ActivityLevel;
 	account: string;

@@ -57,6 +57,7 @@ function buildDetailReadModel(params: {
 		hero: buildAccountHero({
 			accountNumber: accountRecord.accountNumber,
 			accountName: accountRecord.accountName,
+			isRenewal: accountRecord.isRenewal,
 			stage: accountRecord.stage,
 			probability: accountRecord.probability,
 			activityLevel: accountRecord.activityLevel,

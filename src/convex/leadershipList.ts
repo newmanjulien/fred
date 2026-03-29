@@ -13,6 +13,7 @@ const NO_ACTIVITY_LABEL = 'No recorded activity';
 export type LeadershipListTableRow = {
 	key: AccountRecordData['key'];
 	hasDetail: boolean;
+	isRenewal: boolean;
 	probability: number;
 	activityLevel: AccountRecordData['activityLevel'];
 	account: string;
@@ -45,6 +46,7 @@ export function toLeadershipTableRow(
 	return {
 		key: account.key,
 		hasDetail: Boolean(account.context),
+		isRenewal: account.isRenewal,
 		probability: account.probability,
 		activityLevel: account.activityLevel,
 		account: account.accountName,

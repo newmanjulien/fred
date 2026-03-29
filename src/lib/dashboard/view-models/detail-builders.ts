@@ -1,10 +1,12 @@
 import { getActivityLevelLabel } from '$lib/dashboard/view-models/account';
+import { getProbabilityLabel } from '$lib/dashboard/view-models/account';
 import type { CanvasHeroData } from '$lib/dashboard/ui/detail/CanvasHero.types';
 import type { FileUploadFieldData } from '$lib/dashboard/ui/detail/FileUploadField.types';
 
 type AccountHeroInput = {
 	accountNumber: number;
 	accountName: string;
+	isRenewal: boolean;
 	stage: string;
 	probability: number;
 	activityLevel: Parameters<typeof getActivityLevelLabel>[0];
@@ -15,11 +17,12 @@ type AccountHeroInput = {
 
 export function buildAccountHero(account: AccountHeroInput): CanvasHeroData {
 	const activityLabel = getActivityLevelLabel(account.activityLevel).toLowerCase();
+	const probabilityLabel = getProbabilityLabel(account.isRenewal);
 
 	return {
 		accountNumber: account.accountNumber,
 		title: account.accountName,
-		description: `${account.accountName} is in ${account.stage} and is ${account.probability}% likely to close with ${activityLabel}. ${account.context.summary}`
+		description: `${account.accountName} is in ${account.stage} and is ${account.probability}% ${probabilityLabel} with ${activityLabel}. ${account.context.summary}`
 	};
 }
 

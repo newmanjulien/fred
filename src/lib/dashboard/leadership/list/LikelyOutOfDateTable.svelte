@@ -19,15 +19,15 @@
 		rows: readonly LeadershipTableRow[];
 		selection: LeadershipTableSelection;
 		ariaLabel?: string;
-		probabilityLabel?: string;
+		infoText?: string | null;
 	};
 
 	let {
 		rows,
 		selection,
 		ariaLabel = 'Leadership likely out of date accounts table',
-		probabilityLabel = 'likely to close'
+		infoText
 	}: Props = $props();
 </script>
 
-<Table {rows} {selection} {ariaLabel} {probabilityLabel} />
+<Table {rows} {selection} {ariaLabel} {infoText} />

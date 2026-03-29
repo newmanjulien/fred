@@ -1,4 +1,5 @@
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
+import type { DashboardLinkTarget } from '$lib/dashboard/links';
 import type { RenewalsDetailRouteRef, RenewalsListRouteRef } from '$lib/dashboard/routing';
 import { resolveRenewalsDetailPath } from '$lib/dashboard/routing/renewals';
 import type {
@@ -12,8 +13,29 @@ import {
 } from './accountDetail';
 import { createRenewalsDetailHeader, createRenewalsListHeader } from './headers';
 
+type RenewalsNavigation = Extract<DashboardLinkTarget, { kind: 'renewals' | 'none' }>;
+
+function toRenewalsNavigation(
+	route: RenewalsListRouteRef,
+	row: AccountListReadModel['rows'][number]
+): RenewalsNavigation {
+	if (!row.hasDetail) {
+		return {
+			kind: 'none'
+		};
+	}
+
+	return {
+		kind: 'renewals',
+		href: resolveRenewalsDetailPath({
+			accountKey: row.key,
+			view: route.view
+		})
+	};
+}
+
 export type RenewalsTableRowPageData = Omit<AccountListReadModel['rows'][number], 'hasDetail'> & {
-	href: ReturnType<typeof resolveRenewalsDetailPath> | null;
+	navigation: RenewalsNavigation;
 };
 
 export type RenewalsListPageData = {
@@ -39,15 +61,11 @@ export function buildRenewalsListPageData(params: {
 		header: createRenewalsListHeader(route.view),
 		rows: readModel.rows.map((row) => {
 			const { hasDetail, ...rest } = row;
+			void hasDetail;
 
 			return {
 				...rest,
-				href: hasDetail
-					? resolveRenewalsDetailPath({
-							accountKey: row.key,
-							view: route.view
-						})
-					: null
+				navigation: toRenewalsNavigation(route, row)
 			};
 		}),
 		filterDrawerData: readModel.filterDrawerData

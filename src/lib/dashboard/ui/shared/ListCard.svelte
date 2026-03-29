@@ -1,7 +1,11 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { Snippet } from 'svelte';
-	import type { LinkTarget } from '$lib/dashboard/links';
+	import {
+		isExternalDashboardLink,
+		isInternalDashboardLink,
+		type LinkTarget
+	} from '$lib/dashboard/links';
 	import { cn } from '$lib/support/cn';
 
 	type Props = {
@@ -38,19 +42,13 @@
 	}
 </script>
 
-{#if link.kind === 'my-accounts'}
+{#if isInternalDashboardLink(link)}
 	<a href={resolve(link.href)} class={cardClass}>
 		{#if body}
 			{@render body()}
 		{/if}
 	</a>
-{:else if link.kind === 'opportunities'}
-	<a href={resolve(link.href)} class={cardClass}>
-		{#if body}
-			{@render body()}
-		{/if}
-	</a>
-{:else if link.kind === 'external'}
+{:else if isExternalDashboardLink(link)}
 	<!-- eslint-disable-next-line svelte/no-navigation-without-resolve -->
 	<a href={link.href} {...getExternalAnchorProps(link)} class={cardClass}>
 		{#if body}

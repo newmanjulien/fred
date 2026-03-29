@@ -26,25 +26,10 @@
 	<FeedEmptyState tab={emptyStateTab} />
 {:else}
 	<div class="pt-1">
-		<ol class="space-y-2.5">
-			{#each items as item (item.id)}
-				<li>
-					<ListCard
-						link={item.navigation.kind === 'internal'
-							? {
-									kind: 'my-accounts',
-									href: item.navigation.href
-								}
-							: item.navigation.kind === 'external'
-								? {
-										kind: 'external',
-										href: item.navigation.href,
-										target: '_blank'
-									}
-								: {
-										kind: 'none'
-									}}
-					>
+			<ol class="space-y-2.5">
+				{#each items as item (item.id)}
+					<li>
+					<ListCard link={item.navigation}>
 						{#snippet body()}
 							<div class="flex items-start justify-between gap-3">
 								<div class="flex min-w-0 items-start gap-1.5">

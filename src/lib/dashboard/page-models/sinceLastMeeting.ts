@@ -1,4 +1,5 @@
 import { formatIsoDateMonthDayLong } from '$lib/format/date-time';
+import type { DashboardLinkTarget } from '$lib/dashboard/links';
 import type {
 	SinceLastMeetingDetailRouteRef,
 	SinceLastMeetingRouteRef
@@ -19,11 +20,35 @@ import {
 	createSinceLastMeetingHeader
 } from './headers';
 
+type SinceLastMeetingNavigation = Extract<
+	DashboardLinkTarget,
+	{ kind: 'since-last-meeting' | 'none' }
+>;
+
+function toSinceLastMeetingNavigation(
+	route: SinceLastMeetingRouteRef,
+	account: SinceLastMeetingReadModel['accounts'][number]
+): SinceLastMeetingNavigation {
+	if (!account.hasDetail) {
+		return {
+			kind: 'none'
+		};
+	}
+
+	return {
+		kind: 'since-last-meeting',
+		href: resolveSinceLastMeetingDetailPath({
+			accountKey: account.key,
+			meetingKey: route.meetingKey
+		})
+	};
+}
+
 export type SinceLastMeetingAccountPageData = Omit<
 	SinceLastMeetingReadModel['accounts'][number],
 	'hasDetail'
 > & {
-	href: ReturnType<typeof resolveSinceLastMeetingDetailPath> | null;
+	navigation: SinceLastMeetingNavigation;
 };
 
 export type SinceLastMeetingPageData = {
@@ -62,15 +87,11 @@ export function buildSinceLastMeetingPageData(params: {
 		timelineItems: readModel.timelineItems,
 		accounts: readModel.accounts.map((account) => {
 			const { hasDetail, ...rest } = account;
+			void hasDetail;
 
 			return {
 				...rest,
-				href: hasDetail
-					? resolveSinceLastMeetingDetailPath({
-							accountKey: account.key,
-							meetingKey: route.meetingKey
-						})
-					: null
+				navigation: toSinceLastMeetingNavigation(route, account)
 			};
 		}),
 		update: readModel.update

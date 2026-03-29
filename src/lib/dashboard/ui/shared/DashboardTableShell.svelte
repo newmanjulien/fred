@@ -8,6 +8,7 @@
 		minWidthClass: string;
 		ariaLabel: string;
 		rowsLength: number;
+		bordered?: boolean;
 		interactiveRows?: boolean;
 		emptyText?: string;
 		class?: string;
@@ -21,6 +22,7 @@
 		minWidthClass,
 		ariaLabel,
 		rowsLength,
+		bordered = true,
 		interactiveRows = true,
 		emptyText = 'No rows available.',
 		class: classProp = '',
@@ -30,7 +32,11 @@
 </script>
 
 <div
-	class={cn('dashboard-table-shell rounded-sm border border-zinc-100 bg-white', classProp)}
+	class={cn(
+		'dashboard-table-shell bg-white',
+		bordered ? 'rounded-sm border border-zinc-100' : '',
+		classProp
+	)}
 	data-interactive-rows={interactiveRows ? 'true' : 'false'}
 >
 	<div

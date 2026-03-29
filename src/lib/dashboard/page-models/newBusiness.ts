@@ -1,4 +1,5 @@
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
+import type { DashboardLinkTarget } from '$lib/dashboard/links';
 import type { NewBusinessDetailRouteRef, NewBusinessListRouteRef } from '$lib/dashboard/routing';
 import { resolveNewBusinessDetailPath } from '$lib/dashboard/routing/new-business';
 import type {
@@ -12,8 +13,29 @@ import {
 } from './accountDetail';
 import { createNewBusinessDetailHeader, createNewBusinessListHeader } from './headers';
 
+type NewBusinessNavigation = Extract<DashboardLinkTarget, { kind: 'new-business' | 'none' }>;
+
+function toNewBusinessNavigation(
+	route: NewBusinessListRouteRef,
+	row: AccountListReadModel['rows'][number]
+): NewBusinessNavigation {
+	if (!row.hasDetail) {
+		return {
+			kind: 'none'
+		};
+	}
+
+	return {
+		kind: 'new-business',
+		href: resolveNewBusinessDetailPath({
+			accountKey: row.key,
+			view: route.view
+		})
+	};
+}
+
 export type NewBusinessTableRowPageData = Omit<AccountListReadModel['rows'][number], 'hasDetail'> & {
-	href: ReturnType<typeof resolveNewBusinessDetailPath> | null;
+	navigation: NewBusinessNavigation;
 };
 
 export type NewBusinessListPageData = {
@@ -39,15 +61,11 @@ export function buildNewBusinessListPageData(params: {
 		header: createNewBusinessListHeader(route.view),
 		rows: readModel.rows.map((row) => {
 			const { hasDetail, ...rest } = row;
+			void hasDetail;
 
 			return {
 				...rest,
-				href: hasDetail
-					? resolveNewBusinessDetailPath({
-							accountKey: row.key,
-							view: route.view
-						})
-					: null
+				navigation: toNewBusinessNavigation(route, row)
 			};
 		}),
 		filterDrawerData: readModel.filterDrawerData

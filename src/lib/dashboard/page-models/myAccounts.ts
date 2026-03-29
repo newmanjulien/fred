@@ -1,7 +1,7 @@
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 import type { MyAccountsDetailRouteRef, MyAccountsListRouteRef } from '$lib/dashboard/routing';
+import type { DashboardLinkTarget } from '$lib/dashboard/links';
 import { resolveMyAccountsDetailPath } from '$lib/dashboard/routing/my-accounts';
-import type { AbsoluteUrl } from '$lib/types/url';
 import { parseAbsoluteUrl } from '$lib/types/url';
 import type { CanvasHeroData } from '$lib/dashboard/ui/detail/CanvasHero.types';
 import type {
@@ -19,18 +19,10 @@ const MY_ACCOUNTS_NEWS_HERO = {
 		"Get a quick overview of this week's news across the accounts you are working on."
 } as const satisfies CanvasHeroData;
 
-type MyAccountsNavigation =
-	| {
-			kind: 'internal';
-			href: ReturnType<typeof resolveMyAccountsDetailPath>;
-	  }
-	| {
-			kind: 'external';
-			href: AbsoluteUrl;
-	  }
-	| {
-			kind: 'none';
-	  };
+type MyAccountsNavigation = Extract<
+	DashboardLinkTarget,
+	{ kind: 'my-accounts' | 'external' | 'none' }
+>;
 
 type MyAccountsFeedItemContext =
 	| {
@@ -47,7 +39,8 @@ function toExternalNavigation(url: string): MyAccountsNavigation {
 	return href
 		? {
 				kind: 'external',
-				href
+				href,
+				target: '_blank'
 			}
 		: {
 				kind: 'none'
@@ -65,7 +58,7 @@ function toDetailNavigation(
 	}
 
 	return {
-		kind: 'internal',
+		kind: 'my-accounts',
 		href: resolveMyAccountsDetailPath({
 			accountKey: detail.accountKey,
 			view: route.view,
@@ -86,7 +79,7 @@ function toFeedItemNavigation(
 		}
 
 		return {
-			kind: 'internal',
+			kind: 'my-accounts',
 			href: resolveMyAccountsDetailPath({
 				accountKey: item.detail.accountKey,
 				view: context.route.view,

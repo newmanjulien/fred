@@ -11,6 +11,11 @@
 	import Table from './Table.svelte';
 	import { buildMyAccountsFeedTabs } from './feed-tabs';
 
+	const MY_ACCOUNTS_TABLE_INFO_BAR_TEXT =
+		'We automatially reserve accounts for you in Epic and accounts which are reserved have a checkmark';
+	const WATCHLIST_INFO_BAR_TEXT =
+		'Watchlist shows activity from accounts you follow in My accounts but do not own.';
+
 	type Props = {
 		data: MyAccountsListPageData;
 	};
@@ -65,7 +70,7 @@
 				<NewsList
 					items={data.watchlistItems}
 					emptyStateTab="watchlist"
-					infoBarText="Watchlist shows activity from accounts you follow in My accounts but do not own."
+					infoBarText={WATCHLIST_INFO_BAR_TEXT}
 				/>
 			</SectionTabPanel>
 		{/snippet}
@@ -77,7 +82,7 @@
 			{#if data.rows.length > 0}
 				<InlineInfoBar
 					dataAttribute="data-my-accounts-accounts-info-bar"
-					text="We automatially reserve accounts for you in Epic and accounts which are reserved have a checkmark"
+					text={MY_ACCOUNTS_TABLE_INFO_BAR_TEXT}
 				/>
 			{/if}
 		{/snippet}

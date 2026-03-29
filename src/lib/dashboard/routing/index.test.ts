@@ -23,12 +23,12 @@ describe('dashboard routing', () => {
 		expect(
 			parseDashboardRouteFromLayout({
 				routeId: '/(dashboard)/renewals/[view=renewalsView]',
-				params: { view: 'likely-out-of-date' },
+				params: { view: 'need-support' },
 				searchParams: new URLSearchParams()
 			})
 		).toEqual({
 			kind: 'renewals-list',
-			view: 'likely-out-of-date'
+			view: 'need-support'
 		});
 	});
 

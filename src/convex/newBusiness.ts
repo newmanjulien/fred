@@ -30,6 +30,7 @@ export type { DashboardShellReadModel, AccountDetailReadModel, AccountListReadMo
 
 type RowCollections = {
 	newBusinessTableRows: LeadershipListTableRow[];
+	next60DaysRows: LeadershipListTableRow[];
 	needSupportRows: LeadershipListTableRow[];
 	duplicatedWorkRows: LeadershipListTableRow[];
 	noActivityTableRows: LeadershipListTableRow[];
@@ -38,6 +39,7 @@ type RowCollections = {
 
 const emptyRowCollections = (): RowCollections => ({
 	newBusinessTableRows: [],
+	next60DaysRows: [],
 	needSupportRows: [],
 	duplicatedWorkRows: [],
 	noActivityTableRows: [],
@@ -57,7 +59,7 @@ function buildRowCollections(
 	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
-	return accounts.reduce<RowCollections>((collections, account) => {
+	const collections = accounts.reduce<RowCollections>((collections, account) => {
 		const row = createLeadershipRow(account, peopleByBrokerId);
 
 		if (hasListActivityData(account)) {
@@ -80,11 +82,16 @@ function buildRowCollections(
 
 		return collections;
 	}, emptyRowCollections());
+
+	collections.next60DaysRows = collections.newBusinessTableRows.slice(0, 5);
+
+	return collections;
 }
 
 function resolveRowsForView(view: NewBusinessView, collections: RowCollections) {
 	const rowsByView: Record<NewBusinessView, LeadershipListTableRow[]> = {
 		accounts: collections.newBusinessTableRows,
+		'next-60-days': collections.next60DaysRows,
 		'need-support': collections.needSupportRows,
 		'duplicated-work': collections.duplicatedWorkRows,
 		unassigned: collections.noActivityTableRows,

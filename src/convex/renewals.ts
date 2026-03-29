@@ -28,11 +28,15 @@ import {
 
 type RowCollections = {
 	accountsRows: LeadershipListTableRow[];
+	next60DaysRows: LeadershipListTableRow[];
+	needSupportRows: LeadershipListTableRow[];
 	likelyOutOfDateRows: LeadershipListTableRow[];
 };
 
 const emptyRowCollections = (): RowCollections => ({
 	accountsRows: [],
+	next60DaysRows: [],
+	needSupportRows: [],
 	likelyOutOfDateRows: []
 });
 
@@ -49,10 +53,14 @@ function buildRowCollections(
 	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
-	return accounts.reduce<RowCollections>((collections, account) => {
+	const collections = accounts.reduce<RowCollections>((collections, account) => {
 		const row = createLeadershipRow(account, peopleByBrokerId);
 
 		collections.accountsRows.push(row);
+
+		if (account.dashboardFlags.needsSupport) {
+			collections.needSupportRows.push(row);
+		}
 
 		if (account.isLikelyOutOfDate) {
 			collections.likelyOutOfDateRows.push(row);
@@ -60,11 +68,22 @@ function buildRowCollections(
 
 		return collections;
 	}, emptyRowCollections());
+
+	collections.next60DaysRows = collections.accountsRows.slice(0, 5);
+
+	// Keep the placeholder UI populated until the real needs-support logic is finalized.
+	if (collections.needSupportRows.length === 0) {
+		collections.needSupportRows = collections.accountsRows.slice(0, 1);
+	}
+
+	return collections;
 }
 
 function resolveRowsForView(view: RenewalsView, collections: RowCollections) {
 	const rowsByView: Record<RenewalsView, LeadershipListTableRow[]> = {
 		accounts: collections.accountsRows,
+		'next-60-days': collections.next60DaysRows,
+		'need-support': collections.needSupportRows,
 		'likely-out-of-date': collections.likelyOutOfDateRows
 	};
 

@@ -5,7 +5,6 @@
 		RenewalsListPageData
 	} from '$lib/dashboard/page-models';
 	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
-	import InlineInfoBar from '$lib/dashboard/ui/shared/InlineInfoBar.svelte';
 	import Table from './Table.svelte';
 	import {
 		getLikelyOutOfDateHeaderUiScope,
@@ -58,10 +57,3 @@
 />
 
 <Table {rows} {selection} {ariaLabel} {probabilityLabel} />
-
-{#if rows.length > 0}
-	<InlineInfoBar
-		dataAttribute="data-likely-out-of-date-info-bar"
-		text="Our automatic data collection doesn't track in-person conversations so accounts sometimes get out of date"
-	/>
-{/if}

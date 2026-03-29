@@ -302,6 +302,12 @@ describe('Convex feature contracts', () => {
 		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
 			view: 'likely-out-of-date'
 		});
+		const renewalsNext60DaysList = await t.query(api.renewals.getRenewalsList, {
+			view: 'next-60-days'
+		});
+		const renewalsNeedSupportList = await t.query(api.renewals.getRenewalsList, {
+			view: 'need-support'
+		});
 		const sinceLastMeeting = await t.query(api.sinceLastMeeting.getSinceLastMeeting, {
 			meetingKey: seed.march20MeetingKey
 		});
@@ -348,6 +354,8 @@ describe('Convex feature contracts', () => {
 
 		expect(renewalsList).not.toHaveProperty('header');
 		expect(renewalsList.rows).toEqual([]);
+		expect(renewalsNext60DaysList.rows).toEqual([]);
+		expect(renewalsNeedSupportList.rows).toEqual([]);
 		expect(renewalsLikelyOutOfDateList.rows).toEqual([]);
 
 		expect(sinceLastMeeting.accounts).toEqual(
@@ -437,7 +445,7 @@ describe('Convex feature contracts', () => {
 					orgChartNodes: seed.accountOrgChartNodes
 				},
 				dashboardFlags: {
-					needsSupport: false,
+					needsSupport: true,
 					duplicatedWork: false
 				}
 			});
@@ -452,6 +460,12 @@ describe('Convex feature contracts', () => {
 		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
 			view: 'likely-out-of-date'
 		});
+		const renewalsNext60DaysList = await t.query(api.renewals.getRenewalsList, {
+			view: 'next-60-days'
+		});
+		const renewalsNeedSupportList = await t.query(api.renewals.getRenewalsList, {
+			view: 'need-support'
+		});
 		const renewalsDetail = await t.query(api.renewals.getRenewalsDetail, {
 			accountKey: renewalAccountKey
 		});
@@ -464,6 +478,22 @@ describe('Convex feature contracts', () => {
 			])
 		);
 		expect(renewalsList.rows).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					key: renewalAccountKey,
+					hasDetail: true
+				})
+			])
+		);
+		expect(renewalsNext60DaysList.rows).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					key: renewalAccountKey,
+					hasDetail: true
+				})
+			])
+		);
+		expect(renewalsNeedSupportList.rows).toEqual(
 			expect.arrayContaining([
 				expect.objectContaining({
 					key: renewalAccountKey,

@@ -28,37 +28,47 @@ import {
 
 type RowCollections = {
 	accountsRows: LeadershipListTableRow[];
-	atRiskRows: LeadershipListTableRow[];
 	likelyOutOfDateRows: LeadershipListTableRow[];
 };
+
+const emptyRowCollections = (): RowCollections => ({
+	accountsRows: [],
+	likelyOutOfDateRows: []
+});
+
+function createLeadershipRow(
+	account: AccountRecordData,
+	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
+) {
+	return hasListActivityData(account)
+		? toRelativeLastActivityRow(account, peopleByBrokerId)
+		: toNoActivityRow(account, peopleByBrokerId);
+}
 
 function buildRowCollections(
 	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
-	const likelyOutOfDateAccounts = accounts.filter((account) => account.isLikelyOutOfDate);
+	return accounts.reduce<RowCollections>((collections, account) => {
+		const row = createLeadershipRow(account, peopleByBrokerId);
 
-	return {
-		accountsRows: accounts.map((account) =>
-			hasListActivityData(account)
-				? toRelativeLastActivityRow(account, peopleByBrokerId)
-				: toNoActivityRow(account, peopleByBrokerId)
-		),
-		atRiskRows: [],
-		likelyOutOfDateRows: likelyOutOfDateAccounts.map((account) =>
-			hasListActivityData(account)
-				? toRelativeLastActivityRow(account, peopleByBrokerId)
-				: toNoActivityRow(account, peopleByBrokerId)
-		)
-	};
+		collections.accountsRows.push(row);
+
+		if (account.isLikelyOutOfDate) {
+			collections.likelyOutOfDateRows.push(row);
+		}
+
+		return collections;
+	}, emptyRowCollections());
 }
 
 function resolveRowsForView(view: RenewalsView, collections: RowCollections) {
-	return view === 'at-risk'
-		? collections.atRiskRows
-		: view === 'likely-out-of-date'
-			? collections.likelyOutOfDateRows
-			: collections.accountsRows;
+	const rowsByView: Record<RenewalsView, LeadershipListTableRow[]> = {
+		accounts: collections.accountsRows,
+		'likely-out-of-date': collections.likelyOutOfDateRows
+	};
+
+	return rowsByView[view];
 }
 
 export const getRenewalsList = query({
@@ -75,7 +85,9 @@ export const getRenewalsList = query({
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const people = toDashboardPeople(brokerRecords);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const accountRecords = accounts.map((account) => toAccountRecord(account)).filter((account) => account.isRenewal);
+		const accountRecords = accounts
+			.map((account) => toAccountRecord(account))
+			.filter((account) => account.isRenewal);
 		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
 
 		return {

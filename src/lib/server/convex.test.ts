@@ -32,6 +32,7 @@ import {
 	CONVEX_INVALID_URL_MESSAGE,
 	CONVEX_MISSING_URL_MESSAGE,
 	CONVEX_UNAVAILABLE_MESSAGE,
+	createConvexFetch,
 	createServerConvexClient,
 	resolveServerConvexUrl
 } from './convex';
@@ -96,6 +97,30 @@ describe('server Convex client', () => {
 			}
 		});
 		expect(mocks.consoleError).toHaveBeenCalled();
+	});
+
+	it('maps gateway failures from the Convex fetch wrapper to unavailable errors', async () => {
+		const fetchImplementation = createConvexFetch(async () =>
+			new Response('Bad gateway', {
+				status: 502,
+				statusText: 'Bad Gateway'
+			})
+		);
+
+		await expect(fetchImplementation('http://127.0.0.1:3210')).rejects.toMatchObject({
+			name: 'ConvexAvailabilityError',
+			message: CONVEX_UNAVAILABLE_MESSAGE
+		});
+	});
+
+	it('preserves non-availability HTTP failures from the Convex fetch wrapper', async () => {
+		const response = new Response('Unauthorized', {
+			status: 401,
+			statusText: 'Unauthorized'
+		});
+		const fetchImplementation = createConvexFetch(async () => response);
+
+		await expect(fetchImplementation('http://127.0.0.1:3210')).resolves.toBe(response);
 	});
 
 	it('rethrows unexpected Convex errors unchanged', async () => {

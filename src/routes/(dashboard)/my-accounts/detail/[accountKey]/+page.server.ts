@@ -18,8 +18,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 	);
 	const readModel = await createServerConvexClient().query(api.myAccounts.getMyAccountsDetail, {
 		accountKey: route.accountKey,
-		brokerKey: activeBrokerKey,
-		view: route.view
+		brokerKey: activeBrokerKey
 	});
 
 	if (!readModel) {

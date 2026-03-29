@@ -45,6 +45,19 @@ export type OpportunityDetailPageData = {
 	rightRail: OpportunityDetailReadModel['rightRail'];
 };
 
+function toOpportunityTilePageData(
+	tiles: readonly OpportunitiesListReadModel['opportunityTiles'][number][],
+	meetingKey: OpportunitiesListRouteRef['meetingKey']
+): OpportunityTilePageData[] {
+	return tiles.map((tile) => ({
+		...tile,
+		href: resolveOpportunitiesDetailPath({
+			insightKey: tile.key,
+			meetingKey
+		})
+	}));
+}
+
 export function buildOpportunitiesListPageData(params: {
 	route: OpportunitiesListRouteRef;
 	readModel: OpportunitiesListReadModel;
@@ -55,20 +68,8 @@ export function buildOpportunitiesListPageData(params: {
 		route,
 		header: createOpportunitiesListHeader(route.meetingKey),
 		hero: OPPORTUNITIES_HERO,
-		opportunityTiles: readModel.opportunityTiles.map((tile) => ({
-			...tile,
-			href: resolveOpportunitiesDetailPath({
-				insightKey: tile.key,
-				meetingKey: route.meetingKey
-			})
-		})),
-		riskTiles: readModel.riskTiles.map((tile) => ({
-			...tile,
-			href: resolveOpportunitiesDetailPath({
-				insightKey: tile.key,
-				meetingKey: route.meetingKey
-			})
-		})),
+		opportunityTiles: toOpportunityTilePageData(readModel.opportunityTiles, route.meetingKey),
+		riskTiles: toOpportunityTilePageData(readModel.riskTiles, route.meetingKey),
 		update: readModel.update
 	};
 }

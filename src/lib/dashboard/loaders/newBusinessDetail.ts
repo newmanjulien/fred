@@ -1,30 +1,28 @@
-import { error } from '@sveltejs/kit';
 import { buildNewBusinessDetailPageData } from '$lib/dashboard/page-models/newBusiness';
-import { requireDashboardRouteKind } from '$lib/dashboard/page-models/layout';
-import type { DashboardShellReadModel } from '$lib/dashboard/read-models';
-import type { DashboardRouteRef } from '$lib/dashboard/routing';
+import {
+	loadDashboardAccountDetailPageData,
+	type DashboardAccountDetailLayoutData
+} from '$lib/dashboard/loaders/accountDetail';
 import { api, createServerConvexClient } from '$lib/server/convex';
+import type { AccountDetailReadModel } from '$lib/dashboard/read-models';
 
-type NewBusinessDetailLayoutData = {
-	route: DashboardRouteRef;
-	dashboardShell: DashboardShellReadModel;
-};
-
-export async function loadNewBusinessDetailPageData(
-	layoutData: NewBusinessDetailLayoutData
-) {
-	const route = requireDashboardRouteKind(layoutData.route, 'new-business-detail');
-	const readModel = await createServerConvexClient().query(api.newBusiness.getNewBusinessDetail, {
-		accountKey: route.accountKey
-	});
-
-	if (!readModel) {
-		throw error(404, 'Not found');
-	}
-
-	return buildNewBusinessDetailPageData({
-		route,
-		readModel,
-		dashboardShell: layoutData.dashboardShell
+export async function loadNewBusinessDetailPageData(layoutData: DashboardAccountDetailLayoutData) {
+	return loadDashboardAccountDetailPageData<
+		'new-business-detail',
+		AccountDetailReadModel,
+		ReturnType<typeof buildNewBusinessDetailPageData>
+	>({
+		layoutData,
+		kind: 'new-business-detail',
+		loadReadModel: (accountKey) =>
+			createServerConvexClient().query(api.newBusiness.getNewBusinessDetail, {
+				accountKey
+			}),
+		buildPageData: ({ route, readModel, dashboardShell }) =>
+			buildNewBusinessDetailPageData({
+				route,
+				readModel,
+				dashboardShell
+			})
 	});
 }

@@ -130,6 +130,21 @@ function toMyAccountsWatchlistItem(
 	} as const;
 }
 
+function collectEntries<TItem>(
+	entries: readonly MyAccountsEntryBundle[],
+	selectItems: (entry: MyAccountsEntryBundle) => readonly TItem[] | null
+): TItem[] {
+	return entries.reduce<TItem[]>((items, entry) => {
+		const selectedItems = selectItems(entry);
+
+		if (selectedItems?.length) {
+			items.push(...selectedItems);
+		}
+
+		return items;
+	}, []);
+}
+
 function toUtcIsoDate(date: Date) {
 	return date.toISOString().slice(0, 10);
 }
@@ -158,6 +173,26 @@ function sortFeedItemsDescending<T extends { id: string; dateIso: string }>(item
 
 		return left.id.localeCompare(right.id);
 	});
+}
+
+function takeItemsFromSameWeek<TItem>(items: readonly TItem[], getDateIso: (item: TItem) => string) {
+	const referenceDateIso = items[0] ? getDateIso(items[0]) : null;
+
+	if (!referenceDateIso) {
+		return [];
+	}
+
+	const currentWeekItems: TItem[] = [];
+
+	for (const item of items) {
+		if (!isInSameWeek(getDateIso(item), referenceDateIso)) {
+			break;
+		}
+
+		currentWeekItems.push(item);
+	}
+
+	return currentWeekItems;
 }
 
 function getMyAccountsRowDetailTabId(entry: Pick<MyAccountsEntryBundle, 'newsItems' | 'activities'>) {
@@ -202,16 +237,10 @@ function toTableRow(
 
 function toMyAccountsNewsItems(entries: readonly MyAccountsEntryBundle[]) {
 	const sortedNews = sortAccountNewsDescending(
-		entries.flatMap((entry) => (entry.account.context ? [...entry.newsItems] : []))
+		collectEntries(entries, (entry) => (entry.account.context ? entry.newsItems : null))
 	);
-	const referencePublishedOnIso = sortedNews[0]?.publishedOnIso;
 
-	if (!referencePublishedOnIso) {
-		return [];
-	}
-
-	return sortedNews
-		.filter((newsItem) => isInSameWeek(newsItem.publishedOnIso, referencePublishedOnIso))
+	return takeItemsFromSameWeek(sortedNews, (newsItem) => newsItem.publishedOnIso)
 		.map((newsItem) => toMyAccountsNewsItem(newsItem));
 }
 
@@ -220,19 +249,14 @@ function toMyAccountsWatchlistItems(
 	activeBrokerId: BrokerId
 ) {
 	const sortedActivities = sortFeedItemsDescending(
-		entries.flatMap((entry) =>
+		collectEntries(entries, (entry) =>
 			!isAccountOwner(entry.account, activeBrokerId) && isMyAccountsDetailEligible(entry)
 				? entry.activities.map((activity) => toMyAccountsWatchlistItem(entry, activity))
-				: []
+				: null
 		)
 	);
-	const referenceDateIso = sortedActivities[0]?.dateIso;
 
-	if (!referenceDateIso) {
-		return [];
-	}
-
-	return sortedActivities.filter((item) => isInSameWeek(item.dateIso, referenceDateIso));
+	return takeItemsFromSameWeek(sortedActivities, (item) => item.dateIso);
 }
 
 function buildEntries(input: {
@@ -259,11 +283,17 @@ function buildEntries(input: {
 	});
 }
 
+function createBrokerRecordByKeyMap(
+	brokerRecords: readonly BrokerRecordData[]
+): ReadonlyMap<BrokerKey, BrokerRecordData> {
+	return new Map(brokerRecords.map((brokerRecord) => [brokerRecord.key, brokerRecord] as const));
+}
+
 function requireBrokerRecord(
-	brokerRecords: readonly BrokerRecordData[],
+	brokerRecordByKey: ReadonlyMap<BrokerKey, BrokerRecordData>,
 	brokerKey: BrokerKey
 ): BrokerRecordData {
-	const broker = brokerRecords.find((record) => record.key === brokerKey);
+	const broker = brokerRecordByKey.get(brokerKey);
 
 	if (!broker) {
 		throw new Error(`Unknown broker "${brokerKey}".`);
@@ -289,7 +319,8 @@ export const getMyAccountsList = query({
 				.collect()
 		]);
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
-		const activeBroker = requireBrokerRecord(brokerRecords, args.brokerKey as BrokerKey);
+		const brokerRecordByKey = createBrokerRecordByKeyMap(brokerRecords);
+		const activeBroker = requireBrokerRecord(brokerRecordByKey, args.brokerKey as BrokerKey);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
 		const entries = buildEntries({
 			activeBrokerId: activeBroker.id,
@@ -309,8 +340,7 @@ export const getMyAccountsList = query({
 export const getMyAccountsDetail = query({
 	args: {
 		accountKey: v.string(),
-		brokerKey: v.string(),
-		view: myAccountsViewValidator
+		brokerKey: v.string()
 	},
 	returns: v.union(myAccountsDetailReadModelValidator, v.null()),
 	handler: async (ctx, args): Promise<MyAccountsDetailReadModel | null> => {
@@ -324,7 +354,8 @@ export const getMyAccountsDetail = query({
 		}
 
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
-		const activeBroker = requireBrokerRecord(brokerRecords, args.brokerKey as BrokerKey);
+		const brokerRecordByKey = createBrokerRecordByKeyMap(brokerRecords);
+		const activeBroker = requireBrokerRecord(brokerRecordByKey, args.brokerKey as BrokerKey);
 
 		const [newsItems, activities] = await Promise.all([
 			ctx.db

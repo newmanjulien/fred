@@ -31,6 +31,7 @@ const NETWORK_ERROR_CODES = new Set([
 ]);
 
 const CONVEX_UDF_FAILED_STATUS = 560;
+const CONVEX_UNAVAILABLE_RESPONSE_STATUSES = new Set([502, 503, 504]);
 const CONVEX_UNAVAILABLE_MESSAGE_PATTERNS = [
 	/Could not find public function/u,
 	/Did you forget to run/u
@@ -84,6 +85,10 @@ function isConvexAvailabilityMessage(message: string) {
 	return CONVEX_UNAVAILABLE_MESSAGE_PATTERNS.some((pattern) => pattern.test(message));
 }
 
+function isConvexAvailabilityResponse(status: number, body: string) {
+	return CONVEX_UNAVAILABLE_RESPONSE_STATUSES.has(status) || isConvexAvailabilityMessage(body);
+}
+
 export function isConvexBackendUnavailableError(cause: unknown) {
 	if (cause instanceof ConvexAvailabilityError) {
 		return true;
@@ -107,12 +112,16 @@ export function createConvexFetch(baseFetch: FetchImplementation = fetch): Fetch
 			const response = await baseFetch(input, init);
 
 			if (!response.ok && response.status !== CONVEX_UDF_FAILED_STATUS) {
-				throw new ConvexAvailabilityError(CONVEX_UNAVAILABLE_MESSAGE, {
-					body: await response.clone().text(),
-					status: response.status,
-					statusText: response.statusText,
-					url: response.url
-				});
+				const body = await response.clone().text();
+
+				if (isConvexAvailabilityResponse(response.status, body)) {
+					throw new ConvexAvailabilityError(CONVEX_UNAVAILABLE_MESSAGE, {
+						body,
+						status: response.status,
+						statusText: response.statusText,
+						url: response.url
+					});
+				}
 			}
 
 			return response;

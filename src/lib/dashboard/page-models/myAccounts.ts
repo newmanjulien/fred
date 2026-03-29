@@ -32,6 +32,28 @@ type MyAccountsNavigation =
 			kind: 'none';
 	  };
 
+type MyAccountsFeedItemContext =
+	| {
+			kind: 'list';
+			route: MyAccountsListRouteRef;
+	  }
+	| {
+			kind: 'detail';
+	  };
+
+function toExternalNavigation(url: string): MyAccountsNavigation {
+	const href = parseAbsoluteUrl(url);
+
+	return href
+		? {
+				kind: 'external',
+				href
+			}
+		: {
+				kind: 'none'
+			};
+}
+
 function toDetailNavigation(
 	route: MyAccountsListRouteRef,
 	detail: MyAccountsDetailRef | null
@@ -53,30 +75,40 @@ function toDetailNavigation(
 }
 
 function toFeedItemNavigation(
-	route: MyAccountsListRouteRef,
+	context: MyAccountsFeedItemContext,
 	item: MyAccountsFeedItemReadModel
 ): MyAccountsNavigation {
 	if (item.kind === 'activity') {
+		if (context.kind !== 'list') {
+			return {
+				kind: 'none'
+			};
+		}
+
 		return {
 			kind: 'internal',
 			href: resolveMyAccountsDetailPath({
 				accountKey: item.detail.accountKey,
-				view: route.view,
+				view: context.route.view,
 				tab: item.detail.defaultTab
 			})
 		};
 	}
 
-	const href = parseAbsoluteUrl(item.url);
+	return toExternalNavigation(item.url);
+}
 
-	return href
-		? {
-				kind: 'external',
-				href
-			}
-		: {
-				kind: 'none'
-			};
+function toFeedItemPageData(
+	item: MyAccountsFeedItemReadModel,
+	context: MyAccountsFeedItemContext
+): MyAccountsFeedItemPageData {
+	return {
+		id: item.id,
+		title: item.title,
+		kind: item.kind,
+		dateIso: item.dateIso,
+		navigation: toFeedItemNavigation(context, item)
+	};
 }
 
 export type MyAccountsFeedItemPageData = {
@@ -131,20 +163,12 @@ export function buildMyAccountsListPageData(params: {
 				navigation: toDetailNavigation(route, detail)
 			};
 		}),
-		newsItems: readModel.newsItems.map((item) => ({
-			id: item.id,
-			title: item.title,
-			kind: item.kind,
-			dateIso: item.dateIso,
-			navigation: toFeedItemNavigation(route, item)
-		})),
-		watchlistItems: readModel.watchlistItems.map((item) => ({
-			id: item.id,
-			title: item.title,
-			kind: item.kind,
-			dateIso: item.dateIso,
-			navigation: toFeedItemNavigation(route, item)
-		}))
+		newsItems: readModel.newsItems.map((item) =>
+			toFeedItemPageData(item, { kind: 'list', route })
+		),
+		watchlistItems: readModel.watchlistItems.map((item) =>
+			toFeedItemPageData(item, { kind: 'list', route })
+		)
 	};
 }
 
@@ -158,29 +182,7 @@ export function buildMyAccountsDetailPageData(params: {
 		route,
 		header: createMyAccountsDetailHeader(readModel.title, route.view),
 		hero: readModel.hero,
-		newsItems: readModel.newsItems.map((item) => ({
-			id: item.id,
-			title: item.title,
-			kind: item.kind,
-			dateIso: item.dateIso,
-			navigation:
-				item.kind === 'activity'
-					? {
-							kind: 'none'
-						}
-					: (() => {
-							const href = parseAbsoluteUrl(item.url);
-
-							return href
-								? {
-										kind: 'external' as const,
-										href
-									}
-								: {
-										kind: 'none' as const
-									};
-						})()
-		})),
+		newsItems: readModel.newsItems.map((item) => toFeedItemPageData(item, { kind: 'detail' })),
 		activityItems: readModel.activityItems,
 		update: readModel.update,
 		rightRail: readModel.rightRail

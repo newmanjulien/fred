@@ -25,6 +25,7 @@ export const sidebarIndicator: Action<HTMLElement, SidebarIndicatorOptions> = (
 ) => {
 	let options = initialOptions;
 	let targetElement: HTMLElement | null = null;
+	let observedTargetElement: HTMLElement | null = null;
 	let frame = 0;
 
 	const resizeObserver = new ResizeObserver(() => {
@@ -35,18 +36,34 @@ export const sidebarIndicator: Action<HTMLElement, SidebarIndicatorOptions> = (
 		node.style.setProperty('--sidebar-nav-indicator-opacity', '0');
 	}
 
-	function observeLayout() {
-		resizeObserver.disconnect();
-		resizeObserver.observe(node);
+	function setObservedTargetElement(nextTargetElement: HTMLElement | null) {
+		if (observedTargetElement === nextTargetElement) {
+			return;
+		}
 
-		if (targetElement) {
-			resizeObserver.observe(targetElement);
+		if (observedTargetElement) {
+			resizeObserver.unobserve(observedTargetElement);
+		}
+
+		observedTargetElement = nextTargetElement;
+
+		if (observedTargetElement) {
+			resizeObserver.observe(observedTargetElement);
 		}
 	}
 
-	function measure() {
+	function refreshTargetElement() {
 		targetElement = options.enabled ? findIndicatorTarget(node, options.targetKey) : null;
-		observeLayout();
+		setObservedTargetElement(targetElement);
+	}
+
+	function measure() {
+		if (
+			targetElement &&
+			(!node.contains(targetElement) || targetElement.dataset.sidebarIndicatorKey !== options.targetKey)
+		) {
+			refreshTargetElement();
+		}
 
 		if (!targetElement) {
 			hide();
@@ -70,15 +87,19 @@ export const sidebarIndicator: Action<HTMLElement, SidebarIndicatorOptions> = (
 		});
 	}
 
+	resizeObserver.observe(node);
+	refreshTargetElement();
 	scheduleMeasure();
 
 	return {
 		update(nextOptions) {
 			options = nextOptions;
+			refreshTargetElement();
 			scheduleMeasure();
 		},
 		destroy() {
 			cancelAnimationFrame(frame);
+			setObservedTargetElement(null);
 			resizeObserver.disconnect();
 			hide();
 		}

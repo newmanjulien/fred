@@ -128,14 +128,6 @@ type DashboardActivityValue = Doc<'activities'> | Doc<'insights'>['timeline'][nu
 type AccountContextDocument = NonNullable<Doc<'accounts'>['context']>;
 type InsightDocument = Doc<'insights'>;
 
-function requireString(value: unknown, path: string) {
-	if (typeof value !== 'string') {
-		throw new Error(`Expected string at "${path}".`);
-	}
-
-	return value;
-}
-
 function toInternalOrgChartNodeRecord(
 	node: AccountContextDocument['orgChartNodes'][number] | InsightDocument['orgChartNodes'][number]
 ): InternalOrgChartNodeRecord {
@@ -383,61 +375,71 @@ function getActivityLocalId(activity: DashboardActivityValue) {
 	return `activity-${activity._creationTime}`;
 }
 
-function hasActorActivityFields(
-	activity: DashboardActivityValue
-): activity is DashboardActivityValue & {
-	actorBrokerId: BrokerId;
-	action: string;
-} {
-	return 'actorBrokerId' in activity && 'action' in activity;
+type ActivityRecordBase = Pick<
+	ActivityRecordData,
+	'id' | 'accountId' | 'stream' | 'occurredOnIso' | 'body' | 'marker'
+>;
+
+type NormalizedActivityVariant =
+	| {
+			kind: 'headline';
+			title: string;
+	  }
+	| {
+			kind: 'actor-action';
+			actorBrokerRef: BrokerId;
+			action: string;
+	  };
+
+function createActivityRecordBase(activity: DashboardActivityValue, id: string): ActivityRecordBase {
+	return {
+		id,
+		accountId: activity.accountId,
+		stream: activity.stream as AccountActivityStream,
+		occurredOnIso: parseIsoDate(activity.occurredOnIso, `activity["${id}"].occurredOnIso`),
+		body: activity.body,
+		marker:
+			activity.marker.kind === 'dot'
+				? { kind: 'dot' as const }
+				: { kind: 'broker-avatar' as const, brokerRef: activity.marker.brokerId }
+	};
 }
 
-function hasHeadlineActivityFields(
-	activity: DashboardActivityValue
-): activity is DashboardActivityValue & {
-	title: string;
-} {
-	return 'title' in activity;
-}
-
-export function toActivityRecord(activity: DashboardActivityValue): ActivityRecordData {
-	const id = getActivityLocalId(activity);
-	const marker =
-		activity.marker.kind === 'dot'
-			? { kind: 'dot' as const }
-			: { kind: 'broker-avatar' as const, brokerRef: activity.marker.brokerId };
-
-	const hasActorFields = hasActorActivityFields(activity);
-	const hasHeadlineFields = hasHeadlineActivityFields(activity);
-
-	if (hasActorFields === hasHeadlineFields) {
-		throw new Error(`Invalid activity shape for "${id}".`);
-	}
-
-	if (hasHeadlineFields) {
+function normalizeActivityVariant(activity: DashboardActivityValue, id: string): NormalizedActivityVariant {
+	if ('title' in activity) {
 		return {
 			kind: 'headline',
-			id,
-			accountId: activity.accountId,
-			stream: activity.stream as AccountActivityStream,
-			occurredOnIso: parseIsoDate(activity.occurredOnIso, `activity["${id}"].occurredOnIso`),
-			body: activity.body,
-			marker,
 			title: activity.title
 		};
-	} else {
+	}
+
+	if ('actorBrokerId' in activity && 'action' in activity) {
 		return {
 			kind: 'actor-action',
-			id,
-			accountId: activity.accountId,
-			stream: activity.stream as AccountActivityStream,
-			occurredOnIso: parseIsoDate(activity.occurredOnIso, `activity["${id}"].occurredOnIso`),
-			body: activity.body,
-			marker,
 			actorBrokerRef: activity.actorBrokerId,
 			action: activity.action
 		};
 	}
+
+	throw new Error(`Invalid activity shape for "${id}".`);
+}
+
+export function toActivityRecord(activity: DashboardActivityValue): ActivityRecordData {
+	const id = getActivityLocalId(activity);
+	const base = createActivityRecordBase(activity, id);
+	const variant = normalizeActivityVariant(activity, id);
+
+	if (variant.kind === 'headline') {
+		return {
+			...base,
+			...variant
+		};
+	}
+
+	return {
+		...base,
+		...variant
+	};
 }
 
 export function toNewsRecord(newsItem: Doc<'news'>): NewsRecordData {

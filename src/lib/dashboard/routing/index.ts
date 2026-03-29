@@ -187,179 +187,158 @@ function resolveMyAccountsDetailTab(searchParams: URLSearchParams): MyAccountsDe
 	return isMyAccountsDetailTabId(tab) ? tab : null;
 }
 
+function parseEmptySearchParams(searchParams: URLSearchParams) {
+	return searchParams.size === 0 ? {} : null;
+}
+
+function createViewListRouteDefinition<TRoute extends DashboardRouteRef, TView extends string>(params: {
+	routeIds: readonly [string, string];
+	defaultView: TView;
+	isNonDefaultView: (value: string) => boolean;
+	build: (view: TView) => TRoute;
+}): DashboardRouteDefinition<TRoute> {
+	return {
+		routeIds: params.routeIds,
+		parse: ({ routeId, params: routeParams, searchParams }) => {
+			if (searchParams.size > 0) {
+				return null;
+			}
+
+			if (routeId === params.routeIds[0]) {
+				return params.build(params.defaultView);
+			}
+
+			const view = routeParams.view;
+
+			if (!view || !params.isNonDefaultView(view)) {
+				return null;
+			}
+
+			return params.build(view as TView);
+		}
+	};
+}
+
+function createViewDetailRouteDefinition<
+	TRoute extends DashboardRouteRef,
+	TView extends string,
+	TExtra extends object = {}
+>(params: {
+	routeIds: readonly [string, string];
+	defaultView: TView;
+	isNonDefaultView: (value: string) => boolean;
+	parseSearchParams?: (searchParams: URLSearchParams) => TExtra | null;
+	build: (input: { accountKey: AccountKey; view: TView } & TExtra) => TRoute;
+}): DashboardRouteDefinition<TRoute> {
+	const parseSearchParams =
+		params.parseSearchParams ??
+		(parseEmptySearchParams as (searchParams: URLSearchParams) => TExtra | null);
+
+	return {
+		routeIds: params.routeIds,
+		parse: ({ routeId, params: routeParams, searchParams }) => {
+			const accountKey = resolveRequiredRouteParam(routeParams.accountKey);
+
+			if (!accountKey) {
+				return null;
+			}
+
+			const extra = parseSearchParams(searchParams);
+
+			if (!extra) {
+				return null;
+			}
+
+			if (routeId === params.routeIds[0]) {
+				return params.build(
+					{
+						accountKey: accountKey as AccountKey,
+						view: params.defaultView,
+						...extra
+					} as { accountKey: AccountKey; view: TView } & TExtra
+				);
+			}
+
+			const view = routeParams.view;
+
+			if (!view || !params.isNonDefaultView(view)) {
+				return null;
+			}
+
+			return params.build(
+				{
+					accountKey: accountKey as AccountKey,
+					view: view as TView,
+					...extra
+				} as { accountKey: AccountKey; view: TView } & TExtra
+			);
+		}
+	};
+}
+
 const dashboardRouteDefinitions = {
-	'my-accounts-list': {
+	'my-accounts-list': createViewListRouteDefinition({
 		routeIds: DASHBOARD_ROUTE_IDS.myAccountsList,
-		parse: ({ routeId, params, searchParams }) => {
-			if (searchParams.size > 0) {
-				return null;
-			}
-
-			if (routeId === DASHBOARD_ROUTE_IDS.myAccountsList[0]) {
-				return {
-					kind: 'my-accounts-list',
-					view: DEFAULT_MY_ACCOUNTS_VIEW
-				};
-			}
-
-			if (!params.view || !isNonDefaultMyAccountsView(params.view)) {
-				return null;
-			}
-
-			return {
-				kind: 'my-accounts-list',
-				view: params.view
-			};
-		}
-	},
-	'my-accounts-detail': {
+		defaultView: DEFAULT_MY_ACCOUNTS_VIEW,
+		isNonDefaultView: isNonDefaultMyAccountsView,
+		build: (view) => ({
+			kind: 'my-accounts-list',
+			view
+		})
+	}),
+	'my-accounts-detail': createViewDetailRouteDefinition({
 		routeIds: DASHBOARD_ROUTE_IDS.myAccountsDetail,
-		parse: ({ routeId, params, searchParams }) => {
-			const accountKey = resolveRequiredRouteParam(params.accountKey);
-
-			if (!accountKey) {
-				return null;
-			}
-
+		defaultView: DEFAULT_MY_ACCOUNTS_VIEW,
+		isNonDefaultView: isNonDefaultMyAccountsView,
+		parseSearchParams: (searchParams) => {
 			const tab = resolveMyAccountsDetailTab(searchParams);
-
-			if (!tab) {
-				return null;
-			}
-
-			if (routeId === DASHBOARD_ROUTE_IDS.myAccountsDetail[0]) {
-				return {
-					kind: 'my-accounts-detail',
-					accountKey: accountKey as AccountKey,
-					view: DEFAULT_MY_ACCOUNTS_VIEW,
-					tab
-				};
-			}
-
-			if (!params.view || !isNonDefaultMyAccountsView(params.view)) {
-				return null;
-			}
-
-			return {
-				kind: 'my-accounts-detail',
-				accountKey: accountKey as AccountKey,
-				view: params.view,
-				tab
-			};
-		}
-	},
-	'new-business-list': {
+			return tab ? { tab } : null;
+		},
+		build: ({ accountKey, view, tab }) => ({
+			kind: 'my-accounts-detail',
+			accountKey,
+			view,
+			tab
+		})
+	}),
+	'new-business-list': createViewListRouteDefinition({
 		routeIds: DASHBOARD_ROUTE_IDS.newBusinessList,
-		parse: ({ routeId, params, searchParams }) => {
-			if (searchParams.size > 0) {
-				return null;
-			}
-
-			if (routeId === DASHBOARD_ROUTE_IDS.newBusinessList[0]) {
-				return {
-					kind: 'new-business-list',
-					view: DEFAULT_NEW_BUSINESS_VIEW
-				};
-			}
-
-			if (!params.view || !isNonDefaultNewBusinessView(params.view)) {
-				return null;
-			}
-
-			return {
-				kind: 'new-business-list',
-				view: params.view
-			};
-		}
-	},
-	'new-business-detail': {
+		defaultView: DEFAULT_NEW_BUSINESS_VIEW,
+		isNonDefaultView: isNonDefaultNewBusinessView,
+		build: (view) => ({
+			kind: 'new-business-list',
+			view
+		})
+	}),
+	'new-business-detail': createViewDetailRouteDefinition({
 		routeIds: DASHBOARD_ROUTE_IDS.newBusinessDetail,
-		parse: ({ routeId, params, searchParams }) => {
-			if (searchParams.size > 0) {
-				return null;
-			}
-
-			const accountKey = resolveRequiredRouteParam(params.accountKey);
-
-			if (!accountKey) {
-				return null;
-			}
-
-			if (routeId === DASHBOARD_ROUTE_IDS.newBusinessDetail[0]) {
-				return {
-					kind: 'new-business-detail',
-					accountKey: accountKey as AccountKey,
-					view: DEFAULT_NEW_BUSINESS_VIEW
-				};
-			}
-
-			if (!params.view || !isNonDefaultNewBusinessView(params.view)) {
-				return null;
-			}
-
-			return {
-				kind: 'new-business-detail',
-				accountKey: accountKey as AccountKey,
-				view: params.view
-			};
-		}
-	},
-	'renewals-list': {
+		defaultView: DEFAULT_NEW_BUSINESS_VIEW,
+		isNonDefaultView: isNonDefaultNewBusinessView,
+		build: ({ accountKey, view }) => ({
+			kind: 'new-business-detail',
+			accountKey,
+			view
+		})
+	}),
+	'renewals-list': createViewListRouteDefinition({
 		routeIds: DASHBOARD_ROUTE_IDS.renewalsList,
-		parse: ({ routeId, params, searchParams }) => {
-			if (searchParams.size > 0) {
-				return null;
-			}
-
-			if (routeId === DASHBOARD_ROUTE_IDS.renewalsList[0]) {
-				return {
-					kind: 'renewals-list',
-					view: DEFAULT_RENEWALS_VIEW
-				};
-			}
-
-			if (!params.view || !isNonDefaultRenewalsView(params.view)) {
-				return null;
-			}
-
-			return {
-				kind: 'renewals-list',
-				view: params.view
-			};
-		}
-	},
-	'renewals-detail': {
+		defaultView: DEFAULT_RENEWALS_VIEW,
+		isNonDefaultView: isNonDefaultRenewalsView,
+		build: (view) => ({
+			kind: 'renewals-list',
+			view
+		})
+	}),
+	'renewals-detail': createViewDetailRouteDefinition({
 		routeIds: DASHBOARD_ROUTE_IDS.renewalsDetail,
-		parse: ({ routeId, params, searchParams }) => {
-			if (searchParams.size > 0) {
-				return null;
-			}
-
-			const accountKey = resolveRequiredRouteParam(params.accountKey);
-
-			if (!accountKey) {
-				return null;
-			}
-
-			if (routeId === DASHBOARD_ROUTE_IDS.renewalsDetail[0]) {
-				return {
-					kind: 'renewals-detail',
-					accountKey: accountKey as AccountKey,
-					view: DEFAULT_RENEWALS_VIEW
-				};
-			}
-
-			if (!params.view || !isNonDefaultRenewalsView(params.view)) {
-				return null;
-			}
-
-			return {
-				kind: 'renewals-detail',
-				accountKey: accountKey as AccountKey,
-				view: params.view
-			};
-		}
-	},
+		defaultView: DEFAULT_RENEWALS_VIEW,
+		isNonDefaultView: isNonDefaultRenewalsView,
+		build: ({ accountKey, view }) => ({
+			kind: 'renewals-detail',
+			accountKey,
+			view
+		})
+	}),
 	'opportunities-list': {
 		routeIds: [DASHBOARD_ROUTE_IDS.opportunities[0]],
 		parse: ({ searchParams }) => {

@@ -34,55 +34,64 @@ type RowCollections = {
 	duplicatedWorkRows: LeadershipListTableRow[];
 	noActivityTableRows: LeadershipListTableRow[];
 	likelyOutOfDateViewRows: LeadershipListTableRow[];
-}
+};
 
-function filterFlaggedRows(
-	accounts: readonly AccountRecordData[],
-	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>,
-	flag: keyof AccountRecordData['dashboardFlags']
+const emptyRowCollections = (): RowCollections => ({
+	newBusinessTableRows: [],
+	needSupportRows: [],
+	duplicatedWorkRows: [],
+	noActivityTableRows: [],
+	likelyOutOfDateViewRows: []
+});
+
+function createLeadershipRow(
+	account: AccountRecordData,
+	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ) {
-	return accounts
-		.filter((account) => account.dashboardFlags[flag])
-		.map((account) =>
-			hasListActivityData(account)
-				? toRelativeLastActivityRow(account, peopleByBrokerId)
-				: toNoActivityRow(account, peopleByBrokerId)
-		);
+	return hasListActivityData(account)
+		? toRelativeLastActivityRow(account, peopleByBrokerId)
+		: toNoActivityRow(account, peopleByBrokerId);
 }
 
 function buildRowCollections(
 	accounts: readonly AccountRecordData[],
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
-	const newBusinessRows = accounts.filter(hasListActivityData);
-	const noActivityRows = accounts.filter((account) => !hasListActivityData(account));
-	const likelyOutOfDateRows = accounts.filter((account) => account.isLikelyOutOfDate);
+	return accounts.reduce<RowCollections>((collections, account) => {
+		const row = createLeadershipRow(account, peopleByBrokerId);
 
-	return {
-		newBusinessTableRows: newBusinessRows.map((account) =>
-			toRelativeLastActivityRow(account, peopleByBrokerId)
-		),
-		needSupportRows: filterFlaggedRows(accounts, peopleByBrokerId, 'needsSupport'),
-		duplicatedWorkRows: filterFlaggedRows(accounts, peopleByBrokerId, 'duplicatedWork'),
-		noActivityTableRows: noActivityRows.map((account) => toNoActivityRow(account, peopleByBrokerId)),
-		likelyOutOfDateViewRows: likelyOutOfDateRows.map((account) =>
-			hasListActivityData(account)
-				? toRelativeLastActivityRow(account, peopleByBrokerId)
-				: toNoActivityRow(account, peopleByBrokerId)
-		)
-	};
+		if (hasListActivityData(account)) {
+			collections.newBusinessTableRows.push(row);
+		} else {
+			collections.noActivityTableRows.push(row);
+		}
+
+		if (account.dashboardFlags.needsSupport) {
+			collections.needSupportRows.push(row);
+		}
+
+		if (account.dashboardFlags.duplicatedWork) {
+			collections.duplicatedWorkRows.push(row);
+		}
+
+		if (account.isLikelyOutOfDate) {
+			collections.likelyOutOfDateViewRows.push(row);
+		}
+
+		return collections;
+	}, emptyRowCollections());
 }
 
 function resolveRowsForView(view: NewBusinessView, collections: RowCollections) {
-	return view === 'need-support'
-		? collections.needSupportRows
-		: view === 'duplicated-work'
-			? collections.duplicatedWorkRows
-			: view === 'unassigned'
-				? collections.noActivityTableRows
-				: view === 'likely-out-of-date'
-					? collections.likelyOutOfDateViewRows
-					: collections.newBusinessTableRows;
+	const rowsByView: Record<NewBusinessView, LeadershipListTableRow[]> = {
+		accounts: collections.newBusinessTableRows,
+		'need-support': collections.needSupportRows,
+		'duplicated-work': collections.duplicatedWorkRows,
+		unassigned: collections.noActivityTableRows,
+		'likely-out-of-date': collections.likelyOutOfDateViewRows
+	};
+
+	return rowsByView[view];
 }
 
 export const getNewBusinessList = query({
@@ -99,7 +108,9 @@ export const getNewBusinessList = query({
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const people = toDashboardPeople(brokerRecords);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
-		const accountRecords = accounts.map((account) => toAccountRecord(account)).filter((account) => !account.isRenewal);
+		const accountRecords = accounts
+			.map((account) => toAccountRecord(account))
+			.filter((account) => !account.isRenewal);
 		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
 
 		return {

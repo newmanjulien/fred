@@ -84,6 +84,32 @@ export function toOrgChartRoot<
 	nodes: readonly OrgChartNodeRecord<BrokerRef>[],
 	peopleByRef: PersonSummaryMap<TPerson, BrokerRef>
 ): OrgChartNode {
+	const { nodesById, nodesByParentId, rootId } = indexOrgChartNodes(nodes);
+
+	validateOrgChartGraph({
+		nodes,
+		nodesById,
+		rootId
+	});
+
+	return buildOrgChartRoot({
+		nodes,
+		nodesById,
+		nodesByParentId,
+		rootId,
+		peopleByRef
+	});
+}
+
+type OrgChartNodeIndex<BrokerRef extends string> = {
+	nodesById: Map<string, OrgChartNodeRecord<BrokerRef>>;
+	nodesByParentId: Map<string, OrgChartNodeRecord<BrokerRef>[]>;
+	rootId: string;
+};
+
+function indexOrgChartNodes<BrokerRef extends string>(
+	nodes: readonly OrgChartNodeRecord<BrokerRef>[]
+): OrgChartNodeIndex<BrokerRef> {
 	const nodesById = new Map<string, OrgChartNodeRecord<BrokerRef>>();
 	const nodesByParentId = new Map<string, OrgChartNodeRecord<BrokerRef>[]>();
 	const rootIds: string[] = [];
@@ -118,12 +144,32 @@ export function toOrgChartRoot<
 		throw new Error(`Expected exactly one root org chart node, found ${rootIds.length}.`);
 	}
 
-	for (const node of nodes) {
-		if (node.parentId && !nodesById.has(node.parentId)) {
+	return {
+		nodesById,
+		nodesByParentId,
+		rootId: rootIds[0]
+	};
+}
+
+function validateOrgChartGraph<BrokerRef extends string>(params: {
+	nodes: readonly OrgChartNodeRecord<BrokerRef>[];
+	nodesById: ReadonlyMap<string, OrgChartNodeRecord<BrokerRef>>;
+	rootId: string;
+}) {
+	for (const node of params.nodes) {
+		if (node.parentId && !params.nodesById.has(node.parentId)) {
 			throw new Error(`Unknown parent org chart node "${node.parentId}" for "${node.id}".`);
 		}
 	}
+}
 
+function buildOrgChartRoot<BrokerRef extends string, TPerson extends PersonSummaryLike>(params: {
+	nodes: readonly OrgChartNodeRecord<BrokerRef>[];
+	nodesById: ReadonlyMap<string, OrgChartNodeRecord<BrokerRef>>;
+	nodesByParentId: ReadonlyMap<string, OrgChartNodeRecord<BrokerRef>[]>;
+	rootId: string;
+	peopleByRef: PersonSummaryMap<TPerson, BrokerRef>;
+}): OrgChartNode {
 	const builtNodes = new Map<string, OrgChartNode>();
 	const buildingNodeIds = new Set<string>();
 
@@ -138,7 +184,7 @@ export function toOrgChartRoot<
 			throw new Error(`Cycle detected in org chart at node "${nodeId}".`);
 		}
 
-		const node = nodesById.get(nodeId);
+		const node = params.nodesById.get(nodeId);
 
 		if (!node) {
 			throw new Error(`Unknown org chart node "${nodeId}".`);
@@ -146,8 +192,8 @@ export function toOrgChartRoot<
 
 		buildingNodeIds.add(nodeId);
 
-		const broker = resolveBrokerPerson(peopleByRef, node.lastContactedByBrokerKey);
-		const directReports = nodesByParentId
+		const broker = resolveBrokerPerson(params.peopleByRef, node.lastContactedByBrokerKey);
+		const directReports = params.nodesByParentId
 			.get(nodeId)
 			?.map((childNode) => buildNode(childNode.id));
 
@@ -168,15 +214,15 @@ export function toOrgChartRoot<
 		return orgChartNode;
 	}
 
-	const root = buildNode(rootIds[0]);
+	const root = buildNode(params.rootId);
 
-	if (builtNodes.size !== nodes.length) {
-		const unreachableNodeIds = nodes
+	if (builtNodes.size !== params.nodes.length) {
+		const unreachableNodeIds = params.nodes
 			.filter((node) => !builtNodes.has(node.id))
 			.map((node) => node.id);
 
 		throw new Error(
-			`Org chart nodes are not reachable from root "${rootIds[0]}": ${unreachableNodeIds.join(', ')}.`
+			`Org chart nodes are not reachable from root "${params.rootId}": ${unreachableNodeIds.join(', ')}.`
 		);
 	}
 

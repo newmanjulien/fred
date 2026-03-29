@@ -1,28 +1,28 @@
-import { error } from '@sveltejs/kit';
 import { buildRenewalsDetailPageData } from '$lib/dashboard/page-models/renewals';
-import { requireDashboardRouteKind } from '$lib/dashboard/page-models/layout';
-import type { DashboardShellReadModel } from '$lib/dashboard/read-models';
-import type { DashboardRouteRef } from '$lib/dashboard/routing';
+import {
+	loadDashboardAccountDetailPageData,
+	type DashboardAccountDetailLayoutData
+} from '$lib/dashboard/loaders/accountDetail';
 import { api, createServerConvexClient } from '$lib/server/convex';
+import type { AccountDetailReadModel } from '$lib/dashboard/read-models';
 
-type RenewalsDetailLayoutData = {
-	route: DashboardRouteRef;
-	dashboardShell: DashboardShellReadModel;
-};
-
-export async function loadRenewalsDetailPageData(layoutData: RenewalsDetailLayoutData) {
-	const route = requireDashboardRouteKind(layoutData.route, 'renewals-detail');
-	const readModel = await createServerConvexClient().query(api.renewals.getRenewalsDetail, {
-		accountKey: route.accountKey
-	});
-
-	if (!readModel) {
-		throw error(404, 'Not found');
-	}
-
-	return buildRenewalsDetailPageData({
-		route,
-		readModel,
-		dashboardShell: layoutData.dashboardShell
+export async function loadRenewalsDetailPageData(layoutData: DashboardAccountDetailLayoutData) {
+	return loadDashboardAccountDetailPageData<
+		'renewals-detail',
+		AccountDetailReadModel,
+		ReturnType<typeof buildRenewalsDetailPageData>
+	>({
+		layoutData,
+		kind: 'renewals-detail',
+		loadReadModel: (accountKey) =>
+			createServerConvexClient().query(api.renewals.getRenewalsDetail, {
+				accountKey
+			}),
+		buildPageData: ({ route, readModel, dashboardShell }) =>
+			buildRenewalsDetailPageData({
+				route,
+				readModel,
+				dashboardShell
+			})
 	});
 }

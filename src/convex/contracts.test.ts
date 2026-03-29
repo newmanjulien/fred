@@ -288,8 +288,7 @@ describe('Convex feature contracts', () => {
 		});
 		const myAccountsDetail = await t.query(api.myAccounts.getMyAccountsDetail, {
 			accountKey: seed.accountKey,
-			brokerKey: seed.collaboratorBrokerKey,
-			view: 'news'
+			brokerKey: seed.collaboratorBrokerKey
 		});
 		const newBusinessList = await t.query(api.newBusiness.getNewBusinessList, {
 			view: 'accounts'
@@ -299,9 +298,6 @@ describe('Convex feature contracts', () => {
 		});
 		const renewalsList = await t.query(api.renewals.getRenewalsList, {
 			view: 'accounts'
-		});
-		const renewalsAtRiskList = await t.query(api.renewals.getRenewalsList, {
-			view: 'at-risk'
 		});
 		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
 			view: 'likely-out-of-date'
@@ -352,7 +348,6 @@ describe('Convex feature contracts', () => {
 
 		expect(renewalsList).not.toHaveProperty('header');
 		expect(renewalsList.rows).toEqual([]);
-		expect(renewalsAtRiskList.rows).toEqual([]);
 		expect(renewalsLikelyOutOfDateList.rows).toEqual([]);
 
 		expect(sinceLastMeeting.accounts).toEqual(
@@ -389,8 +384,7 @@ describe('Convex feature contracts', () => {
 		await expect(
 			t.query(api.myAccounts.getMyAccountsDetail, {
 				accountKey: 'not-a-account-key',
-				brokerKey: seed.collaboratorBrokerKey,
-				view: 'news'
+				brokerKey: seed.collaboratorBrokerKey
 			})
 		).resolves.toBeNull();
 		await expect(

@@ -18,37 +18,26 @@ export function useDashboardMenu(
 	menuId: () => string,
 	placement: () => DashboardMenuPlacement = () => 'bottom-end'
 ): DashboardMenuState {
-	let isOpen = $state(false);
-	let triggerElement = $state<HTMLButtonElement | null>(null);
-	const panelId = $derived(`dashboard-menu-${menuId()}`);
-	const menuSurfaceClass = $derived(
-		cn(DASHBOARD_MENU_SURFACE_CLASS, DASHBOARD_MENU_PLACEMENT_CLASS[placement()])
-	);
-
-	return {
-		get isOpen() {
-			return isOpen;
+	const menu = $state<DashboardMenuState>({
+		isOpen: false,
+		triggerElement: null,
+		panelId: '',
+		menuSurfaceClass: '',
+		close: () => {
+			menu.isOpen = false;
 		},
-		set isOpen(value) {
-			isOpen = value;
-		},
-		get triggerElement() {
-			return triggerElement;
-		},
-		set triggerElement(value) {
-			triggerElement = value;
-		},
-		get panelId() {
-			return panelId;
-		},
-		get menuSurfaceClass() {
-			return menuSurfaceClass;
-		},
-		close() {
-			isOpen = false;
-		},
-		toggle() {
-			isOpen = !isOpen;
+		toggle: () => {
+			menu.isOpen = !menu.isOpen;
 		}
-	};
+	});
+
+	$effect(() => {
+		menu.panelId = `dashboard-menu-${menuId()}`;
+		menu.menuSurfaceClass = cn(
+			DASHBOARD_MENU_SURFACE_CLASS,
+			DASHBOARD_MENU_PLACEMENT_CLASS[placement()]
+		);
+	});
+
+	return menu;
 }

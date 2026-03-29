@@ -21,16 +21,6 @@ export type DashboardLayoutRouteResolution = {
 	redirectTo: string | null;
 };
 
-function getCanonicalResolution(route: DashboardRouteRef, url: URL): DashboardLayoutRouteResolution {
-	const canonicalHref = resolveDashboardRoute(route);
-	const currentHref = `${url.pathname}${url.search}`;
-
-	return {
-		route,
-		redirectTo: currentHref === canonicalHref ? null : canonicalHref
-	};
-}
-
 export function resolveDashboardLayoutRoute(
 	input: DashboardLayoutRouteInput
 ): DashboardLayoutRouteResolution | null {
@@ -40,5 +30,15 @@ export function resolveDashboardLayoutRoute(
 		searchParams: input.url.searchParams
 	});
 
-	return route ? getCanonicalResolution(route, input.url) : null;
+	if (!route) {
+		return null;
+	}
+
+	const canonicalHref = resolveDashboardRoute(route);
+	const currentHref = `${input.url.pathname}${input.url.search}`;
+
+	return {
+		route,
+		redirectTo: currentHref === canonicalHref ? null : canonicalHref
+	};
 }

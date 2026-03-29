@@ -41,6 +41,7 @@ export type {
 } from './validators';
 
 type OpportunityTileAvatars = string[];
+type OpportunityTileCollections = Pick<OpportunitiesListReadModel, 'opportunityTiles' | 'riskTiles'>;
 
 function getOwnerAvatars(
 	insight: Pick<InsightRecordData, 'ownerBrokerId' | 'collaboratorBrokerIds'>,
@@ -88,6 +89,43 @@ function toRightRailData(
 	]);
 }
 
+function getAccountForInsight(
+	insight: InsightRecordData,
+	accountsById: ReadonlyMap<AccountRecordData['id'], AccountRecordData>
+) {
+	const account = accountsById.get(insight.accountId);
+
+	if (!account) {
+		throw new Error(`Unknown account "${insight.accountId}" for insight "${insight.id}".`);
+	}
+
+	return account;
+}
+
+function createOpportunityTileCollections(
+	insights: readonly InsightRecordData[],
+	accountsById: ReadonlyMap<AccountRecordData['id'], AccountRecordData>,
+	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
+): OpportunityTileCollections {
+	return insights.reduce<OpportunityTileCollections>(
+		(collections, insight) => {
+			const tile = toTile(insight, getAccountForInsight(insight, accountsById), peopleByBrokerId);
+
+			if (insight.kind === 'opportunity') {
+				collections.opportunityTiles.push(tile);
+			} else {
+				collections.riskTiles.push(tile);
+			}
+
+			return collections;
+		},
+		{
+			opportunityTiles: [],
+			riskTiles: []
+		}
+	);
+}
+
 export const getOpportunitiesList = query({
 	args: {
 		meetingKey: v.string()
@@ -107,29 +145,11 @@ export const getOpportunitiesList = query({
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
 		const accountsById = new Map(accounts.map((account) => [account._id, toAccountRecord(account)] as const));
 		const insightRecords = insights.map((insight) => toInsightRecord(insight));
-
-		const opportunityTiles = insightRecords
-			.filter((insight) => insight.kind === 'opportunity')
-			.map((insight) => {
-				const account = accountsById.get(insight.accountId);
-
-				if (!account) {
-					throw new Error(`Unknown account "${insight.accountId}" for insight "${insight.id}".`);
-				}
-
-				return toTile(insight, account, peopleByBrokerId);
-			});
-		const riskTiles = insightRecords
-			.filter((insight) => insight.kind === 'risk')
-			.map((insight) => {
-				const account = accountsById.get(insight.accountId);
-
-				if (!account) {
-					throw new Error(`Unknown account "${insight.accountId}" for insight "${insight.id}".`);
-				}
-
-				return toTile(insight, account, peopleByBrokerId);
-			});
+		const { opportunityTiles, riskTiles } = createOpportunityTileCollections(
+			insightRecords,
+			accountsById,
+			peopleByBrokerId
+		);
 
 		return {
 			opportunityTiles,

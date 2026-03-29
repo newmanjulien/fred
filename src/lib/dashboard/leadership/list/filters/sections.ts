@@ -95,29 +95,50 @@ function sortSelectedOptions<Option extends { selected: boolean; label: string }
 	});
 }
 
+function buildSearchableSection<
+	TSectionId extends string,
+	TOption extends SearchableFilterPanelOption & { selected: boolean }
+>(params: {
+	id: TSectionId;
+	title: string;
+	selectedCount: number;
+	expanded: boolean;
+	searchLabel: string;
+	searchPlaceholder: string;
+	emptyLabel: string;
+	options: readonly TOption[];
+}): SearchableSection<TSectionId, TOption> {
+	return {
+		id: params.id,
+		title: params.title,
+		summary: getSectionSummary(params.selectedCount),
+		expanded: params.expanded,
+		collapsible: true,
+		searchLabel: params.searchLabel,
+		searchPlaceholder: params.searchPlaceholder,
+		emptyLabel: params.emptyLabel,
+		options: sortSelectedOptions(params.options)
+	};
+}
+
 function buildBrokerSection(
 	params: BuildLeadershipFilterDrawerSectionsParams
 ): LeadershipBrokerFilterSection {
-	const options = sortSelectedOptions(
-		params.data.brokers.map((broker) => ({
+	return buildSearchableSection({
+		id: 'broker',
+		title: 'Broker',
+		selectedCount: params.selectedBrokerKeys.length,
+		expanded: params.expandedSections.broker,
+		searchLabel: 'Search brokers',
+		searchPlaceholder: 'Search brokers',
+		emptyLabel: 'No brokers found',
+		options: params.data.brokers.map((broker) => ({
 			id: broker.key,
 			label: broker.name,
 			selected: params.selectedBrokerKeys.includes(broker.key),
 			avatar: broker.avatar
 		}))
-	);
-
-	return {
-		id: 'broker',
-		title: 'Broker',
-		summary: getSectionSummary(params.selectedBrokerKeys.length),
-		expanded: params.expandedSections.broker,
-		collapsible: true,
-		searchLabel: 'Search brokers',
-		searchPlaceholder: 'Search brokers',
-		emptyLabel: 'No brokers found',
-		options
-	};
+	});
 }
 
 function buildActivityLevelSection(
@@ -141,25 +162,20 @@ function buildActivityLevelSection(
 function buildIndustrySection(
 	params: BuildLeadershipFilterDrawerSectionsParams
 ): LeadershipIndustryFilterSection {
-	const options = sortSelectedOptions(
-		params.data.industries.map((industry) => ({
+	return buildSearchableSection({
+		id: 'industry',
+		title: 'Industry',
+		selectedCount: params.selectedIndustries.length,
+		expanded: params.expandedSections.industry,
+		searchLabel: 'Search industries',
+		searchPlaceholder: 'Search industries',
+		emptyLabel: 'No industries found',
+		options: params.data.industries.map((industry) => ({
 			id: industry.id,
 			label: industry.label,
 			selected: params.selectedIndustries.includes(industry.id)
 		}))
-	);
-
-	return {
-		id: 'industry',
-		title: 'Industry',
-		summary: getSectionSummary(params.selectedIndustries.length),
-		expanded: params.expandedSections.industry,
-		collapsible: true,
-		searchLabel: 'Search industries',
-		searchPlaceholder: 'Search industries',
-		emptyLabel: 'No industries found',
-		options
-	};
+	});
 }
 
 export function buildLeadershipFilterDrawerSections(

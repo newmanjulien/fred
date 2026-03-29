@@ -1,6 +1,6 @@
 import { error, redirect } from '@sveltejs/kit';
 import { resolveDashboardLayoutRoute } from '$lib/dashboard/routing/layout';
-import { resolveDefaultBrokerKey } from '$lib/server/brokers';
+import { requireBrokerByKey, resolveDefaultBrokerKey } from '$lib/server/brokers';
 import { api, createServerConvexClient } from '$lib/server/convex';
 import type { LayoutServerLoad } from './$types';
 
@@ -21,11 +21,9 @@ export const load: LayoutServerLoad = async ({ route, params, url }) => {
 
 	const dashboardShell = await createServerConvexClient().query(api.shell.getDashboardShell);
 	const defaultBrokerKey = resolveDefaultBrokerKey();
-	const defaultBroker = dashboardShell.people.find((person) => person.key === defaultBrokerKey);
-
-	if (!defaultBroker) {
-		throw error(500, `Unknown default broker key "${defaultBrokerKey}".`);
-	}
+	const defaultBroker = requireBrokerByKey(dashboardShell.people, defaultBrokerKey, (brokerKey) =>
+		error(500, `Unknown default broker key "${brokerKey}".`)
+	);
 
 	return {
 		route: routeState.route,

@@ -55,12 +55,7 @@
 			sortSelectedFirst: mode === 'multiple'
 		})
 	);
-	let highlightedOptionId: string | null = $derived(
-		getInitialHighlightedOptionId({
-			options: filteredOptions,
-			selectedValues
-		})
-	);
+	let highlightedOptionId = $state<string | null>(null);
 
 	function isSelected(optionId: string) {
 		return selectedValues.includes(optionId);
@@ -109,6 +104,17 @@
 			onRequestClose?.();
 		}
 	}
+
+	$effect(() => {
+		if (highlightedOptionId && filteredOptions.some((option) => option.id === highlightedOptionId)) {
+			return;
+		}
+
+		highlightedOptionId = getInitialHighlightedOptionId({
+			options: filteredOptions,
+			selectedValues
+		});
+	});
 
 	$effect(() => {
 		searchElement?.focus();

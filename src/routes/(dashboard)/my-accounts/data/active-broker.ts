@@ -1,3 +1,4 @@
+import { requireBrokerByKey } from '$lib/server/brokers';
 import type { BrokerKey } from '$lib/types/keys';
 
 type BrokerOption = {
@@ -8,13 +9,9 @@ export function resolveMyAccountsActiveBrokerKey(
 	people: readonly BrokerOption[],
 	defaultBrokerKey: BrokerKey
 ): BrokerKey {
-	const activeBroker = people.find((person) => person.key === defaultBrokerKey);
-
-	if (!activeBroker) {
-		throw new Error(`Unknown default broker key "${defaultBrokerKey}".`);
-	}
-
-	return activeBroker.key;
+	return requireBrokerByKey(people, defaultBrokerKey, (brokerKey) => {
+		throw new Error(`Unknown default broker key "${brokerKey}".`);
+	}).key;
 }
 
 export async function resolveMyAccountsActiveBrokerKeyFromParent(

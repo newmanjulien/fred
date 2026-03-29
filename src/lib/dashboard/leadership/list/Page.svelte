@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { SvelteSet } from 'svelte/reactivity';
 	import DashboardPageLayout from '$lib/dashboard/layout/DashboardPageLayout.svelte';
 	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
 	import {
@@ -23,6 +24,10 @@
 		type LeadershipFilterSectionId
 	} from './filters/model';
 	import { buildLeadershipFilterDrawerSections } from './filters/sections';
+	import {
+		getLeadershipSelectionHeaderUiScope,
+		getStaleLeadershipSelectionRowKeys
+	} from './likely-out-of-date';
 
 	const NEW_BUSINESS_INFO_BAR_TEXT_BY_VIEW: Partial<Record<NewBusinessView, string>> = {
 		accounts: 'All the new business your brokers are working on',
@@ -71,6 +76,7 @@
 	let selectedBrokerKeys = $state<BrokerKey[]>([]);
 	let selectedActivityLevels = $state<ActivityLevel[]>([]);
 	let selectedIndustries = $state<AccountIndustry[]>([]);
+	let selectedRowKeys = new SvelteSet<LeadershipListPageData['rows'][number]['key']>();
 	const filterDrawerSections = $derived(
 		buildLeadershipFilterDrawerSections({
 			data: filterDrawerData,
@@ -85,6 +91,14 @@
 		selectedBrokerKeys = filterDrawerData.brokers.map((broker) => broker.key);
 		selectedActivityLevels = filterDrawerData.activityLevels.map((activityLevel) => activityLevel.id);
 		selectedIndustries = filterDrawerData.industries.map((industry) => industry.id);
+	});
+
+	$effect(() => {
+		const staleRowKeys = getStaleLeadershipSelectionRowKeys(selectedRowKeys, data.rows);
+
+		for (const rowKey of staleRowKeys) {
+			selectedRowKeys.delete(rowKey);
+		}
 	});
 
 	function toggleFilterDrawer() {
@@ -126,6 +140,30 @@
 		selectedIndustries = toggleSelectedValue(selectedIndustries, toggle.optionId);
 	}
 
+	function toggleSelectedRow(
+		rowKey: LeadershipListPageData['rows'][number]['key'],
+		checked: boolean
+	) {
+		if (checked) {
+			selectedRowKeys.add(rowKey);
+		} else {
+			selectedRowKeys.delete(rowKey);
+		}
+	}
+
+	function toggleAllSelectedRows(
+		rowKeys: readonly LeadershipListPageData['rows'][number]['key'][],
+		checked: boolean
+	) {
+		for (const rowKey of rowKeys) {
+			if (checked) {
+				selectedRowKeys.add(rowKey);
+			} else {
+				selectedRowKeys.delete(rowKey);
+			}
+		}
+	}
+
 	function getHeaderUiScope(filterHandler: DashboardHeaderButtonHandler): DashboardHeaderUiScope {
 		return {
 			buttons: [
@@ -133,10 +171,12 @@
 					id: 'filter',
 					label: 'Filter',
 					order: 20
-				}
+				},
+				...(getLeadershipSelectionHeaderUiScope(selectedRowKeys.size).buttons ?? [])
 			],
 			handlers: {
-				filter: filterHandler
+				filter: filterHandler,
+				...getLeadershipSelectionHeaderUiScope(selectedRowKeys.size).handlers
 			}
 		};
 	}
@@ -148,6 +188,12 @@
 
 		return RENEWALS_INFO_BAR_TEXT_BY_VIEW[data.route.view] ?? null;
 	}
+
+	const selection = {
+		selectedRowKeys,
+		onToggleRow: toggleSelectedRow,
+		onToggleAllRows: toggleAllSelectedRows
+	};
 </script>
 
 <Drawer
@@ -166,11 +212,12 @@
 			{#if data.route.view === 'likely-out-of-date'}
 				<LikelyOutOfDateTable
 					rows={data.rows}
+					{selection}
 					ariaLabel={likelyOutOfDateTableAriaLabel}
 					{probabilityLabel}
 				/>
 			{:else}
-				<Table rows={data.rows} ariaLabel={tableAriaLabel} {probabilityLabel} />
+				<Table rows={data.rows} {selection} ariaLabel={tableAriaLabel} {probabilityLabel} />
 			{/if}
 
 			{#if data.rows.length > 0}

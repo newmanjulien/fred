@@ -9,15 +9,22 @@
 	import PersonInline from '$lib/dashboard/ui/people/PersonInline.svelte';
 	import DashboardTableShell from '$lib/dashboard/ui/shared/DashboardTableShell.svelte';
 	import { cn } from '$lib/support/cn';
+	import {
+		LEADERSHIP_TABLE_COLUMN_CLASS,
+		LEADERSHIP_TABLE_COLUMN_CLASS_WITH_SELECTION,
+		LEADERSHIP_TABLE_HEADERS,
+		LEADERSHIP_TABLE_MIN_WIDTH_CLASS,
+		LEADERSHIP_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
+	} from './table-layout';
 
 	type LeadershipTableRow =
 		| NewBusinessListPageData['rows'][number]
 		| RenewalsListPageData['rows'][number];
 
 	type LeadershipTableSelection = {
-		headerLabel: 'Select';
 		selectedRowKeys: ReadonlySet<LeadershipTableRow['key']>;
 		onToggleRow: (rowKey: LeadershipTableRow['key'], checked: boolean) => void;
+		onToggleAllRows: (rowKeys: readonly LeadershipTableRow['key'][], checked: boolean) => void;
 	};
 
 	type Props = {
@@ -34,13 +41,30 @@
 		probabilityLabel = 'likely to close'
 	}: Props = $props();
 
-	const headers = ['Account', 'Activity level', 'Probability', 'Owner', 'Stage', 'Last activity'] as const;
-	let columnClass = $derived(
-		selection
-			? 'grid-cols-[4rem_minmax(10rem,1.35fr)_minmax(7.5rem,0.75fr)_minmax(7.75rem,0.8fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[4rem_minmax(10rem,1.40fr)_minmax(8rem,0.75fr)_minmax(8.5rem,0.85fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
-			: 'grid-cols-[minmax(10rem,1.35fr)_minmax(7.5rem,0.75fr)_minmax(7.75rem,0.8fr)_minmax(9rem,0.95fr)_minmax(6.5rem,0.65fr)_minmax(7rem,0.7fr)] md:grid-cols-[minmax(10rem,1.40fr)_minmax(8rem,0.75fr)_minmax(8.5rem,0.85fr)_minmax(10rem,1fr)_minmax(7rem,0.65fr)_minmax(7.5rem,0.7fr)]'
+	const headers = LEADERSHIP_TABLE_HEADERS;
+	let selectAllCheckbox = $state<HTMLInputElement | null>(null);
+	const selectableRowKeys = $derived(rows.map((row) => row.key));
+	const allRowsSelected = $derived(
+		selectableRowKeys.length > 0 &&
+			selectableRowKeys.every((rowKey) => selection?.selectedRowKeys.has(rowKey))
 	);
-	let minWidthClass = $derived(selection ? 'min-w-[59rem] md:min-w-full' : 'min-w-[55rem] md:min-w-full');
+	const someRowsSelected = $derived(
+		selectableRowKeys.some((rowKey) => selection?.selectedRowKeys.has(rowKey))
+	);
+	let columnClass = $derived(
+		selection ? LEADERSHIP_TABLE_COLUMN_CLASS_WITH_SELECTION : LEADERSHIP_TABLE_COLUMN_CLASS
+	);
+	let minWidthClass = $derived(
+		selection
+			? LEADERSHIP_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
+			: LEADERSHIP_TABLE_MIN_WIDTH_CLASS
+	);
+
+	$effect(() => {
+		if (selectAllCheckbox) {
+			selectAllCheckbox.indeterminate = someRowsSelected && !allRowsSelected;
+		}
+	});
 </script>
 
 {#snippet selectionCell(row: LeadershipTableRow)}
@@ -107,13 +131,25 @@
 >
 	{#snippet headerLeading()}
 		{#if selection}
-			<span
+			<label
 				data-table-header-cell
 				data-table-select-header
-				class="whitespace-nowrap text-left font-normal text-zinc-500"
+				class="flex items-center justify-center"
 			>
-				{selection.headerLabel}
-			</span>
+				<input
+					bind:this={selectAllCheckbox}
+					data-selection-checkbox
+					type="checkbox"
+					aria-label="Select all rows"
+					class="h-3.5 w-3.5 rounded-[3px] border-zinc-300 accent-zinc-900"
+					checked={allRowsSelected}
+					onchange={(event) =>
+						selection.onToggleAllRows(
+							selectableRowKeys,
+							(event.currentTarget as HTMLInputElement).checked
+						)}
+				/>
+			</label>
 		{/if}
 	{/snippet}
 

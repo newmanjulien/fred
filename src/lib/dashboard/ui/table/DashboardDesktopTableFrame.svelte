@@ -87,60 +87,62 @@
 	{@render body(visibleRows)}
 {/snippet}
 
-<div class="overflow-hidden rounded-sm border border-zinc-100 bg-white {classProp}">
-	<DashboardTableShell
-		{headers}
-		{columnClass}
-		{minWidthClass}
-		{ariaLabel}
-		rowsLength={rows.length}
-		{interactiveRows}
-		{emptyText}
-		bordered={false}
-		headerLeading={headerLeading ? shellHeaderLeading : undefined}
-		body={shellBody}
-	/>
+<div class={classProp}>
+	<div class="overflow-hidden rounded-sm border border-zinc-100 bg-white">
+		<DashboardTableShell
+			{headers}
+			{columnClass}
+			{minWidthClass}
+			{ariaLabel}
+			rowsLength={rows.length}
+			{interactiveRows}
+			{emptyText}
+			bordered={false}
+			headerLeading={headerLeading ? shellHeaderLeading : undefined}
+			body={shellBody}
+		/>
 
-	{#if rows.length > 0}
-		<div
-			class={cn(
-				'border-t border-zinc-100 bg-zinc-50/35 px-3 py-2 text-zinc-500',
-				infoText?.trim()
-					? 'flex items-center justify-between gap-3'
-					: 'flex items-center justify-end gap-2'
-			)}
-			data-table-footer
-			{...(dataAttribute ? { [dataAttribute]: true } : {})}
-		>
-			{#if infoText?.trim()}
-				<div class="flex min-w-0 items-start gap-2">
-					<Info aria-hidden="true" class="mt-0.5 size-3.5 shrink-0" />
-					<p class="min-w-0 text-xs leading-relaxed tracking-wide">{infoText}</p>
-				</div>
-			{/if}
-			<div class="ml-2 flex shrink-0 items-center gap-2">
-				<span class="text-xs tracking-wide">{rangeLabel}</span>
-				<div class="flex items-center gap-1">
-					<button
-						type="button"
-						class="inline-flex size-6 items-center justify-center rounded-sm text-zinc-300 transition-colors enabled:text-zinc-500 enabled:hover:text-zinc-700 disabled:cursor-default"
-						aria-label="Previous table page"
-						disabled={!hasPreviousPage}
-						onclick={showPreviousPage}
-					>
-						<ChevronLeft aria-hidden="true" class="size-4" />
-					</button>
-					<button
-						type="button"
-						class="inline-flex size-6 items-center justify-center rounded-sm text-zinc-300 transition-colors enabled:text-zinc-500 enabled:hover:text-zinc-700 disabled:cursor-default"
-						aria-label="Next table page"
-						disabled={!hasNextPage}
-						onclick={showNextPage}
-					>
-						<ChevronRight aria-hidden="true" class="size-4" />
-					</button>
+		{#if rows.length > 0}
+			<div
+				class={cn(
+					'border-t border-zinc-100 bg-zinc-50/35 px-3 py-2 text-zinc-500',
+					infoText?.trim()
+						? 'flex items-center justify-between gap-3'
+						: 'flex items-center justify-end gap-2'
+				)}
+				data-table-footer
+				{...(dataAttribute ? { [dataAttribute]: true } : {})}
+			>
+				{#if infoText?.trim()}
+					<div class="flex min-w-0 items-start gap-2">
+						<Info aria-hidden="true" class="mt-0.5 size-3.5 shrink-0" />
+						<p class="min-w-0 text-xs leading-relaxed tracking-wide">{infoText}</p>
+					</div>
+				{/if}
+				<div class="ml-2 flex shrink-0 items-center gap-2">
+					<span class="text-xs tracking-wide">{rangeLabel}</span>
+					<div class="flex items-center gap-1">
+						<button
+							type="button"
+							class="inline-flex size-6 items-center justify-center rounded-sm text-zinc-300 transition-colors enabled:text-zinc-500 enabled:hover:text-zinc-700 disabled:cursor-default"
+							aria-label="Previous table page"
+							disabled={!hasPreviousPage}
+							onclick={showPreviousPage}
+						>
+							<ChevronLeft aria-hidden="true" class="size-4" />
+						</button>
+						<button
+							type="button"
+							class="inline-flex size-6 items-center justify-center rounded-sm text-zinc-300 transition-colors enabled:text-zinc-500 enabled:hover:text-zinc-700 disabled:cursor-default"
+							aria-label="Next table page"
+							disabled={!hasNextPage}
+							onclick={showNextPage}
+						>
+							<ChevronRight aria-hidden="true" class="size-4" />
+						</button>
+					</div>
 				</div>
 			</div>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>

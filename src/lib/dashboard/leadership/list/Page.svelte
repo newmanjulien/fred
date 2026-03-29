@@ -19,7 +19,7 @@
 			'Accounts where multiple brokers are doing the same work',
 		unassigned: 'Unassigned accounts which are not being worked by any broker',
 		'likely-out-of-date':
-			"We suspect that our data is out of date but you can ask the broker for an update"
+			"We suspect that our data is out of date and you may want to ask the broker for an update"
 	};
 
 	const RENEWALS_INFO_BAR_TEXT_BY_VIEW: Partial<Record<RenewalsView, string>> = {
@@ -29,7 +29,7 @@
 		'need-support':
 			'Accounts where the broker may need support',
 		'likely-out-of-date':
-			"We suspect that our data is out of date but you can ask the broker for an update"
+			"We suspect that our data is out of date and you may want to ask the broker for an update"
 	};
 
 	type LeadershipListPageData = NewBusinessListPageData | RenewalsListPageData;

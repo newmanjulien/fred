@@ -25,7 +25,11 @@ export const load: PageServerLoad = async ({ parent }) => {
 		throw error(404, 'Not found');
 	}
 
-	return buildMyAccountsDetailPageData({ route, readModel });
+	return buildMyAccountsDetailPageData({
+		route,
+		readModel,
+		dashboardShell: layoutData.dashboardShell
+	});
 };
 
 export const actions = {

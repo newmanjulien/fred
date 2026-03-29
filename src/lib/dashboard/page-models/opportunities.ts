@@ -14,6 +14,7 @@ import type {
 	OpportunityDetailReadModel,
 	OpportunitiesListReadModel
 } from '$lib/dashboard/read-models';
+import { withPreparedDataQuote } from '$lib/dashboard/view-models/detail-builders';
 import { createOpportunitiesDetailHeader, createOpportunitiesListHeader } from './headers';
 
 const OPPORTUNITIES_HERO = {
@@ -61,8 +62,9 @@ function toOpportunityTilePageData(
 export function buildOpportunitiesListPageData(params: {
 	route: OpportunitiesListRouteRef;
 	readModel: OpportunitiesListReadModel;
+	dashboardShell: DashboardShellReadModel;
 }): OpportunitiesListPageData {
-	const { route, readModel } = params;
+	const { route, readModel, dashboardShell } = params;
 
 	return {
 		route,
@@ -70,7 +72,7 @@ export function buildOpportunitiesListPageData(params: {
 		hero: OPPORTUNITIES_HERO,
 		opportunityTiles: toOpportunityTilePageData(readModel.opportunityTiles, route.meetingKey),
 		riskTiles: toOpportunityTilePageData(readModel.riskTiles, route.meetingKey),
-		update: readModel.update
+		update: withPreparedDataQuote(readModel.update, dashboardShell.team, dashboardShell.branding)
 	};
 }
 
@@ -89,7 +91,7 @@ export function buildOpportunityDetailPageData(params: {
 		kind: readModel.kind,
 		activityItems: readModel.activityItems,
 		orgChartRoot: toOrgChartRoot(readModel.orgChartNodes, peopleById),
-		update: readModel.update,
+		update: withPreparedDataQuote(readModel.update, dashboardShell.team, dashboardShell.branding),
 		rightRail: readModel.rightRail
 	};
 }

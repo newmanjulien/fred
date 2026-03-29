@@ -107,6 +107,18 @@ export default defineSchema({
 		avatar: v.string()
 	}).index('by_key', ['key']),
 
+	team: defineTable({
+		key: v.string(),
+		name: v.string(),
+		avatar: v.string()
+	}).index('by_key', ['key']),
+
+	assets: defineTable({
+		key: v.string(),
+		storageId: v.id('_storage'),
+		alt: v.string()
+	}).index('by_key', ['key']),
+
 	accounts: defineTable({
 		key: v.string(),
 		accountNumber: v.number(),

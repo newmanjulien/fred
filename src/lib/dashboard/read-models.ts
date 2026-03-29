@@ -3,6 +3,7 @@ export type {
 	AccountListFilterDrawerData,
 	AccountListReadModel,
 	AccountListRowReadModel,
+	DashboardBranding,
 	DashboardShellReadModel,
 	MyAccountsDetailReadModel,
 	MyAccountsDetailRef,

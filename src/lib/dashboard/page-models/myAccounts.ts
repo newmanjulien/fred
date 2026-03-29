@@ -8,9 +8,11 @@ import type {
 	MyAccountsDetailReadModel,
 	MyAccountsDetailRef,
 	MyAccountsFeedItemReadModel,
-	MyAccountsListReadModel
+	MyAccountsListReadModel,
+	DashboardShellReadModel
 } from '$lib/dashboard/read-models';
 import type { BrokerKey } from '$lib/types/keys';
+import { withPreparedDataQuote } from '$lib/dashboard/view-models/detail-builders';
 import { createMyAccountsDetailHeader, createMyAccountsListHeader } from './headers';
 
 const MY_ACCOUNTS_NEWS_HERO = {
@@ -168,8 +170,9 @@ export function buildMyAccountsListPageData(params: {
 export function buildMyAccountsDetailPageData(params: {
 	route: MyAccountsDetailRouteRef;
 	readModel: MyAccountsDetailReadModel;
+	dashboardShell: DashboardShellReadModel;
 }): MyAccountsDetailPageData {
-	const { route, readModel } = params;
+	const { route, readModel, dashboardShell } = params;
 
 	return {
 		route,
@@ -177,7 +180,7 @@ export function buildMyAccountsDetailPageData(params: {
 		hero: readModel.hero,
 		newsItems: readModel.newsItems.map((item) => toFeedItemPageData(item, { kind: 'detail' })),
 		activityItems: readModel.activityItems,
-		update: readModel.update,
+		update: withPreparedDataQuote(readModel.update, dashboardShell.team, dashboardShell.branding),
 		rightRail: readModel.rightRail
 	};
 }

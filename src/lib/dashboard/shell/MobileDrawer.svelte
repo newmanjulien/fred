@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { X } from 'lucide-svelte';
+	import type { DashboardShellReadModel } from '$lib/dashboard/read-models';
 	import type { DashboardRouteRef } from '$lib/dashboard/routing';
 	import { useDashboardShellState } from '$lib/dashboard/shell/state.svelte';
 	import HomeLink from './HomeLink.svelte';
@@ -8,9 +9,10 @@
 
 	type Props = {
 		route: DashboardRouteRef;
+		branding: DashboardShellReadModel['branding'];
 	};
 
-	let { route }: Props = $props();
+	let { route, branding }: Props = $props();
 	const currentRoute = $derived(route);
 	const shellState = useDashboardShellState();
 </script>
@@ -20,6 +22,8 @@
 		<aside id="mobile-nav-drawer" class="flex h-full flex-col bg-white">
 			<header class="flex h-11 items-center border-b border-zinc-100 bg-white px-(--shell-gutter-mobile)">
 				<HomeLink
+					logoUrl={branding.logoUrl}
+					logoAlt={branding.logoAlt}
 					onclick={() => {
 						shellState.isMobileDrawerOpen = false;
 					}}

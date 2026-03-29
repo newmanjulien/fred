@@ -25,5 +25,9 @@ export const load: PageServerLoad = async ({ parent }) => {
 		meetingKey
 	});
 
-	return buildOpportunitiesListPageData({ route, readModel });
+	return buildOpportunitiesListPageData({
+		route,
+		readModel,
+		dashboardShell: layoutData.dashboardShell
+	});
 };

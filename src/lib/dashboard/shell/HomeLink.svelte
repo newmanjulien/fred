@@ -1,16 +1,19 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
+	import type { DashboardShellReadModel } from '$lib/dashboard/read-models';
 	import {
 		DEFAULT_NEW_BUSINESS_VIEW,
 		resolveNewBusinessListPath
 	} from '$lib/dashboard/routing/new-business';
 
 	type Props = {
+		logoUrl: DashboardShellReadModel['branding']['logoUrl'];
+		logoAlt: DashboardShellReadModel['branding']['logoAlt'];
 		onclick?: (event: MouseEvent) => void;
 		class?: string;
 	};
 
-	let { onclick, class: className = '' }: Props = $props();
+	let { logoUrl, logoAlt, onclick, class: className = '' }: Props = $props();
 </script>
 
 <a
@@ -19,5 +22,5 @@
 	class={`overflow-hidden rounded-sm ${className}`}
 	{onclick}
 >
-	<img src="/logo.png" alt="Logo" class="size-6 shrink-0" />
+	<img src={logoUrl} alt={logoAlt} class="size-6 shrink-0" />
 </a>

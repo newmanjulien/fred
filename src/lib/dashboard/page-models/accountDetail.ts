@@ -7,6 +7,7 @@ import {
 	toOrgChartRoot,
 	type OrgChartNode
 } from '$lib/dashboard/view-models/account-content';
+import { withPreparedDataQuote } from '$lib/dashboard/view-models/detail-builders';
 
 export type AccountDetailContentPageData = {
 	hero: AccountDetailReadModel['hero'];
@@ -27,7 +28,7 @@ export function buildAccountDetailContentPageData(params: {
 		hero: readModel.hero,
 		activityItems: readModel.activityItems,
 		orgChartRoot: toOrgChartRoot(readModel.orgChartNodes, peopleById),
-		update: readModel.update,
+		update: withPreparedDataQuote(readModel.update, dashboardShell.team, dashboardShell.branding),
 		rightRail: readModel.rightRail
 	};
 }

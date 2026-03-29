@@ -11,6 +11,7 @@ import type {
 	SinceLastMeetingReadModel
 } from '$lib/dashboard/read-models';
 import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
+import { withPreparedDataQuote } from '$lib/dashboard/view-models/detail-builders';
 import {
 	buildAccountDetailContentPageData,
 	type AccountDetailContentPageData
@@ -72,8 +73,9 @@ export type SinceLastMeetingDetailPageData = {
 export function buildSinceLastMeetingPageData(params: {
 	route: SinceLastMeetingRouteRef;
 	readModel: SinceLastMeetingReadModel;
+	dashboardShell: DashboardShellReadModel;
 }): SinceLastMeetingPageData {
-	const { route, readModel } = params;
+	const { route, readModel, dashboardShell } = params;
 
 	return {
 		route,
@@ -94,7 +96,7 @@ export function buildSinceLastMeetingPageData(params: {
 				navigation: toSinceLastMeetingNavigation(route, account)
 			};
 		}),
-		update: readModel.update
+		update: withPreparedDataQuote(readModel.update, dashboardShell.team, dashboardShell.branding)
 	};
 }
 

@@ -9,7 +9,7 @@ import {
 	type IsoDate,
 	type IsoDateTime
 } from '../lib/types/dates';
-import type { BrokerId, AccountId, InsightId, MeetingId } from '../lib/types/ids';
+import type { BrokerId, AccountId, InsightId, MeetingId, TeamId } from '../lib/types/ids';
 import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import type {
 	ActivityLevel,
@@ -19,12 +19,19 @@ import type {
 	AccountNewsSource,
 	AccountStage
 } from '../lib/types/vocab';
-import type { DashboardMeeting, DashboardPerson } from '../lib/models/person';
+import type { DashboardMeeting, DashboardPerson, TeamMemberSummary } from '../lib/models/person';
 import { hasLegacyOrgChartRoot } from './orgChartMigration';
 
 export type BrokerRecordData = {
 	id: BrokerId;
 	key: BrokerKey;
+	name: string;
+	avatar: string;
+};
+
+export type TeamRecordData = {
+	id: TeamId;
+	key: string;
 	name: string;
 	avatar: string;
 };
@@ -204,6 +211,30 @@ export function toDashboardPeople(records: readonly BrokerRecordData[]): Dashboa
 	return records.map((record) => toDashboardPerson(record));
 }
 
+export async function toTeamRecord(
+	ctx: QueryCtx,
+	teamMember: Doc<'team'>
+): Promise<TeamRecordData> {
+	return {
+		id: teamMember._id,
+		key: teamMember.key,
+		name: teamMember.name,
+		avatar: await resolveStoredImageUrl(ctx, teamMember.avatar)
+	};
+}
+
+export function toTeamMemberSummary(record: TeamRecordData): TeamMemberSummary {
+	return {
+		key: record.key,
+		name: record.name,
+		avatar: record.avatar
+	};
+}
+
+export function toTeamMemberSummaries(records: readonly TeamRecordData[]): TeamMemberSummary[] {
+	return records.map((record) => toTeamMemberSummary(record));
+}
+
 export function createBrokerKeyByIdMap(
 	records: readonly BrokerRecordData[]
 ): ReadonlyMap<BrokerId, BrokerKey> {
@@ -310,12 +341,16 @@ async function resolveBrokerAvatar(
 	ctx: QueryCtx,
 	broker: Doc<'brokers'>
 ): Promise<DashboardPerson['avatar']> {
-	try {
-		const avatarUrl = await ctx.storage.getUrl(broker.avatar as Id<'_storage'>);
+	return resolveStoredImageUrl(ctx, broker.avatar);
+}
 
-		return avatarUrl ?? broker.avatar;
+async function resolveStoredImageUrl(ctx: QueryCtx, storageValue: string): Promise<string> {
+	try {
+		const avatarUrl = await ctx.storage.getUrl(storageValue as Id<'_storage'>);
+
+		return avatarUrl ?? storageValue;
 	} catch {
-		return broker.avatar;
+		return storageValue;
 	}
 }
 

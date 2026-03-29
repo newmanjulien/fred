@@ -2,6 +2,12 @@ import { getActivityLevelLabel } from '$lib/dashboard/view-models/account';
 import { getProbabilityLabel } from '$lib/dashboard/view-models/account';
 import type { CanvasHeroData } from '$lib/dashboard/ui/detail/CanvasHero.types';
 import type { FileUploadFieldData } from '$lib/dashboard/ui/detail/FileUploadField.types';
+import type { TeamMemberSummary } from '$lib/models/person';
+
+const UPDATE_QUOTE_PERSON_KEYS = ['morgan-lee', 'taylor-shah'] as const;
+const UPDATE_QUOTE_TEXT =
+	'We prepared the insight in this dashboard using the data which was available but we do not have the full picture. Upload anything we missed so we can update the dashboard';
+const UPDATE_QUOTE_ROLE = 'Data scientists at Overbase';
 
 type AccountHeroInput = {
 	accountNumber: number;
@@ -34,5 +40,37 @@ export function buildAccountUploadFieldData(
 		sectionId: 'update',
 		uploadLabel: 'Upload files',
 		uploadDescription: `${descriptionPrefix} ${accountName}.`
+	};
+}
+
+export function withPreparedDataQuote(
+	data: FileUploadFieldData,
+	people: readonly TeamMemberSummary[],
+	branding: {
+		logoUrl: string;
+		logoAlt: string;
+	}
+): FileUploadFieldData {
+	const quotePeople = UPDATE_QUOTE_PERSON_KEYS.map((key) =>
+		people.find((person) => person.key === key)
+	).filter((person): person is TeamMemberSummary => Boolean(person));
+
+	if (quotePeople.length === 0) {
+		return data;
+	}
+
+	return {
+		...data,
+		quote: {
+			text: UPDATE_QUOTE_TEXT,
+			people: quotePeople.map((person) => ({
+				name: person.name,
+				avatar: person.avatar
+			})),
+			attribution: quotePeople.map((person) => person.name).join(' & '),
+			role: UPDATE_QUOTE_ROLE,
+			logoSrc: branding.logoUrl,
+			logoAlt: branding.logoAlt
+		}
 	};
 }

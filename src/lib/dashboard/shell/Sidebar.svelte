@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { ChevronsUpDown } from 'lucide-svelte';
+	import type { DashboardShellReadModel } from '$lib/dashboard/read-models';
 	import type { DashboardRouteRef } from '$lib/dashboard/routing';
 	import { useDashboardShellState } from '$lib/dashboard/shell/state.svelte';
 	import PersonAvatar from '$lib/dashboard/ui/people/PersonAvatar.svelte';
@@ -15,6 +16,7 @@
 
 	type Props = {
 		route: DashboardRouteRef;
+		branding: DashboardShellReadModel['branding'];
 		defaultBroker: {
 			name: string;
 			avatar: string;
@@ -22,7 +24,7 @@
 		class?: string;
 	};
 
-	let { route, defaultBroker, class: className = '' }: Props = $props();
+	let { route, branding, defaultBroker, class: className = '' }: Props = $props();
 
 	const shellState = useDashboardShellState();
 	const currentRoute = $derived(route);
@@ -55,7 +57,7 @@
 	aria-label="Dashboard sidebar"
 >
 	<div class="mb-4 ml-0.5 flex w-full items-center pr-0.5">
-		<HomeLink class="shrink-0" />
+		<HomeLink class="shrink-0" logoUrl={branding.logoUrl} logoAlt={branding.logoAlt} />
 
 		<div
 			class={cn(

@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Menu } from 'lucide-svelte';
-	import type { DashboardMeeting } from '$lib/dashboard/read-models';
+	import type { DashboardMeeting, DashboardShellReadModel } from '$lib/dashboard/read-models';
 	import type { DashboardHeader } from '$lib/dashboard/shell/header/types';
 	import { useDashboardShellState } from '$lib/dashboard/shell/state.svelte';
 	import HeaderLeadingControl from './header/HeaderLeadingControl.svelte';
@@ -9,9 +9,10 @@
 	type Props = {
 		header: DashboardHeader | null | undefined;
 		meetings: readonly DashboardMeeting[];
+		branding: DashboardShellReadModel['branding'];
 	};
 
-	let { header, meetings }: Props = $props();
+	let { header, meetings, branding }: Props = $props();
 	const shellState = useDashboardShellState();
 	const leadingControlClass =
 		'!mr-0 !ml-0 h-8 min-w-0 max-w-full justify-center rounded-sm px-2 text-center hover:bg-zinc-100 hover:text-zinc-900';
@@ -19,7 +20,7 @@
 
 <header class="flex h-11 items-center border-b border-zinc-100 bg-white px-(--shell-gutter-mobile) md:hidden">
 	<div class="flex w-12 items-center">
-		<HomeLink />
+		<HomeLink logoUrl={branding.logoUrl} logoAlt={branding.logoAlt} />
 	</div>
 	<div class="min-w-0 flex-1 px-2 text-center">
 		{#if header}

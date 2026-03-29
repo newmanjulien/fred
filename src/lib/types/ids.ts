@@ -4,3 +4,4 @@ export type AccountId = Id<'accounts'>;
 export type InsightId = Id<'insights'>;
 export type MeetingId = Id<'meetings'>;
 export type BrokerId = Id<'brokers'>;
+export type TeamId = Id<'team'>;

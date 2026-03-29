@@ -3,14 +3,15 @@ import { makeFunctionReference, type FunctionReference } from 'convex/server';
 import { describe, expect, it } from 'vitest';
 import type { OrgChartNodeRecord as InternalOrgChartNodeRecord } from '../lib/domain/org-chart';
 import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
+import { OVERBASE_LOGO_ALT, OVERBASE_LOGO_ASSET_KEY } from './assets';
 import { api } from './_generated/api';
 import { flattenLegacyOrgChartRoot } from './orgChartMigration';
 import schema from './schema';
 import { convexTestModules } from './test.setup';
 
-const reportLegacyOrgChartsReference = makeFunctionReference<'query', {}, unknown>(
+const reportLegacyOrgChartsReference = makeFunctionReference<'query', Record<string, never>, unknown>(
 	'migrations:reportLegacyOrgCharts'
-) as unknown as FunctionReference<'query', 'public', {}, unknown>;
+) as unknown as FunctionReference<'query', 'public', Record<string, never>, unknown>;
 
 const migrateLegacyOrgChartsReference = makeFunctionReference<
 	'action',
@@ -25,6 +26,12 @@ const migrateLegacyOrgChartsReference = makeFunctionReference<
 
 function createConvex() {
 	return convexTest(schema, convexTestModules);
+}
+
+async function storeTestLogo(t: ReturnType<typeof createConvex>, contents = 'logo') {
+	return t.run(async (ctx) =>
+		ctx.storage.store(new Blob([contents], { type: 'image/png' }))
+	);
 }
 
 function toExpectedDashboardOrgChartNodes(
@@ -49,6 +56,8 @@ function toExpectedDashboardOrgChartNodes(
 }
 
 async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
+	const logoStorageId = await storeTestLogo(t);
+
 	return t.run(async (ctx) => {
 		const ownerBrokerKey = 'julien' as BrokerKey;
 		const collaboratorBrokerKey = 'mina' as BrokerKey;
@@ -56,6 +65,12 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 		const insightKey = 'expand-adjacent-services' as InsightKey;
 		const march20MeetingKey = '2026-03-20' as MeetingKey;
 		const march27MeetingKey = '2026-03-27' as MeetingKey;
+
+		await ctx.db.insert('assets', {
+			key: OVERBASE_LOGO_ASSET_KEY,
+			storageId: logoStorageId,
+			alt: OVERBASE_LOGO_ALT
+		});
 
 		const ownerBrokerId = await ctx.db.insert('brokers', {
 			key: ownerBrokerKey,
@@ -573,8 +588,14 @@ describe('Convex feature contracts', () => {
 
 	it('rejects malformed stored meeting dates at the read boundary', async () => {
 		const t = createConvex();
+		const logoStorageId = await storeTestLogo(t);
 
 		await t.run(async (ctx) => {
+			await ctx.db.insert('assets', {
+				key: OVERBASE_LOGO_ASSET_KEY,
+				storageId: logoStorageId,
+				alt: OVERBASE_LOGO_ALT
+			});
 			await ctx.db.insert('meetings', {
 				key: 'bad-meeting-date',
 				dateIso: '2026-3-20'
@@ -584,6 +605,40 @@ describe('Convex feature contracts', () => {
 		await expect(t.query(api.shell.getDashboardShell)).rejects.toThrow(
 			'Invalid ISO date at "meetings'
 		);
+	});
+
+	it('resolves shared dashboard branding from Convex assets', async () => {
+		const t = createConvex();
+		const initialStorageId = await storeTestLogo(t, 'logo-one');
+
+		await expect(
+			t.mutation(api.assets.upsertAsset, {
+				key: OVERBASE_LOGO_ASSET_KEY,
+				storageId: initialStorageId,
+				alt: OVERBASE_LOGO_ALT
+			})
+		).resolves.toMatchObject({
+			status: 'created'
+		});
+
+		const initialShell = await t.query(api.shell.getDashboardShell);
+		expect(initialShell.branding.logoAlt).toBe(OVERBASE_LOGO_ALT);
+		expect(initialShell.branding.logoUrl).toEqual(expect.any(String));
+
+		const updatedStorageId = await storeTestLogo(t, 'logo-two');
+		await expect(
+			t.mutation(api.assets.upsertAsset, {
+				key: OVERBASE_LOGO_ASSET_KEY,
+				storageId: updatedStorageId,
+				alt: OVERBASE_LOGO_ALT
+			})
+		).resolves.toMatchObject({
+			status: 'updated'
+		});
+
+		const updatedShell = await t.query(api.shell.getDashboardShell);
+		expect(updatedShell.branding.logoAlt).toBe(OVERBASE_LOGO_ALT);
+		expect(updatedShell.branding.logoUrl).toEqual(expect.any(String));
 	});
 
 	it('scopes since-last-meeting activity and my-accounts news to the selected reference period', async () => {

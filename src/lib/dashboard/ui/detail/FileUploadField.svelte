@@ -1,4 +1,5 @@
 <script lang="ts">
+	import PersonAvatar from '$lib/dashboard/ui/people/PersonAvatar.svelte';
 	import type { FileUploadFieldData } from './FileUploadField.types';
 
 	type Props = {
@@ -113,62 +114,96 @@
 	}
 </script>
 
-<section class="rounded-md border border-zinc-100 bg-white px-3 py-3">
-	<div class="space-y-1">
-		<label for={inputId} class="text-xs font-medium tracking-wide text-zinc-900">
-			{data.uploadLabel ?? 'Upload files'}
-		</label>
-		{#if data.uploadDescription}
-			<p class="text-xs leading-relaxed tracking-wide text-zinc-500">
-				{data.uploadDescription}
-			</p>
-		{/if}
-	</div>
-
-	<input
-		bind:this={inputElement}
-		id={inputId}
-		name={inputId}
-		type="file"
-		accept={data.acceptedFileTypes}
-		multiple={allowMultipleFiles}
-		class="sr-only"
-		onchange={handleInputChange}
-	/>
-
-	<div
-		class={isDragging
-			? 'mt-3 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4 text-xs leading-relaxed tracking-wide text-zinc-600'
-			: 'mt-3 rounded-md border border-dashed border-zinc-200 bg-zinc-50/35 px-4 py-4 text-xs leading-relaxed tracking-wide text-zinc-600 transition-colors'}
-		role="button"
-		tabindex="0"
-		aria-controls={inputId}
-		onclick={openPicker}
-		onkeydown={handleKeyDown}
-		ondragover={handleDragOver}
-		ondragenter={() => {
-			isDragging = true;
-		}}
-		ondragleave={handleDragLeave}
-		ondrop={handleDrop}
-	>
-		<div class="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-			<div class="min-w-0">
-				<p class="text-xs font-medium tracking-wide text-zinc-700">Select files or drop them here</p>
-				<p class="mt-1 truncate text-xs leading-relaxed tracking-wide text-zinc-500">
-					{selectionSummary}
+<div class="space-y-3">
+	<section class="rounded-md border border-zinc-100 bg-white px-3 py-3">
+		<div class="space-y-1">
+			<label for={inputId} class="text-xs font-medium tracking-wide text-zinc-900">
+				{data.uploadLabel ?? 'Upload files'}
+			</label>
+			{#if data.uploadDescription}
+				<p class="text-xs leading-relaxed tracking-wide text-zinc-500">
+					{data.uploadDescription}
 				</p>
-			</div>
-			<button
-				type="button"
-				class="mr-0 flex h-7 shrink-0 items-center justify-center rounded-sm border border-zinc-100 px-2 text-xs font-medium tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100"
-				onclick={(event) => {
-					event.stopPropagation();
-					openPicker();
-				}}
-			>
-				Browse
-			</button>
+			{/if}
 		</div>
-	</div>
-</section>
+
+		<input
+			bind:this={inputElement}
+			id={inputId}
+			name={inputId}
+			type="file"
+			accept={data.acceptedFileTypes}
+			multiple={allowMultipleFiles}
+			class="sr-only"
+			onchange={handleInputChange}
+		/>
+
+		<div
+			class={isDragging
+				? 'mt-3 rounded-md border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4 text-xs leading-relaxed tracking-wide text-zinc-600'
+				: 'mt-3 rounded-md border border-dashed border-zinc-200 bg-zinc-50/35 px-4 py-4 text-xs leading-relaxed tracking-wide text-zinc-600 transition-colors'}
+			role="button"
+			tabindex="0"
+			aria-controls={inputId}
+			onclick={openPicker}
+			onkeydown={handleKeyDown}
+			ondragover={handleDragOver}
+			ondragenter={() => {
+				isDragging = true;
+			}}
+			ondragleave={handleDragLeave}
+			ondrop={handleDrop}
+		>
+			<div class="flex w-full flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+				<div class="min-w-0">
+					<p class="text-xs font-medium tracking-wide text-zinc-700">Select files or drop them here</p>
+					<p class="mt-1 truncate text-xs leading-relaxed tracking-wide text-zinc-500">
+						{selectionSummary}
+					</p>
+				</div>
+				<button
+					type="button"
+					class="mr-0 flex h-7 shrink-0 items-center justify-center rounded-sm border border-zinc-100 px-2 text-xs font-medium tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100"
+					onclick={(event) => {
+						event.stopPropagation();
+						openPicker();
+					}}
+				>
+					Browse
+				</button>
+			</div>
+		</div>
+	</section>
+
+	{#if data.quote}
+		<figure class="rounded-md border border-zinc-100 bg-white px-3 py-3">
+			<blockquote class="text-[13px] leading-relaxed tracking-wide text-zinc-700">
+				<span aria-hidden="true" class="font-serif text-base text-zinc-500">“</span>{data.quote.text}<span
+					aria-hidden="true"
+					class="font-serif text-base text-zinc-500"
+				>
+					”
+				</span>
+			</blockquote>
+
+			<figcaption class="mt-3 flex items-center gap-3">
+				<div class="relative">
+					<div class="flex items-center -space-x-1.5">
+						{#each data.quote.people as person, index (`${person.name}:${index}`)}
+							<PersonAvatar {person} size={28} class="border border-white" />
+						{/each}
+					</div>
+					<span class="absolute -bottom-0.5 -right-1 flex h-4 w-4 items-center justify-center overflow-hidden rounded-full border border-white bg-white">
+						<img src={data.quote.logoSrc} alt={data.quote.logoAlt} class="h-full w-full object-cover" />
+					</span>
+				</div>
+				<div class="min-w-0">
+					<p class="truncate text-xs font-medium tracking-wide text-zinc-900">
+						{data.quote.attribution}
+					</p>
+					<p class="text-[11px] leading-relaxed tracking-wide text-zinc-500">{data.quote.role}</p>
+				</div>
+			</figcaption>
+		</figure>
+	{/if}
+</div>

@@ -25,5 +25,9 @@ export const load: PageServerLoad = async ({ parent }) => {
 		meetingKey
 	});
 
-	return buildSinceLastMeetingPageData({ route, readModel });
+	return buildSinceLastMeetingPageData({
+		route,
+		readModel,
+		dashboardShell: layoutData.dashboardShell
+	});
 };

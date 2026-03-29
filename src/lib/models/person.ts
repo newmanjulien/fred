@@ -9,6 +9,7 @@ export type PersonSummaryLike<TKey extends string = string> = {
 
 export type PersonSummary = PersonSummaryLike<BrokerKey>;
 export type DashboardPerson = PersonSummary;
+export type TeamMemberSummary = PersonSummaryLike;
 
 export type MeetingSummary = {
 	key: MeetingKey;

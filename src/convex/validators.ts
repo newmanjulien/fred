@@ -25,7 +25,8 @@ import type { AccountSummaryRow } from '../lib/models/account';
 import type { OrgChartNodeRecord as SharedOrgChartNodeRecord } from '../lib/models/org-chart';
 import type {
 	DashboardMeeting as SharedDashboardMeeting,
-	DashboardPerson as SharedDashboardPerson
+	DashboardPerson as SharedDashboardPerson,
+	TeamMemberSummary as SharedTeamMemberSummary
 } from '../lib/models/person';
 import type { TimelineItem } from '../lib/models/timeline';
 import {
@@ -86,8 +87,24 @@ export const dashboardMeetingValidator = v.object({
 	dateIso: v.string()
 });
 
+export const dashboardBrandingValidator = v.object({
+	logoUrl: v.string(),
+	logoAlt: v.string()
+});
+
+export const teamMemberValidator = v.object({
+	key: v.string(),
+	name: v.string(),
+	avatar: v.string()
+});
+
 export type DashboardPerson = SharedDashboardPerson;
 export type DashboardMeeting = SharedDashboardMeeting;
+export type TeamMemberSummary = SharedTeamMemberSummary;
+export type DashboardBranding = {
+	logoUrl: string;
+	logoAlt: string;
+};
 
 export const myAccountsDetailRefValidator = v.object({
 	accountKey: v.string(),
@@ -306,8 +323,10 @@ export const sinceLastMeetingAccountReadModelValidator = v.object({
 
 export const dashboardShellResultValidator = v.object({
 	people: v.array(dashboardPersonValidator),
+	team: v.array(teamMemberValidator),
 	meetings: v.array(dashboardMeetingValidator),
-	defaultMeetingKey: v.union(v.string(), v.null())
+	defaultMeetingKey: v.union(v.string(), v.null()),
+	branding: dashboardBrandingValidator
 });
 
 export const myAccountsListReadModelValidator = v.object({
@@ -450,8 +469,10 @@ export type SinceLastMeetingAccountReadModel = AccountSummaryRow & {
 
 export type DashboardShellReadModel = {
 	people: DashboardPerson[];
+	team: TeamMemberSummary[];
 	meetings: DashboardMeeting[];
 	defaultMeetingKey: MeetingKey | null;
+	branding: DashboardBranding;
 };
 
 export type MyAccountsListReadModel = {

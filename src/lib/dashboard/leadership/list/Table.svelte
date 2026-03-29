@@ -78,7 +78,7 @@
 				data-selection-checkbox
 				type="checkbox"
 				aria-label={`Select ${row.account}`}
-				class="h-3.5 w-3.5 rounded-[3px] border-zinc-300 accent-zinc-900"
+				class="h-3.5 w-3.5 rounded-[3px]"
 				checked={selection.selectedRowKeys.has(row.key)}
 				onchange={(event) =>
 					selection.onToggleRow(row.key, (event.currentTarget as HTMLInputElement).checked)}
@@ -141,7 +141,7 @@
 					data-selection-checkbox
 					type="checkbox"
 					aria-label="Select all rows"
-					class="h-3.5 w-3.5 rounded-[3px] border-zinc-300 accent-zinc-900"
+					class="h-3.5 w-3.5 rounded-[3px]"
 					checked={allRowsSelected}
 					onchange={(event) =>
 						selection.onToggleAllRows(

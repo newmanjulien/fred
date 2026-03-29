@@ -231,6 +231,40 @@ button {
   --dashboard-table-cell-pr: var(--dashboard-table-select-cell-pr);
 }
 
+.dashboard-table-shell [data-selection-checkbox] {
+  appearance: none;
+  -webkit-appearance: none;
+  display: block;
+  margin: 0;
+  border: 1px solid rgb(212 212 216 / 0.9);
+  background-color: rgb(255 255 255 / 0.95);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: 0.6rem 0.45rem;
+  box-shadow: 0 0 0 0 transparent;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.dashboard-table-shell [data-selection-checkbox]:checked {
+  border-color: rgb(212 212 216 / 0.95);
+  background-color: rgb(212 212 216 / 0.95);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10' fill='none'%3E%3Cpath d='M1.5 5.25 4.5 8.25 10.5 1.75' stroke='white' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.dashboard-table-shell [data-selection-checkbox]:indeterminate {
+  border-color: rgb(212 212 216 / 0.95);
+  background-color: rgb(212 212 216 / 0.95);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 10' fill='none'%3E%3Cpath d='M2.5 5h7' stroke='white' stroke-width='1.7' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+
+.dashboard-table-shell [data-selection-checkbox]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(228 228 231 / 0.9);
+}
+
 .dashboard-table-shell [data-table-empty] {
   padding: calc(var(--dashboard-table-cell-py) * 2)
     var(--dashboard-table-cell-px);

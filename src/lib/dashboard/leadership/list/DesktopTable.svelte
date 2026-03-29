@@ -8,7 +8,7 @@
 	} from '$lib/dashboard/page-models';
 	import ActivityLevelLabel from '$lib/dashboard/ui/activity-level/ActivityLevelLabel.svelte';
 	import PersonInline from '$lib/dashboard/ui/people/PersonInline.svelte';
-	import DashboardResponsiveTable from '$lib/dashboard/ui/shared/DashboardResponsiveTable.svelte';
+	import DashboardDesktopTableFrame from '$lib/dashboard/ui/table/DashboardDesktopTableFrame.svelte';
 	import { getProbabilityLabel } from '$lib/dashboard/view-models/account';
 	import { cn } from '$lib/support/cn';
 	import {
@@ -131,7 +131,7 @@
 	</span>
 {/snippet}
 
-<DashboardResponsiveTable
+<DashboardDesktopTableFrame
 	class="pt-1"
 	{headers}
 	{columnClass}
@@ -243,4 +243,4 @@
 			{/each}
 		</div>
 	{/snippet}
-</DashboardResponsiveTable>
+</DashboardDesktopTableFrame>

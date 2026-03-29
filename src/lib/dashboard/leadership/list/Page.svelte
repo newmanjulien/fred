@@ -1,32 +1,13 @@
 <script lang="ts">
-	import { SvelteSet } from 'svelte/reactivity';
-	import DashboardPageLayout from '$lib/dashboard/layout/DashboardPageLayout.svelte';
-	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
-	import {
-		type DashboardHeaderButtonHandler,
-		type DashboardHeaderUiScope
-	} from '$lib/dashboard/shell/header/ui-controller';
-	import type { ActivityLevel, AccountIndustry } from '$lib/types/vocab';
+	import { useDashboardViewportState } from '$lib/dashboard/layout/viewport.svelte';
 	import type {
 		NewBusinessListPageData,
 		RenewalsListPageData
 	} from '$lib/dashboard/page-models';
 	import type { NewBusinessView } from '$lib/dashboard/routing/new-business';
 	import type { RenewalsView } from '$lib/dashboard/routing/renewals';
-	import Drawer from './filters/Drawer.svelte';
-	import Table from './Table.svelte';
-	import LikelyOutOfDateTable from './LikelyOutOfDateTable.svelte';
-	import {
-		createDefaultLeadershipFilterExpansionState,
-		type LeadershipFilterDrawerData,
-		type LeadershipFilterOptionToggle,
-		type LeadershipFilterSectionId
-	} from './filters/model';
-	import { buildLeadershipFilterDrawerSections } from './filters/sections';
-	import {
-		getLeadershipSelectionHeaderUiScope,
-		getStaleLeadershipSelectionRowKeys
-	} from './likely-out-of-date';
+	import DesktopPage from './DesktopPage.svelte';
+	import MobilePage from './MobilePage.svelte';
 
 	const NEW_BUSINESS_INFO_BAR_TEXT_BY_VIEW: Partial<Record<NewBusinessView, string>> = {
 		accounts: 'All the new business your brokers are working on',
@@ -52,7 +33,6 @@
 	};
 
 	type LeadershipListPageData = NewBusinessListPageData | RenewalsListPageData;
-	type BrokerKey = LeadershipFilterDrawerData['brokers'][number]['key'];
 
 	type Props = {
 		data: LeadershipListPageData;
@@ -67,116 +47,7 @@
 		tableAriaLabel,
 		likelyOutOfDateTableAriaLabel
 	}: Props = $props();
-	const filterDrawerData = $derived(data.filterDrawerData);
-	let isFilterDrawerOpen = $state(false);
-	let expandedSections = $state(createDefaultLeadershipFilterExpansionState());
-	let selectedBrokerKeys = $state<BrokerKey[]>([]);
-	let selectedActivityLevels = $state<ActivityLevel[]>([]);
-	let selectedIndustries = $state<AccountIndustry[]>([]);
-	let selectedRowKeys = new SvelteSet<LeadershipListPageData['rows'][number]['key']>();
-	const filterDrawerSections = $derived(
-		buildLeadershipFilterDrawerSections({
-			data: filterDrawerData,
-			selectedBrokerKeys,
-			selectedActivityLevels,
-			selectedIndustries,
-			expandedSections
-		})
-	);
-
-	$effect(() => {
-		selectedBrokerKeys = filterDrawerData.brokers.map((broker) => broker.key);
-		selectedActivityLevels = filterDrawerData.activityLevels.map((activityLevel) => activityLevel.id);
-		selectedIndustries = filterDrawerData.industries.map((industry) => industry.id);
-	});
-
-	$effect(() => {
-		const staleRowKeys = getStaleLeadershipSelectionRowKeys(selectedRowKeys, data.rows);
-
-		for (const rowKey of staleRowKeys) {
-			selectedRowKeys.delete(rowKey);
-		}
-	});
-
-	function toggleFilterDrawer() {
-		isFilterDrawerOpen = !isFilterDrawerOpen;
-	}
-
-	function closeFilterDrawer() {
-		isFilterDrawerOpen = false;
-	}
-
-	function toggleSelectedValue<T extends string>(selectedValues: readonly T[], value: T) {
-		return selectedValues.includes(value)
-			? selectedValues.filter((selectedValue) => selectedValue !== value)
-			: [...selectedValues, value];
-	}
-
-	function toggleFilterSection(sectionId: LeadershipFilterSectionId) {
-		const isExpanding = !expandedSections[sectionId];
-
-		expandedSections = {
-			broker: false,
-			'activity-level': false,
-			industry: false,
-			[sectionId]: isExpanding
-		};
-	}
-
-	function toggleFilterOption(toggle: LeadershipFilterOptionToggle) {
-		if (toggle.sectionId === 'broker') {
-			selectedBrokerKeys = toggleSelectedValue(selectedBrokerKeys, toggle.optionId);
-			return;
-		}
-
-		if (toggle.sectionId === 'activity-level') {
-			selectedActivityLevels = toggleSelectedValue(selectedActivityLevels, toggle.optionId);
-			return;
-		}
-
-		selectedIndustries = toggleSelectedValue(selectedIndustries, toggle.optionId);
-	}
-
-	function toggleSelectedRow(
-		rowKey: LeadershipListPageData['rows'][number]['key'],
-		checked: boolean
-	) {
-		if (checked) {
-			selectedRowKeys.add(rowKey);
-		} else {
-			selectedRowKeys.delete(rowKey);
-		}
-	}
-
-	function toggleAllSelectedRows(
-		rowKeys: readonly LeadershipListPageData['rows'][number]['key'][],
-		checked: boolean
-	) {
-		for (const rowKey of rowKeys) {
-			if (checked) {
-				selectedRowKeys.add(rowKey);
-			} else {
-				selectedRowKeys.delete(rowKey);
-			}
-		}
-	}
-
-	function getHeaderUiScope(filterHandler: DashboardHeaderButtonHandler): DashboardHeaderUiScope {
-		return {
-			buttons: [
-				{
-					id: 'filter',
-					label: 'Filter',
-					order: 20
-				},
-				...(getLeadershipSelectionHeaderUiScope(selectedRowKeys.size).buttons ?? [])
-			],
-			handlers: {
-				filter: filterHandler,
-				...getLeadershipSelectionHeaderUiScope(selectedRowKeys.size).handlers
-			}
-		};
-	}
+	const viewport = useDashboardViewportState();
 
 	function getInfoBarText(data: LeadershipListPageData) {
 		if (data.route.kind === 'new-business-list') {
@@ -185,40 +56,21 @@
 
 		return RENEWALS_INFO_BAR_TEXT_BY_VIEW[data.route.view] ?? null;
 	}
-
-	const selection = {
-		selectedRowKeys,
-		onToggleRow: toggleSelectedRow,
-		onToggleAllRows: toggleAllSelectedRows
-	};
 </script>
 
-<Drawer
-	open={isFilterDrawerOpen}
-	sections={filterDrawerSections}
-	onClose={closeFilterDrawer}
-	onToggleSection={toggleFilterSection}
-	onToggleOption={toggleFilterOption}
-/>
-
-<DashboardHeaderScope scopeId={scopeId} scope={getHeaderUiScope(toggleFilterDrawer)} />
-
-<DashboardPageLayout width="wide">
-	{#snippet body()}
-		{#if data.route.view === 'likely-out-of-date'}
-			<LikelyOutOfDateTable
-				rows={data.rows}
-				{selection}
-				ariaLabel={likelyOutOfDateTableAriaLabel}
-				infoText={getInfoBarText(data)}
-			/>
-		{:else}
-			<Table
-				rows={data.rows}
-				{selection}
-				ariaLabel={tableAriaLabel}
-				infoText={getInfoBarText(data)}
-			/>
-		{/if}
-	{/snippet}
-</DashboardPageLayout>
+{#if viewport.desktop.current}
+	<DesktopPage
+		{data}
+		{scopeId}
+		{tableAriaLabel}
+		{likelyOutOfDateTableAriaLabel}
+		infoText={getInfoBarText(data)}
+	/>
+{:else}
+	<MobilePage
+		{data}
+		{tableAriaLabel}
+		{likelyOutOfDateTableAriaLabel}
+		infoText={getInfoBarText(data)}
+	/>
+{/if}

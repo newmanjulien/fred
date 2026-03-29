@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Lightbulb, TriangleAlert } from 'lucide-svelte';
-	import DashboardDetailTabbedLayout from '$lib/dashboard/layout/DashboardDetailTabbedLayout.svelte';
+	import DashboardResponsiveDetailTabbedLayout from '$lib/dashboard/layout/DashboardResponsiveDetailTabbedLayout.svelte';
 	import FileUploadField from '$lib/dashboard/ui/detail/FileUploadField.svelte';
 	import OrgChartSection from '$lib/dashboard/ui/detail/OrgChartSection.svelte';
 	import TimelineSection from '$lib/dashboard/ui/detail/TimelineSection.svelte';
@@ -8,20 +8,26 @@
 
 	let { data } = $props();
 
-	const tabs = [
+	const desktopTabs = [
 		{ id: 'activity', label: 'Activity' },
 		{ id: 'org-chart', label: 'Org chart' },
-		{ id: 'update', label: 'Update', disabledOnMobile: true }
+		{ id: 'update', label: 'Update' }
+	] as const;
+
+	const mobileTabs = [
+		{ id: 'activity', label: 'Activity' },
+		{ id: 'org-chart', label: 'Org chart' }
 	] as const;
 
 	const detailIcon = $derived(data.kind === 'opportunity' ? Lightbulb : TriangleAlert);
 </script>
 
-<DashboardDetailTabbedLayout
+<DashboardResponsiveDetailTabbedLayout
 	hero={data.hero}
 	icon={detailIcon}
 	rightRailData={data.rightRail}
-	{tabs}
+	{desktopTabs}
+	{mobileTabs}
 >
 	{#snippet body()}
 		<SectionTabPanel tabId="activity">
@@ -34,4 +40,4 @@
 			<FileUploadField data={data.update} />
 		</SectionTabPanel>
 	{/snippet}
-</DashboardDetailTabbedLayout>
+</DashboardResponsiveDetailTabbedLayout>

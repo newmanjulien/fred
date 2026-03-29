@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { MediaQuery } from 'svelte/reactivity';
 	import DesktopHeader from '$lib/dashboard/shell/DesktopHeader.svelte';
+	import { provideDashboardViewportState } from '$lib/dashboard/layout/viewport.svelte';
 	import MobileDrawer from '$lib/dashboard/shell/MobileDrawer.svelte';
 	import MobileHeader from '$lib/dashboard/shell/MobileHeader.svelte';
 	import {
@@ -29,6 +30,9 @@
 
 	provideDashboardShellState(shellState);
 	provideDashboardHeaderUiController(headerUiController);
+	provideDashboardViewportState({
+		desktop: desktopViewport
+	});
 
 	$effect(() => {
 		if (desktopViewport.current && shellState.isMobileDrawerOpen) {

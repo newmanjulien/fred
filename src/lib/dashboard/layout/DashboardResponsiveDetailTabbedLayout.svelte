@@ -1,9 +1,9 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { useDashboardViewportState } from '$lib/dashboard/layout/viewport.svelte';
 	import type { DetailRightRailData } from '$lib/dashboard/detail/right-rail';
-	import SectionTabs from '$lib/dashboard/ui/tabs/SectionTabs.svelte';
 	import type { CanvasHeroData, CanvasHeroIcon } from '$lib/dashboard/ui/detail/CanvasHero.types';
-	import DashboardDetailLayout from './DashboardDetailLayout.svelte';
+	import DashboardDetailTabbedLayout from './DashboardDetailTabbedLayout.svelte';
 	import type { DashboardDetailRailWidth, DashboardLayoutWidth } from './tokens';
 
 	type SectionTab = {
@@ -12,7 +12,8 @@
 	};
 
 	type Props = {
-		tabs: readonly SectionTab[];
+		desktopTabs: readonly SectionTab[];
+		mobileTabs: readonly SectionTab[];
 		initialTabId?: string;
 		hero: CanvasHeroData;
 		icon?: CanvasHeroIcon;
@@ -24,7 +25,8 @@
 	};
 
 	let {
-		tabs,
+		desktopTabs,
+		mobileTabs,
 		initialTabId,
 		hero,
 		icon,
@@ -32,23 +34,21 @@
 		railWidth = 'standard',
 		class: classProp = '',
 		rightRailData,
-		body: bodySnippet
+		body
 	}: Props = $props();
+
+	const viewport = useDashboardViewportState();
+	const tabs = $derived(viewport.desktop.current ? desktopTabs : mobileTabs);
 </script>
 
-<DashboardDetailLayout
+<DashboardDetailTabbedLayout
+	{tabs}
+	{initialTabId}
 	{hero}
 	{icon}
 	{width}
 	{railWidth}
 	class={classProp}
 	{rightRailData}
->
-	{#snippet body()}
-		<SectionTabs {tabs} {initialTabId}>
-			{#if bodySnippet}
-				{@render bodySnippet()}
-			{/if}
-		</SectionTabs>
-	{/snippet}
-</DashboardDetailLayout>
+	{body}
+/>

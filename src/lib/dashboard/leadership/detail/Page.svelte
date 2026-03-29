@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { List } from 'lucide-svelte';
 	import type { AccountDetailContentPageData } from '$lib/dashboard/page-models/accountDetail';
-	import DashboardDetailTabbedLayout from '$lib/dashboard/layout/DashboardDetailTabbedLayout.svelte';
+	import DashboardResponsiveDetailTabbedLayout from '$lib/dashboard/layout/DashboardResponsiveDetailTabbedLayout.svelte';
 	import FileUploadField from '$lib/dashboard/ui/detail/FileUploadField.svelte';
 	import OrgChartSection from '$lib/dashboard/ui/detail/OrgChartSection.svelte';
 	import TimelineSection from '$lib/dashboard/ui/detail/TimelineSection.svelte';
@@ -13,14 +13,25 @@
 
 	let { data }: Props = $props();
 
-	const tabs = [
+	const desktopTabs = [
 		{ id: 'activity', label: 'Activity' },
 		{ id: 'org-chart', label: 'Org chart' },
-		{ id: 'update', label: 'Update', disabledOnMobile: true }
+		{ id: 'update', label: 'Update' }
+	] as const;
+
+	const mobileTabs = [
+		{ id: 'activity', label: 'Activity' },
+		{ id: 'org-chart', label: 'Org chart' }
 	] as const;
 </script>
 
-<DashboardDetailTabbedLayout hero={data.hero} icon={List} rightRailData={data.rightRail} {tabs}>
+<DashboardResponsiveDetailTabbedLayout
+	hero={data.hero}
+	icon={List}
+	rightRailData={data.rightRail}
+	{desktopTabs}
+	{mobileTabs}
+>
 	{#snippet body()}
 		<SectionTabPanel tabId="activity">
 			<TimelineSection items={data.activityItems} />
@@ -32,4 +43,4 @@
 			<FileUploadField data={data.update} />
 		</SectionTabPanel>
 	{/snippet}
-</DashboardDetailTabbedLayout>
+</DashboardResponsiveDetailTabbedLayout>

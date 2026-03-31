@@ -5,6 +5,7 @@
 	import DetailRightRailIndustryField from '$lib/dashboard/ui/detail/DetailRightRailIndustryField.svelte';
 	import LinkedInGlyph from '$lib/dashboard/ui/icons/LinkedInGlyph.svelte';
 	import PersonInline from '$lib/dashboard/ui/people/PersonInline.svelte';
+	import RenewalDateLabel from '$lib/dashboard/ui/shared/RenewalDateLabel.svelte';
 	import ListCard from '$lib/dashboard/ui/shared/ListCard.svelte';
 	import { parseAbsoluteUrl } from '$lib/types/url';
 
@@ -41,6 +42,11 @@
 										<span>{formatAccountNumber(row.accountNumber)}</span>
 									{:else if row.kind === 'industry'}
 										<DetailRightRailIndustryField accountKey={row.accountKey} industry={row.value} />
+									{:else if row.kind === 'renewal-date'}
+										<RenewalDateLabel
+											renewalDate={row.dateIso}
+											emptyLabel={row.emptyValue ?? 'No renewal date'}
+										/>
 									{:else if row.kind === 'text'}
 										<span>{row.value}</span>
 									{/if}

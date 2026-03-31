@@ -24,6 +24,7 @@
 
 	const RENEWALS_INFO_BAR_TEXT_BY_VIEW: Partial<Record<RenewalsView, string>> = {
 		accounts: 'All the renewals your brokers are working on',
+		'didnt-renew': "Accounts that didn't renew",
 		'next-60-days':
 			'Accounts which might renew in the next 60 days',
 		'need-support':

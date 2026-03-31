@@ -19,7 +19,7 @@ export type NewBusinessDetailPath =
 	| `/new-business/${NonDefaultNewBusinessView}/detail/${AccountKey}`;
 
 export const NEW_BUSINESS_VIEW_OPTIONS = [
-	{ id: DEFAULT_NEW_BUSINESS_VIEW, label: 'Accounts' },
+	{ id: DEFAULT_NEW_BUSINESS_VIEW, label: 'All Accounts' },
 	{ id: 'next-60-days', label: 'Next 60 days' },
 	{ id: 'need-support', label: 'Need support' },
 	{ id: 'duplicated-work', label: 'Duplicated work' },

@@ -49,6 +49,7 @@
 	let selectedBrokerKeys = $state<BrokerKey[]>([]);
 	let selectedActivityLevels = $state<ActivityLevel[]>([]);
 	let selectedIndustries = $state<AccountIndustry[]>([]);
+	let selectedRenewalDates = $state<string[]>([]);
 	let selectedRowKeys = new SvelteSet<LeadershipListPageData['rows'][number]['key']>();
 	const filterDrawerSections = $derived(
 		buildLeadershipFilterDrawerSections({
@@ -56,6 +57,7 @@
 			selectedBrokerKeys,
 			selectedActivityLevels,
 			selectedIndustries,
+			selectedRenewalDates,
 			expandedSections
 		})
 	);
@@ -64,6 +66,7 @@
 		selectedBrokerKeys = filterDrawerData.brokers.map((broker) => broker.key);
 		selectedActivityLevels = filterDrawerData.activityLevels.map((activityLevel) => activityLevel.id);
 		selectedIndustries = filterDrawerData.industries.map((industry) => industry.id);
+		selectedRenewalDates = filterDrawerData.renewalDates?.map((renewalDate) => renewalDate.id) ?? [];
 	});
 
 	$effect(() => {
@@ -95,6 +98,7 @@
 			broker: false,
 			'activity-level': false,
 			industry: false,
+			'renewal-date': false,
 			[sectionId]: isExpanding
 		};
 	}
@@ -107,6 +111,11 @@
 
 		if (toggle.sectionId === 'activity-level') {
 			selectedActivityLevels = toggleSelectedValue(selectedActivityLevels, toggle.optionId);
+			return;
+		}
+
+		if (toggle.sectionId === 'renewal-date') {
+			selectedRenewalDates = toggleSelectedValue(selectedRenewalDates, toggle.optionId);
 			return;
 		}
 
@@ -174,6 +183,7 @@
 <DashboardPageLayout width="wide">
 	{#snippet body()}
 		<DesktopTable
+			pageKind={data.route.kind}
 			rows={data.rows}
 			{selection}
 			ariaLabel={data.route.view === 'likely-out-of-date'

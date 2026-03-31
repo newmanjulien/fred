@@ -1,10 +1,8 @@
 import type { BrokerKey, AccountKey } from '$lib/types/keys';
-import type { ActivityLevel, AccountIndustry } from '$lib/types/vocab';
-import type { IsoDateTime } from '$lib/types/dates';
-import {
-	formatIsoDateTimeRelative,
-	formatIsoDateTimeRelativeMonths
-} from '$lib/format/date-time';
+import type { AccountKind, ActivityLevel, AccountIndustry } from '$lib/types/vocab';
+import type { IsoDate, IsoDateTime } from '$lib/types/dates';
+import { formatUsdAmount } from '$lib/format/number';
+import { formatIsoDateTimeRelative, formatIsoDateTimeRelativeMonths } from '$lib/format/date-time';
 
 type PersonSummaryLike = {
 	key: BrokerKey;
@@ -28,12 +26,19 @@ type AccountContextLike = {
 
 type AccountOverviewLike = {
 	key: AccountKey;
+	kind: AccountKind;
 	accountName: string;
 	accountNumber: number;
 	activityLevel: ActivityLevel;
 	industry: AccountIndustry;
-	stage: string;
+	stage?: string;
 	lastActivityAtIso?: IsoDateTime;
+	renewalDate?: IsoDate;
+	revenue?: number;
+};
+
+type DetailRightRailTimingSectionOptions = {
+	showRenewalDate?: boolean;
 };
 
 export type DetailRightRailRow =
@@ -67,6 +72,13 @@ export type DetailRightRailRow =
 			label: string;
 			kind: 'person';
 			person: PersonSummaryLike | null;
+			emptyValue?: string;
+	  }
+	| {
+			id: string;
+			label: string;
+			kind: 'renewal-date';
+			dateIso?: IsoDate;
 			emptyValue?: string;
 	  };
 
@@ -125,6 +137,8 @@ export function toDetailRightRailOverviewSection(
 	account: AccountOverviewLike,
 	owner: PersonSummaryLike | null
 ): DetailRightRailSection {
+	const shouldShowRevenue = account.kind === 'renewal';
+
 	return {
 		id: 'account-overview',
 		kind: 'rows',
@@ -161,30 +175,55 @@ export function toDetailRightRailOverviewSection(
 				person: owner,
 				emptyValue: 'Unassigned'
 			},
-			{
-				id: 'stage',
-				label: 'Stage',
-				kind: 'text',
-				value: account.stage
-			}
+			...(shouldShowRevenue
+				? [
+						{
+							id: 'revenue',
+							label: 'Revenue',
+							kind: 'text' as const,
+							value: account.revenue == null ? 'No revenue' : formatUsdAmount(account.revenue)
+						}
+					]
+				: account.stage
+					&& account.kind === 'new-business'
+					? [
+							{
+								id: 'stage',
+								label: 'Stage',
+								kind: 'text' as const,
+								value: account.stage
+							}
+						]
+					: [])
 		]
 	};
 }
 
 export function toDetailRightRailTimingSection(
 	account: AccountOverviewLike,
-	detailContext: AccountContextLike
+	detailContext: AccountContextLike,
+	options: DetailRightRailTimingSectionOptions = {}
 ): DetailRightRailSection {
+	const primaryTimingRow = options.showRenewalDate
+		? {
+				id: 'renewal-date',
+				label: 'Renewal',
+				kind: 'renewal-date' as const,
+				dateIso: account.renewalDate,
+				emptyValue: 'No renewal date'
+			}
+		: {
+				id: 'claimed',
+				label: 'Claimed',
+				kind: 'text' as const,
+				value: formatIsoDateTimeRelativeMonths(detailContext.claimedAtIso)
+			};
+
 	return {
 		id: 'account-timing',
 		kind: 'rows',
 		rows: [
-			{
-				id: 'claimed',
-				label: 'Claimed',
-				kind: 'text',
-				value: formatIsoDateTimeRelativeMonths(detailContext.claimedAtIso)
-			},
+			primaryTimingRow,
 			{
 				id: 'last-activity',
 				label: 'Last activity',

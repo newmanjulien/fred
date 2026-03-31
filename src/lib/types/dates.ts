@@ -9,6 +9,10 @@ function toInteger(value: string) {
 	return Number.parseInt(value, 10);
 }
 
+function toUtcIsoDate(date: Date): IsoDate {
+	return date.toISOString().slice(0, 10) as IsoDate;
+}
+
 function isValidUtcDate(value: string) {
 	const match = ISO_DATE_PATTERN.exec(value);
 
@@ -83,6 +87,17 @@ export function parseIsoDateTime(value: string, label = 'value'): IsoDateTime {
 	return value;
 }
 
+export function parseOptionalIsoDate(
+	value: string | null | undefined,
+	label = 'value'
+): IsoDate | undefined {
+	if (value == null) {
+		return undefined;
+	}
+
+	return parseIsoDate(value, label);
+}
+
 export function parseOptionalIsoDateTime(
 	value: string | null | undefined,
 	label = 'value'
@@ -96,4 +111,8 @@ export function parseOptionalIsoDateTime(
 
 export function parseIsoDateArray(values: readonly string[], label = 'value'): IsoDate[] {
 	return values.map((value, index) => parseIsoDate(value, `${label}[${index}]`));
+}
+
+export function isIsoDatePast(value: IsoDate, now: Date = new Date()) {
+	return value < toUtcIsoDate(now);
 }

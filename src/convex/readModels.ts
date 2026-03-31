@@ -5,6 +5,7 @@ import type { OrgChartNodeRecord as DashboardOrgChartNodeRecord } from '../lib/m
 import {
 	parseIsoDate,
 	parseIsoDateTime,
+	parseOptionalIsoDate,
 	parseOptionalIsoDateTime,
 	type IsoDate,
 	type IsoDateTime
@@ -16,6 +17,7 @@ import type {
 	AccountActivityStream,
 	AccountIndustry,
 	AccountInsightKind,
+	AccountKind,
 	AccountNewsSource,
 	AccountStage
 } from '../lib/types/vocab';
@@ -58,13 +60,15 @@ export type AccountContextRecordData = {
 export type AccountRecordData = {
 	id: AccountId;
 	key: AccountKey;
+	kind: AccountKind;
 	accountNumber: number;
 	industry: AccountIndustry;
 	accountName: string;
-	isRenewal: boolean;
+	renewalDate?: IsoDate;
+	revenue?: number;
 	isReservedInEpic: boolean;
 	probability: number;
-	stage: AccountStage;
+	stage?: AccountStage;
 	isLikelyOutOfDate: boolean;
 	activityLevel: ActivityLevel;
 	lastActivityAtIso?: IsoDateTime;
@@ -133,6 +137,7 @@ export type InsightRecordData = {
 
 type DashboardActivityValue = Doc<'activities'> | Doc<'insights'>['timeline'][number];
 type AccountContextDocument = NonNullable<Doc<'accounts'>['context']>;
+type AccountRenewalDocument = NonNullable<Doc<'accounts'>['renewal']>;
 type InsightDocument = Doc<'insights'>;
 
 function toInternalOrgChartNodeRecord(
@@ -376,16 +381,23 @@ export function toAccountContextRecord(context: AccountContextDocument): Account
 }
 
 export function toAccountRecord(account: Doc<'accounts'>): AccountRecordData {
+	const renewal = account.renewal as AccountRenewalDocument | undefined;
+
 	return {
 		id: account._id,
 		key: account.key as AccountKey,
+		kind: account.kind as AccountKind,
 		accountNumber: account.accountNumber,
 		industry: account.industry as AccountIndustry,
 		accountName: account.accountName,
-		isRenewal: account.isRenewal,
+		renewalDate: parseOptionalIsoDate(
+			renewal?.date,
+			`accounts["${account._id}"].renewal.date`
+		),
+		revenue: renewal?.revenue ?? undefined,
 		isReservedInEpic: account.isReservedInEpic,
 		probability: account.probability,
-		stage: account.stage as AccountStage,
+		stage: account.stage ? (account.stage as AccountStage) : undefined,
 		isLikelyOutOfDate: account.isLikelyOutOfDate,
 		activityLevel: account.activityLevel as ActivityLevel,
 		lastActivityAtIso: parseOptionalIsoDateTime(

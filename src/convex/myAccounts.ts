@@ -393,7 +393,7 @@ export const getMyAccountsDetail = query({
 			hero: buildAccountHero({
 				accountNumber: entry.account.accountNumber,
 				accountName: entry.account.accountName,
-				isRenewal: entry.account.isRenewal,
+				kind: entry.account.kind,
 				stage: entry.account.stage,
 				probability: entry.account.probability,
 				activityLevel: entry.account.activityLevel,

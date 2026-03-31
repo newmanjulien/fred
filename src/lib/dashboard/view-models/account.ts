@@ -1,5 +1,5 @@
 import type { IsoDate } from '$lib/types/dates';
-import type { ActivityLevel } from '$lib/types/vocab';
+import type { AccountKind, ActivityLevel } from '$lib/types/vocab';
 
 export type { AccountSummaryRow } from '$lib/models/account';
 
@@ -31,8 +31,8 @@ export function getActivityLevelLabel(activityLevel: ActivityLevel) {
 	return ACTIVITY_LEVEL_LABELS[activityLevel];
 }
 
-export function getProbabilityLabel(isRenewal: boolean) {
-	return isRenewal ? 'likely to renew' : 'likely to close';
+export function getProbabilityLabel(accountKind: AccountKind) {
+	return accountKind === 'renewal' ? 'likely to renew' : 'likely to close';
 }
 
 export function getActivityLevelIconVariant(activityLevel: ActivityLevel) {

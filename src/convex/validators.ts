@@ -34,9 +34,11 @@ import {
 	ACCOUNT_ACTIVITY_STREAMS,
 	ACCOUNT_INDUSTRIES,
 	ACCOUNT_INSIGHT_KINDS,
+	ACCOUNT_KINDS,
 	ACCOUNT_NEWS_SOURCES,
 	ACCOUNT_STAGES,
 	type ActivityLevel,
+	type AccountKind,
 	type AccountIndustry,
 	type AccountInsightKind,
 	type AccountNewsSource
@@ -52,6 +54,7 @@ export function literalUnion<const Values extends NonEmptyStringTuple>(values: V
 
 export const activityLevelValidator = literalUnion(ACTIVITY_LEVELS);
 export const accountStageValidator = literalUnion(ACCOUNT_STAGES);
+export const accountKindValidator = literalUnion(ACCOUNT_KINDS);
 export const accountIndustryValidator = literalUnion(ACCOUNT_INDUSTRIES);
 export const accountActivityStreamValidator = literalUnion(ACCOUNT_ACTIVITY_STREAMS);
 export const accountNewsSourceValidator = literalUnion(ACCOUNT_NEWS_SOURCES);
@@ -200,6 +203,13 @@ export const detailRightRailRowValidator = v.union(
 		kind: v.literal('person'),
 		person: v.union(dashboardPersonValidator, v.null()),
 		emptyValue: v.optional(v.string())
+	}),
+	v.object({
+		id: v.string(),
+		label: v.string(),
+		kind: v.literal('renewal-date'),
+		dateIso: v.optional(v.string()),
+		emptyValue: v.optional(v.string())
 	})
 );
 
@@ -277,12 +287,15 @@ export const newBusinessRowLastActivityValidator = v.union(
 
 export const accountListRowReadModelValidator = v.object({
 	key: v.string(),
+	kind: accountKindValidator,
 	hasDetail: v.boolean(),
-	isRenewal: v.boolean(),
+	renewalDate: v.optional(v.string()),
+	revenue: v.optional(v.number()),
 	probability: v.number(),
 	activityLevel: activityLevelValidator,
 	account: v.string(),
-	stage: v.string(),
+	industry: accountIndustryValidator,
+	stage: v.optional(v.string()),
 	lastActivity: newBusinessRowLastActivityValidator,
 	owner: v.union(dashboardPersonValidator, v.null())
 });
@@ -299,6 +312,14 @@ export const accountListFilterDrawerDataValidator = v.object({
 			id: accountIndustryValidator,
 			label: v.string()
 		})
+	),
+	renewalDates: v.optional(
+		v.array(
+			v.object({
+				id: v.string(),
+				label: v.string()
+			})
+		)
 	)
 });
 
@@ -313,11 +334,12 @@ export const opportunityTileReadModelValidator = v.object({
 
 export const sinceLastMeetingAccountReadModelValidator = v.object({
 	key: v.string(),
+	kind: accountKindValidator,
 	account: v.string(),
-	isRenewal: v.boolean(),
+	renewalDate: v.optional(v.string()),
 	probability: v.number(),
 	activityLevel: activityLevelValidator,
-	stage: v.string(),
+	stage: v.optional(v.string()),
 	hasDetail: v.boolean()
 });
 
@@ -424,12 +446,15 @@ export type MyAccountsTableRowReadModel = {
 
 export type AccountListRowReadModel = {
 	key: AccountKey;
+	kind: AccountKind;
 	hasDetail: boolean;
-	isRenewal: boolean;
+	renewalDate?: IsoDate;
+	revenue?: number;
 	probability: number;
 	activityLevel: ActivityLevel;
 	account: string;
-	stage: string;
+	industry: AccountIndustry;
+	stage?: string;
 	lastActivity:
 		| {
 				kind: 'relative';
@@ -450,6 +475,10 @@ export type AccountListFilterDrawerData = {
 	}[];
 	industries: {
 		id: AccountIndustry;
+		label: string;
+	}[];
+	renewalDates?: {
+		id: string;
 		label: string;
 	}[];
 };

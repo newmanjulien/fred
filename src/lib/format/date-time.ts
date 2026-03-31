@@ -12,6 +12,11 @@ const LONG_MONTH_DAY_FORMATTER = new Intl.DateTimeFormat('en-US', {
 	timeZone: 'UTC'
 });
 
+const LONG_MONTH_FORMATTER = new Intl.DateTimeFormat('en-US', {
+	month: 'long',
+	timeZone: 'UTC'
+});
+
 const LONG_MONTH_DAY_YEAR_FORMATTER = new Intl.DateTimeFormat('en-US', {
 	month: 'long',
 	day: 'numeric',
@@ -61,6 +66,10 @@ export function formatIsoDate(isoDate: IsoDate): string {
 
 export function formatIsoDateMonthDayLong(isoDate: IsoDate): string {
 	return formatUtcIsoDate(isoDate, LONG_MONTH_DAY_FORMATTER);
+}
+
+export function formatUtcMonthYear(date: Date): string {
+	return `${LONG_MONTH_FORMATTER.format(date)}, ${date.getUTCFullYear()}`;
 }
 
 export function formatIsoDateLong(isoDate: IsoDate): string {

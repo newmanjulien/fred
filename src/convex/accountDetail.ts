@@ -30,6 +30,10 @@ import {
 import type { DashboardPerson } from '../lib/models/person';
 import type { AccountDetailReadModel } from './validators';
 
+type AccountDetailReadModelOptions = {
+	timingSection?: 'claimed' | 'renewal-date';
+};
+
 async function resolveAccountActivities(
 	ctx: QueryCtx,
 	account: NonNullable<Awaited<ReturnType<typeof findAccountDocumentByKey>>>
@@ -49,15 +53,16 @@ function buildDetailReadModel(params: {
 	activities: Awaited<ReturnType<typeof resolveAccountActivities>>;
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>;
 	brokerKeyById: ReturnType<typeof createBrokerKeyByIdMap>;
+	options?: AccountDetailReadModelOptions;
 }): AccountDetailReadModel {
-	const { accountRecord, activities, peopleByBrokerId, brokerKeyById } = params;
+	const { accountRecord, activities, peopleByBrokerId, brokerKeyById, options } = params;
 
 	return {
 		title: accountRecord.accountName,
 		hero: buildAccountHero({
 			accountNumber: accountRecord.accountNumber,
 			accountName: accountRecord.accountName,
-			isRenewal: accountRecord.isRenewal,
+			kind: accountRecord.kind,
 			stage: accountRecord.stage,
 			probability: accountRecord.probability,
 			activityLevel: accountRecord.activityLevel,
@@ -73,7 +78,9 @@ function buildDetailReadModel(params: {
 				accountRecord,
 				resolveOptionalBrokerPerson(peopleByBrokerId, accountRecord.ownerBrokerId)
 			),
-			toDetailRightRailTimingSection(accountRecord, accountRecord.context),
+			toDetailRightRailTimingSection(accountRecord, accountRecord.context, {
+				showRenewalDate: options?.timingSection === 'renewal-date'
+			}),
 			toDetailRightRailHelpfulContactsSection(accountRecord.context)
 		])
 	};
@@ -81,7 +88,8 @@ function buildDetailReadModel(params: {
 
 export async function getAccountDetailReadModel(
 	ctx: QueryCtx,
-	accountKey: AccountKey
+	accountKey: AccountKey,
+	options?: AccountDetailReadModelOptions
 ): Promise<AccountDetailReadModel | null> {
 	const [account, brokers] = await Promise.all([
 		findAccountDocumentByKey(ctx, accountKey),
@@ -110,6 +118,7 @@ export async function getAccountDetailReadModel(
 		},
 		activities,
 		peopleByBrokerId,
-		brokerKeyById
+		brokerKeyById,
+		options
 	});
 }

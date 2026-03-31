@@ -4,6 +4,7 @@ const RENEWALS_BASE_PATH = '/renewals';
 
 export const DEFAULT_RENEWALS_VIEW = 'accounts' as const;
 export const RENEWALS_NON_DEFAULT_VIEWS = [
+	'didnt-renew',
 	'next-60-days',
 	'need-support',
 	'likely-out-of-date'
@@ -17,7 +18,8 @@ export type RenewalsDetailPath =
 	| `/renewals/${NonDefaultRenewalsView}/detail/${AccountKey}`;
 
 export const RENEWALS_VIEW_OPTIONS = [
-	{ id: DEFAULT_RENEWALS_VIEW, label: 'Accounts' },
+	{ id: DEFAULT_RENEWALS_VIEW, label: 'All Accounts' },
+	{ id: 'didnt-renew', label: "Didn't renew" },
 	{ id: 'next-60-days', label: 'Next 60 days' },
 	{ id: 'need-support', label: 'Need support' },
 	{ id: 'likely-out-of-date', label: 'Likely out of date' }

@@ -21,6 +21,7 @@
 <DashboardPageLayout width="wide">
 	{#snippet body()}
 		<MobileTable
+			pageKind={data.route.kind}
 			rows={data.rows}
 			ariaLabel={data.route.view === 'likely-out-of-date'
 				? likelyOutOfDateTableAriaLabel

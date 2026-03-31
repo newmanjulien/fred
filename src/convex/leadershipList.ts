@@ -1,5 +1,6 @@
 import type { BrokerId } from '../lib/types/ids';
 import { getActivityLevelLabel } from '../lib/dashboard/view-models/account';
+import { formatUtcMonthYear } from '../lib/format/date-time';
 import {
 	type PersonSummaryMap,
 	resolveOptionalBrokerPerson
@@ -10,14 +11,32 @@ import type { AccountRecordData } from './readModels';
 
 const NO_ACTIVITY_LABEL = 'No recorded activity';
 
+function createRenewalMonthFilterOptions(now: Date = new Date()) {
+	const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+
+	return Array.from({ length: 12 }, (_, index) => {
+		const date = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + index, 1));
+		const year = date.getUTCFullYear();
+		const month = `${date.getUTCMonth() + 1}`.padStart(2, '0');
+
+		return {
+			id: `${year}-${month}`,
+			label: formatUtcMonthYear(date)
+		};
+	});
+}
+
 export type LeadershipListTableRow = {
 	key: AccountRecordData['key'];
+	kind: AccountRecordData['kind'];
 	hasDetail: boolean;
-	isRenewal: boolean;
+	renewalDate?: AccountRecordData['renewalDate'];
+	revenue?: AccountRecordData['revenue'];
 	probability: number;
 	activityLevel: AccountRecordData['activityLevel'];
 	account: string;
-	stage: string;
+	industry: AccountRecordData['industry'];
+	stage?: AccountRecordData['stage'];
 	lastActivity:
 		| {
 				kind: 'relative';
@@ -45,11 +64,14 @@ export function toLeadershipTableRow(
 ): LeadershipListTableRow {
 	return {
 		key: account.key,
+		kind: account.kind,
 		hasDetail: Boolean(account.context),
-		isRenewal: account.isRenewal,
+		renewalDate: account.renewalDate,
+		revenue: account.revenue,
 		probability: account.probability,
 		activityLevel: account.activityLevel,
 		account: account.accountName,
+		industry: account.industry,
 		stage: account.stage,
 		lastActivity,
 		owner: resolveOptionalBrokerPerson(peopleByBrokerId, account.ownerBrokerId)
@@ -88,9 +110,15 @@ export function toNoActivityRow(
 
 export function createLeadershipFilterDrawerData(
 	people: DashboardPerson[],
-	accounts: readonly AccountRecordData[]
+	accounts: readonly AccountRecordData[],
+	options?: {
+		includeRenewalDates?: boolean;
+	}
 ) {
 	const industries = new Set(accounts.map((account) => account.industry));
+	const renewalDates = options?.includeRenewalDates
+		? createRenewalMonthFilterOptions()
+		: undefined;
 
 	return {
 		brokers: people,
@@ -102,6 +130,7 @@ export function createLeadershipFilterDrawerData(
 		industries: ACCOUNT_INDUSTRIES.filter((industry) => industries.has(industry)).map((industry) => ({
 			id: industry as AccountIndustry,
 			label: industry
-		}))
+		})),
+		renewalDates
 	};
 }

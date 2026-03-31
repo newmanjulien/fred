@@ -28,6 +28,7 @@ export type LeadershipActivityLevelFilterOption = BaseFilterOption<
 >;
 
 export type LeadershipIndustryFilterOption = BaseFilterOption<AccountIndustry>;
+export type LeadershipRenewalDateFilterOption = BaseFilterOption<string>;
 
 type BaseSection<Id extends string, Option> = {
 	id: Id;
@@ -62,16 +63,23 @@ export type LeadershipIndustryFilterSection = SearchableSection<
 	LeadershipIndustryFilterOption
 >;
 
+export type LeadershipRenewalDateFilterSection = SearchableSection<
+	'renewal-date',
+	LeadershipRenewalDateFilterOption
+>;
+
 export type LeadershipFilterDrawerSection =
 	| LeadershipBrokerFilterSection
 	| LeadershipActivityLevelFilterSection
-	| LeadershipIndustryFilterSection;
+	| LeadershipIndustryFilterSection
+	| LeadershipRenewalDateFilterSection;
 
 type BuildLeadershipFilterDrawerSectionsParams = {
 	data: LeadershipFilterDrawerData;
 	selectedBrokerKeys: readonly BrokerOption['key'][];
 	selectedActivityLevels: readonly ActivityLevel[];
 	selectedIndustries: readonly AccountIndustry[];
+	selectedRenewalDates: readonly string[];
 	expandedSections: LeadershipFilterExpansionState;
 };
 
@@ -178,12 +186,36 @@ function buildIndustrySection(
 	});
 }
 
+function buildRenewalDateSection(
+	params: BuildLeadershipFilterDrawerSectionsParams
+): LeadershipRenewalDateFilterSection | null {
+	if (!params.data.renewalDates) {
+		return null;
+	}
+
+	return buildSearchableSection({
+		id: 'renewal-date',
+		title: 'Renewal date',
+		selectedCount: params.selectedRenewalDates.length,
+		expanded: params.expandedSections['renewal-date'],
+		searchLabel: 'Search renewal months',
+		searchPlaceholder: 'Search renewal months',
+		emptyLabel: 'No renewal months found',
+		options: params.data.renewalDates.map((renewalDate) => ({
+			id: renewalDate.id,
+			label: renewalDate.label,
+			selected: params.selectedRenewalDates.includes(renewalDate.id)
+		}))
+	});
+}
+
 export function buildLeadershipFilterDrawerSections(
 	params: BuildLeadershipFilterDrawerSectionsParams
 ): readonly LeadershipFilterDrawerSection[] {
 	return [
 		buildBrokerSection(params),
+		buildRenewalDateSection(params),
 		buildActivityLevelSection(params),
-		buildIndustrySection(params)
-	];
+		buildIndustrySection(params),
+	].filter((section): section is LeadershipFilterDrawerSection => Boolean(section));
 }

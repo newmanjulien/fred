@@ -27,7 +27,11 @@
 	}
 
 	function getProbabilityText(row: AccountRow) {
-		return `${row.probability}% ${getProbabilityLabel(row.isRenewal)}`;
+		return `${row.probability}% ${getProbabilityLabel(row.kind)}`;
+	}
+
+	function getStageText(row: AccountRow) {
+		return row.stage ?? 'No stage';
 	}
 </script>
 
@@ -45,7 +49,7 @@
 		{getProbabilityText(row)}
 	</span>
 	<span data-table-cell class="whitespace-nowrap text-zinc-600">
-		{row.stage}
+		{getStageText(row)}
 	</span>
 {/snippet}
 

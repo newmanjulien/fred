@@ -11,12 +11,13 @@ export type LeadershipFilterDrawerData =
 
 type BrokerOption = LeadershipFilterDrawerData['brokers'][number];
 
-export type LeadershipFilterSectionId = 'broker' | 'activity-level' | 'industry';
+export type LeadershipFilterSectionId = 'broker' | 'activity-level' | 'industry' | 'renewal-date';
 
 export type LeadershipFilterOptionIdBySection = {
 	broker: BrokerOption['key'];
 	'activity-level': ActivityLevel;
 	industry: AccountIndustry;
+	'renewal-date': string;
 };
 
 export type LeadershipFilterExpansionState = Record<LeadershipFilterSectionId, boolean>;
@@ -51,7 +52,8 @@ export function createLeadershipFilterDrawerData(
 	return {
 		brokers: [...params.brokers],
 		activityLevels,
-		industries
+		industries,
+		renewalDates: undefined
 	};
 }
 
@@ -59,6 +61,7 @@ export function createDefaultLeadershipFilterExpansionState(): LeadershipFilterE
 	return {
 		broker: true,
 		'activity-level': false,
-		industry: false
+		industry: false,
+		'renewal-date': false
 	};
 }

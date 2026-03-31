@@ -8,6 +8,8 @@ export const ACCOUNT_STAGES = [
 	'Closed lost'
 ] as const;
 
+export const ACCOUNT_KINDS = ['new-business', 'renewal'] as const;
+
 export const ACCOUNT_INDUSTRIES = [
 	'Industrials',
 	'Transportation & logistics',
@@ -26,6 +28,7 @@ export const ACCOUNT_INSIGHT_KINDS = ['opportunity', 'risk'] as const;
 
 export type ActivityLevel = (typeof ACTIVITY_LEVELS)[number];
 export type AccountStage = (typeof ACCOUNT_STAGES)[number];
+export type AccountKind = (typeof ACCOUNT_KINDS)[number];
 export type AccountIndustry = (typeof ACCOUNT_INDUSTRIES)[number];
 export type AccountBrokerRelationship = (typeof ACCOUNT_BROKER_RELATIONSHIPS)[number];
 export type AccountActivityStream = (typeof ACCOUNT_ACTIVITY_STREAMS)[number];

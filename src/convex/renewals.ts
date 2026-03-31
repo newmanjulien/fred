@@ -28,6 +28,7 @@ import {
 
 type RowCollections = {
 	accountsRows: LeadershipListTableRow[];
+	didntRenewRows: LeadershipListTableRow[];
 	next60DaysRows: LeadershipListTableRow[];
 	needSupportRows: LeadershipListTableRow[];
 	likelyOutOfDateRows: LeadershipListTableRow[];
@@ -35,6 +36,7 @@ type RowCollections = {
 
 const emptyRowCollections = (): RowCollections => ({
 	accountsRows: [],
+	didntRenewRows: [],
 	next60DaysRows: [],
 	needSupportRows: [],
 	likelyOutOfDateRows: []
@@ -82,6 +84,7 @@ function buildRowCollections(
 function resolveRowsForView(view: RenewalsView, collections: RowCollections) {
 	const rowsByView: Record<RenewalsView, LeadershipListTableRow[]> = {
 		accounts: collections.accountsRows,
+		'didnt-renew': collections.didntRenewRows,
 		'next-60-days': collections.next60DaysRows,
 		'need-support': collections.needSupportRows,
 		'likely-out-of-date': collections.likelyOutOfDateRows
@@ -106,12 +109,14 @@ export const getRenewalsList = query({
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
 		const accountRecords = accounts
 			.map((account) => toAccountRecord(account))
-			.filter((account) => account.isRenewal);
+			.filter((account) => account.kind === 'renewal');
 		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
 
 		return {
 			rows: resolveRowsForView(selectedView, collections),
-			filterDrawerData: createLeadershipFilterDrawerData(people, accountRecords)
+			filterDrawerData: createLeadershipFilterDrawerData(people, accountRecords, {
+				includeRenewalDates: true
+			})
 		};
 	}
 });
@@ -124,10 +129,12 @@ export const getRenewalsDetail = query({
 	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
 		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 
-		if (!account || !toAccountRecord(account).isRenewal) {
+		if (!account || toAccountRecord(account).kind !== 'renewal') {
 			return null;
 		}
 
-		return getAccountDetailReadModel(ctx, args.accountKey as AccountKey);
+		return getAccountDetailReadModel(ctx, args.accountKey as AccountKey, {
+			timingSection: 'renewal-date'
+		});
 	}
 });

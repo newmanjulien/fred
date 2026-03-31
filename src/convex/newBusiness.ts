@@ -117,7 +117,7 @@ export const getNewBusinessList = query({
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
 		const accountRecords = accounts
 			.map((account) => toAccountRecord(account))
-			.filter((account) => !account.isRenewal);
+			.filter((account) => account.kind === 'new-business');
 		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
 
 		return {
@@ -135,7 +135,7 @@ export const getNewBusinessDetail = query({
 	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
 		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 
-		if (!account || toAccountRecord(account).isRenewal) {
+		if (!account || toAccountRecord(account).kind !== 'new-business') {
 			return null;
 		}
 

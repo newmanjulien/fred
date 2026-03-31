@@ -12,7 +12,8 @@
 	import type {
 		LeadershipBrokerFilterSection,
 		LeadershipFilterDrawerSection,
-		LeadershipIndustryFilterSection
+		LeadershipIndustryFilterSection,
+		LeadershipRenewalDateFilterSection
 	} from './sections';
 
 	type Props = {
@@ -119,10 +120,18 @@
 									options={section.options}
 									selectedValues={section.options.filter((option) => option.selected).map((option) => option.id)}
 									onSelect={(optionId) =>
-										onToggleOption({
-											sectionId: 'industry',
-											optionId: optionId as LeadershipIndustryFilterSection['options'][number]['id']
-										})}
+										onToggleOption(
+											section.id === 'industry'
+												? {
+														sectionId: 'industry',
+														optionId: optionId as LeadershipIndustryFilterSection['options'][number]['id']
+													}
+												: {
+														sectionId: 'renewal-date',
+														optionId:
+															optionId as LeadershipRenewalDateFilterSection['options'][number]['id']
+													}
+										)}
 									searchLabel={section.searchLabel}
 									searchPlaceholder={section.searchPlaceholder}
 									emptyLabel={section.emptyLabel}

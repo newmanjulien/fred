@@ -153,10 +153,10 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 
 		const accountId = await ctx.db.insert('accounts', {
 			key: accountKey,
+			kind: 'new-business',
 			accountNumber: 42,
 			industry: 'Hospitality',
 			accountName: 'Acme Expansion',
-			isRenewal: false,
 			isReservedInEpic: false,
 			probability: 70,
 			stage: 'Discovery',
@@ -292,6 +292,38 @@ function getIndustryRow(result: {
 	return null;
 }
 
+function getRightRailRow(
+	result: {
+		rightRail: {
+			sections: {
+				kind: 'rows' | 'helpful-contacts';
+				rows?: {
+					id?: string;
+					kind: string;
+					label?: string;
+					value?: string;
+					dateIso?: string;
+				}[];
+			}[];
+		};
+	},
+	rowId: string
+) {
+	for (const section of result.rightRail.sections) {
+		if (section.kind !== 'rows') {
+			continue;
+		}
+
+		for (const row of section.rows ?? []) {
+			if (row.id === rowId) {
+				return row;
+			}
+		}
+	}
+
+	return null;
+}
+
 describe('Convex feature contracts', () => {
 	it('serves the core dashboard read models without leaking UI shell contracts', async () => {
 		const t = createConvex();
@@ -313,6 +345,9 @@ describe('Convex feature contracts', () => {
 		});
 		const renewalsList = await t.query(api.renewals.getRenewalsList, {
 			view: 'accounts'
+		});
+		const renewalsDidntRenewList = await t.query(api.renewals.getRenewalsList, {
+			view: 'didnt-renew'
 		});
 		const renewalsLikelyOutOfDateList = await t.query(api.renewals.getRenewalsList, {
 			view: 'likely-out-of-date'
@@ -366,9 +401,14 @@ describe('Convex feature contracts', () => {
 		expect(newBusinessDetail?.orgChartNodes).toEqual(
 			toExpectedDashboardOrgChartNodes(seed.accountOrgChartNodes, seed)
 		);
+		expect(getRightRailRow(newBusinessDetail!, 'claimed')).toMatchObject({
+			kind: 'text',
+			label: 'Claimed'
+		});
 
 		expect(renewalsList).not.toHaveProperty('header');
 		expect(renewalsList.rows).toEqual([]);
+		expect(renewalsDidntRenewList.rows).toEqual([]);
 		expect(renewalsNext60DaysList.rows).toEqual([]);
 		expect(renewalsNeedSupportList.rows).toEqual([]);
 		expect(renewalsLikelyOutOfDateList.rows).toEqual([]);
@@ -442,13 +482,16 @@ describe('Convex feature contracts', () => {
 		await t.run(async (ctx) => {
 			await ctx.db.insert('accounts', {
 				key: renewalAccountKey,
+				kind: 'renewal',
 				accountNumber: 314,
 				industry: 'Hospitality',
 				accountName: 'Acme Renewal',
-				isRenewal: true,
+				renewal: {
+					date: '2026-06-30',
+					revenue: 24000000
+				},
 				isReservedInEpic: false,
 				probability: 85,
-				stage: 'Proposal',
 				isLikelyOutOfDate: true,
 				activityLevel: 'medium',
 				lastActivityAtIso: '2026-03-26T10:00:00Z',
@@ -496,6 +539,7 @@ describe('Convex feature contracts', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					key: renewalAccountKey,
+					revenue: 24000000,
 					hasDetail: true
 				})
 			])
@@ -525,6 +569,19 @@ describe('Convex feature contracts', () => {
 			])
 		);
 		expect(renewalsDetail?.title).toBe('Acme Renewal');
+		expect(renewalsDetail?.hero.description).not.toContain(' is in ');
+		expect(getRightRailRow(renewalsDetail!, 'renewal-date')).toMatchObject({
+			kind: 'renewal-date',
+			label: 'Renewal',
+			dateIso: '2026-06-30'
+		});
+		expect(getRightRailRow(renewalsDetail!, 'revenue')).toMatchObject({
+			kind: 'text',
+			label: 'Revenue',
+			value: '$24,000,000'
+		});
+		expect(getRightRailRow(renewalsDetail!, 'claimed')).toBeNull();
+		expect(getRightRailRow(renewalsDetail!, 'stage')).toBeNull();
 	});
 
 	it('reports zero legacy org charts once data is stored in the flat shape', async () => {

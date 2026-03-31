@@ -4,6 +4,7 @@ import {
 	activityLevelValidator,
 	accountActivityStreamValidator,
 	accountIndustryValidator,
+	accountKindValidator,
 	accountInsightKindValidator,
 	accountNewsSourceValidator,
 	accountStageValidator
@@ -121,13 +122,19 @@ export default defineSchema({
 
 	accounts: defineTable({
 		key: v.string(),
+		kind: accountKindValidator,
 		accountNumber: v.number(),
 		industry: accountIndustryValidator,
 		accountName: v.string(),
-		isRenewal: v.boolean(),
+		renewal: v.optional(
+			v.object({
+				date: v.optional(v.string()),
+				revenue: v.optional(v.number())
+			})
+		),
 		isReservedInEpic: v.boolean(),
 		probability: v.number(),
-		stage: accountStageValidator,
+		stage: v.optional(accountStageValidator),
 		isLikelyOutOfDate: v.boolean(),
 		activityLevel: activityLevelValidator,
 		lastActivityAtIso: v.optional(v.string()),

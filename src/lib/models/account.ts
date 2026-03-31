@@ -1,11 +1,13 @@
+import type { IsoDate } from '$lib/types/dates';
 import type { AccountKey } from '$lib/types/keys';
-import type { ActivityLevel } from '$lib/types/vocab';
+import type { AccountKind, ActivityLevel } from '$lib/types/vocab';
 
 export type AccountSummaryRow = {
 	key: AccountKey;
+	kind: AccountKind;
 	account: string;
-	isRenewal: boolean;
+	renewalDate?: IsoDate;
 	probability: number;
 	activityLevel: ActivityLevel;
-	stage: string;
+	stage?: string;
 };

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import { formatIsoDateTimeRelative } from '$lib/format/date-time';
+	import { formatUsdAmount } from '$lib/format/number';
 	import { isInternalDashboardLink } from '$lib/dashboard/links';
 	import type {
 		NewBusinessListPageData,
@@ -8,6 +9,7 @@
 	} from '$lib/dashboard/page-models';
 	import ActivityLevelLabel from '$lib/dashboard/ui/activity-level/ActivityLevelLabel.svelte';
 	import PersonInline from '$lib/dashboard/ui/people/PersonInline.svelte';
+	import RenewalDateLabel from '$lib/dashboard/ui/shared/RenewalDateLabel.svelte';
 	import DashboardDesktopTableFrame from '$lib/dashboard/ui/table/DashboardDesktopTableFrame.svelte';
 	import { getProbabilityLabel } from '$lib/dashboard/view-models/account';
 	import { cn } from '$lib/support/cn';
@@ -15,13 +17,19 @@
 		LEADERSHIP_TABLE_COLUMN_CLASS,
 		LEADERSHIP_TABLE_COLUMN_CLASS_WITH_SELECTION,
 		LEADERSHIP_TABLE_HEADERS,
+		RENEWALS_TABLE_HEADERS,
+		RENEWALS_TABLE_COLUMN_CLASS,
+		RENEWALS_TABLE_COLUMN_CLASS_WITH_SELECTION,
 		LEADERSHIP_TABLE_MIN_WIDTH_CLASS,
-		LEADERSHIP_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
+		LEADERSHIP_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION,
+		RENEWALS_TABLE_MIN_WIDTH_CLASS,
+		RENEWALS_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
 	} from './table-layout';
 
 	type LeadershipTableRow =
 		| NewBusinessListPageData['rows'][number]
 		| RenewalsListPageData['rows'][number];
+	type LeadershipPageKind = NewBusinessListPageData['route']['kind'] | RenewalsListPageData['route']['kind'];
 
 	type LeadershipTableSelection = {
 		selectedRowKeys: ReadonlySet<LeadershipTableRow['key']>;
@@ -30,6 +38,7 @@
 	};
 
 	type Props = {
+		pageKind: LeadershipPageKind;
 		rows: readonly LeadershipTableRow[];
 		selection?: LeadershipTableSelection;
 		ariaLabel?: string;
@@ -37,20 +46,32 @@
 	};
 
 	let {
+		pageKind,
 		rows,
 		selection,
 		ariaLabel = 'Leadership accounts table',
 		infoText
 	}: Props = $props();
 
-	const headers = LEADERSHIP_TABLE_HEADERS;
+	let isRenewalsPage = $derived(pageKind === 'renewals-list');
+	let headers = $derived(isRenewalsPage ? RENEWALS_TABLE_HEADERS : LEADERSHIP_TABLE_HEADERS);
 	let columnClass = $derived(
-		selection ? LEADERSHIP_TABLE_COLUMN_CLASS_WITH_SELECTION : LEADERSHIP_TABLE_COLUMN_CLASS
+		isRenewalsPage
+			? selection
+				? RENEWALS_TABLE_COLUMN_CLASS_WITH_SELECTION
+				: RENEWALS_TABLE_COLUMN_CLASS
+			: selection
+				? LEADERSHIP_TABLE_COLUMN_CLASS_WITH_SELECTION
+				: LEADERSHIP_TABLE_COLUMN_CLASS
 	);
 	let minWidthClass = $derived(
-		selection
-			? LEADERSHIP_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
-			: LEADERSHIP_TABLE_MIN_WIDTH_CLASS
+		isRenewalsPage
+			? selection
+				? RENEWALS_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
+				: RENEWALS_TABLE_MIN_WIDTH_CLASS
+			: selection
+				? LEADERSHIP_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
+				: LEADERSHIP_TABLE_MIN_WIDTH_CLASS
 	);
 
 	function toLeadershipRows(value: readonly unknown[]) {
@@ -79,7 +100,15 @@
 	}
 
 	function getProbabilityText(row: LeadershipTableRow) {
-		return `${row.probability}% ${getProbabilityLabel(row.isRenewal)}`;
+		return `${row.probability}% ${getProbabilityLabel(row.kind)}`;
+	}
+
+	function getStageText(row: LeadershipTableRow) {
+		return row.stage ?? 'No stage';
+	}
+
+	function getRevenueText(row: LeadershipTableRow) {
+		return row.revenue == null ? 'No revenue' : formatUsdAmount(row.revenue);
 	}
 </script>
 
@@ -123,12 +152,15 @@
 			Unassigned
 		{/if}
 	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-600">
-		{row.stage}
-	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-500">
-		{getLastActivityText(row)}
-	</span>
+	{#if isRenewalsPage}
+		<span data-table-cell class="whitespace-nowrap text-zinc-600">{getRevenueText(row)}</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-500">
+			<RenewalDateLabel renewalDate={row.renewalDate} />
+		</span>
+	{:else}
+		<span data-table-cell class="whitespace-nowrap text-zinc-600">{getStageText(row)}</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-500">{getLastActivityText(row)}</span>
+	{/if}
 {/snippet}
 
 <DashboardDesktopTableFrame
@@ -216,14 +248,22 @@
 							data-table-cell
 							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
 						>
-							{row.stage}
+							{#if isRenewalsPage}
+								{getRevenueText(row)}
+							{:else}
+								{getStageText(row)}
+							{/if}
 						</a>
 						<a
 							href={resolve(internalNavigation.href)}
 							data-table-cell
-							class="cursor-pointer whitespace-nowrap text-zinc-500 no-underline"
+							class={`cursor-pointer whitespace-nowrap no-underline${isRenewalsPage ? ' text-zinc-500' : ' text-zinc-600'}`}
 						>
-							{getLastActivityText(row)}
+							{#if isRenewalsPage}
+								<RenewalDateLabel renewalDate={row.renewalDate} />
+							{:else}
+								{getLastActivityText(row)}
+							{/if}
 						</a>
 					</div>
 				{:else if !selection && internalNavigation}

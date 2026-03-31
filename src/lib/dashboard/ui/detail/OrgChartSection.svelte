@@ -8,8 +8,8 @@
 	let { root }: Props = $props();
 </script>
 
-<section class="rounded-sm border border-zinc-100 bg-white px-3 py-3">
-	<div class="overflow-x-auto pb-1">
+<section class="flex min-h-[24rem] flex-col rounded-sm border border-zinc-100 bg-white px-3 py-3">
+	<div class="flex-1 overflow-x-auto pb-1">
 		<ol class="inline-flex min-w-full justify-center pt-1">
 			{#snippet branch(node: OrgChartNode)}
 				<li class="flex shrink-0 flex-col items-center">

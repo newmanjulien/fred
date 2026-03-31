@@ -1,3 +1,5 @@
+import type { Actions } from '@sveltejs/kit';
+import { applyAskForUpdate } from '$lib/dashboard/actions/ask-for-update';
 import { buildNewBusinessListPageData } from '$lib/dashboard/page-models/newBusiness';
 import { requireDashboardRouteKind } from '$lib/dashboard/page-models/layout';
 import { api, createServerConvexClient } from '$lib/server/convex';
@@ -12,3 +14,7 @@ export const load: PageServerLoad = async ({ parent }) => {
 
 	return buildNewBusinessListPageData({ route, readModel });
 };
+
+export const actions = {
+	askForUpdate: ({ request, url }) => applyAskForUpdate({ request, url })
+} satisfies Actions;

@@ -1,4 +1,4 @@
-import type { IsoDate } from '$lib/types/dates';
+import type { IsoDateTime } from '$lib/types/dates';
 import type { PersonSummaryLike } from './person';
 
 export type TimelineMarkerRecord<BrokerRef extends string = string> =
@@ -10,20 +10,25 @@ export type TimelineMarkerRecord<BrokerRef extends string = string> =
 			brokerRef: BrokerRef;
 	  };
 
+export type AccountActivityEventKind = 'ask-for-update';
+export type TimelinePresentation = 'standard' | 'callout';
+
 export type AccountActivityRecordLike<BrokerRef extends string = string> =
 	| {
 			kind: 'headline';
 			id: string;
-			occurredOnIso: IsoDate;
+			occurredAtIso: IsoDateTime;
 			body: string;
+			eventKind?: AccountActivityEventKind;
 			marker: TimelineMarkerRecord<BrokerRef>;
 			title: string;
 	  }
 	| {
 			kind: 'actor-action';
 			id: string;
-			occurredOnIso: IsoDate;
+			occurredAtIso: IsoDateTime;
 			body: string;
+			eventKind?: AccountActivityEventKind;
 			marker: TimelineMarkerRecord<BrokerRef>;
 			actorBrokerRef: BrokerRef;
 			action: string;
@@ -40,8 +45,9 @@ export type TimelineMarker<TPerson extends PersonSummaryLike = PersonSummaryLike
 
 type TimelineItemBase<TPerson extends PersonSummaryLike> = {
 	id: string;
-	occurredOnIso: IsoDate;
+	occurredAtIso: IsoDateTime;
 	body: string;
+	presentation: TimelinePresentation;
 	marker: TimelineMarker<TPerson>;
 };
 

@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import {
 	activityLevelValidator,
 	accountActivityStreamValidator,
+	accountActivityEventKindValidator,
 	accountIndustryValidator,
 	accountKindValidator,
 	accountInsightKindValidator,
@@ -24,8 +25,9 @@ const activityBaseFields = {
 	accountId: v.id('accounts'),
 	meetingId: v.optional(v.id('meetings')),
 	stream: accountActivityStreamValidator,
-	occurredOnIso: v.string(),
+	occurredAtIso: v.string(),
 	body: v.string(),
+	eventKind: v.optional(accountActivityEventKindValidator),
 	marker: activityMarkerValidator
 };
 
@@ -148,15 +150,15 @@ export default defineSchema({
 	}).index('by_key', ['key']),
 
 	activities: defineTable(activityDocumentValidator)
-		.index('by_stream_occurred_on_iso', ['stream', 'occurredOnIso'])
-		.index('by_meeting_id_stream_occurred_on_iso', ['meetingId', 'stream', 'occurredOnIso'])
-		.index('by_meeting_id_account_id_stream_occurred_on_iso', [
+		.index('by_stream_occurred_at_iso', ['stream', 'occurredAtIso'])
+		.index('by_meeting_id_stream_occurred_at_iso', ['meetingId', 'stream', 'occurredAtIso'])
+		.index('by_meeting_id_account_id_stream_occurred_at_iso', [
 			'meetingId',
 			'accountId',
 			'stream',
-			'occurredOnIso'
+			'occurredAtIso'
 		])
-		.index('by_account_id_stream_occurred_on_iso', ['accountId', 'stream', 'occurredOnIso']),
+		.index('by_account_id_stream_occurred_at_iso', ['accountId', 'stream', 'occurredAtIso']),
 
 	news: defineTable({
 		accountId: v.id('accounts'),

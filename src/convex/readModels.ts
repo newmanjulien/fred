@@ -96,8 +96,9 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 			id: string;
 			accountId: AccountId;
 			stream: AccountActivityStream;
-			occurredOnIso: IsoDate;
+			occurredAtIso: IsoDateTime;
 			body: string;
+			eventKind?: 'ask-for-update';
 			marker: ActivityMarkerData<BrokerRef>;
 			title: string;
 	  }
@@ -106,8 +107,9 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 			id: string;
 			accountId: AccountId;
 			stream: AccountActivityStream;
-			occurredOnIso: IsoDate;
+			occurredAtIso: IsoDateTime;
 			body: string;
+			eventKind?: 'ask-for-update';
 			marker: ActivityMarkerData<BrokerRef>;
 			actorBrokerRef: BrokerRef;
 			action: string;
@@ -424,7 +426,7 @@ function getActivityLocalId(activity: DashboardActivityValue) {
 
 type ActivityRecordBase = Pick<
 	ActivityRecordData,
-	'id' | 'accountId' | 'stream' | 'occurredOnIso' | 'body' | 'marker'
+	'id' | 'accountId' | 'stream' | 'occurredAtIso' | 'body' | 'eventKind' | 'marker'
 >;
 
 type NormalizedActivityVariant =
@@ -443,8 +445,12 @@ function createActivityRecordBase(activity: DashboardActivityValue, id: string):
 		id,
 		accountId: activity.accountId,
 		stream: activity.stream as AccountActivityStream,
-		occurredOnIso: parseIsoDate(activity.occurredOnIso, `activity["${id}"].occurredOnIso`),
+		occurredAtIso: parseIsoDateTime(activity.occurredAtIso, `activity["${id}"].occurredAtIso`),
 		body: activity.body,
+		eventKind:
+			'eventKind' in activity && activity.eventKind === 'ask-for-update'
+				? 'ask-for-update'
+				: undefined,
 		marker:
 			activity.marker.kind === 'dot'
 				? { kind: 'dot' as const }

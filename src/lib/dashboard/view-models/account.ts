@@ -1,4 +1,4 @@
-import type { IsoDate } from '$lib/types/dates';
+import type { IsoDate, IsoDateTime } from '$lib/types/dates';
 import type { AccountKind, ActivityLevel } from '$lib/types/vocab';
 
 export type { AccountSummaryRow } from '$lib/models/account';
@@ -18,7 +18,7 @@ const ACTIVITY_LEVEL_ICON_VARIANTS = {
 } as const satisfies Record<ActivityLevel, ActivityLevelIconVariant>;
 
 type ActivityRecordLike = {
-	occurredOnIso: IsoDate;
+	occurredAtIso: IsoDateTime;
 	id: string;
 };
 
@@ -41,7 +41,7 @@ export function getActivityLevelIconVariant(activityLevel: ActivityLevel) {
 
 export function sortAccountActivitiesAscending<T extends ActivityRecordLike>(records: readonly T[]) {
 	return [...records].sort((left, right) => {
-		const dateComparison = left.occurredOnIso.localeCompare(right.occurredOnIso);
+		const dateComparison = left.occurredAtIso.localeCompare(right.occurredAtIso);
 
 		if (dateComparison !== 0) {
 			return dateComparison;

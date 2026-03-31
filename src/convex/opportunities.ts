@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { query } from './_generated/server';
 import type { BrokerId } from '../lib/types/ids';
 import type { InsightKey, MeetingKey } from '../lib/types/keys';
+import { sortAccountActivitiesAscending } from '../lib/dashboard/view-models/account';
 import {
 	type PersonSummaryMap,
 	resolveOptionalBrokerPerson,
@@ -202,7 +203,9 @@ export const getOpportunityDetail = query({
 				title: insightRecord.title
 			},
 			kind: insightRecord.kind,
-			activityItems: insightRecord.timeline.map((activity) => toTimelineItem(activity, peopleByBrokerId)),
+			activityItems: sortAccountActivitiesAscending(insightRecord.timeline).map((activity) =>
+				toTimelineItem(activity, peopleByBrokerId)
+			),
 			orgChartNodes: toDashboardOrgChartNodes(insightRecord.orgChartNodes, brokerKeyById),
 			update: buildAccountUploadFieldData(
 				'this opportunity or risk',

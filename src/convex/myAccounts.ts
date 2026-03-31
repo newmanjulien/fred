@@ -2,6 +2,7 @@ import { v } from 'convex/values';
 import { query } from './_generated/server';
 import { type BrokerId } from '../lib/types/ids';
 import type { BrokerKey, AccountKey } from '../lib/types/keys';
+import { getIsoDatePart } from '../lib/types/dates';
 import {
 	DEFAULT_MY_ACCOUNTS_DETAIL_TAB_ID
 } from '../lib/dashboard/routing/my-accounts';
@@ -122,7 +123,7 @@ function toMyAccountsWatchlistItem(
 		id: activity.id,
 		title: `${entry.account.accountName}: ${activity.kind === 'headline' ? activity.title : activity.action}`,
 		kind: 'activity',
-		dateIso: activity.occurredOnIso,
+		dateIso: getIsoDatePart(activity.occurredAtIso),
 		detail: {
 			accountKey: entry.account.key,
 			defaultTab: 'activity' as const
@@ -315,7 +316,7 @@ export const getMyAccountsList = query({
 			ctx.db.query('news').collect(),
 			ctx.db
 				.query('activities')
-				.withIndex('by_stream_occurred_on_iso', (query) => query.eq('stream', 'account-detail'))
+				.withIndex('by_stream_occurred_at_iso', (query) => query.eq('stream', 'account-detail'))
 				.collect()
 		]);
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
@@ -366,7 +367,7 @@ export const getMyAccountsDetail = query({
 				.collect(),
 			ctx.db
 				.query('activities')
-				.withIndex('by_account_id_stream_occurred_on_iso', (query) =>
+				.withIndex('by_account_id_stream_occurred_at_iso', (query) =>
 					query.eq('accountId', account._id).eq('stream', 'account-detail')
 				)
 				.collect()

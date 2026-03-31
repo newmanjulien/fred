@@ -61,7 +61,7 @@ async function collectCascadeTargets(
 	const [activities, newsItems, insights] = await Promise.all([
 		ctx.db
 			.query('activities')
-			.withIndex('by_account_id_stream_occurred_on_iso', (queryBuilder) =>
+			.withIndex('by_account_id_stream_occurred_at_iso', (queryBuilder) =>
 				queryBuilder.eq('accountId', accountId)
 			)
 			.collect(),

@@ -1,4 +1,7 @@
-import type { DashboardHeaderUiScope } from '$lib/dashboard/shell/header/ui-controller';
+import type {
+	DashboardHeaderButtonHandler,
+	DashboardHeaderUiScope
+} from '$lib/dashboard/shell/header/ui-controller';
 import type {
 	NewBusinessListPageData,
 	RenewalsListPageData
@@ -9,8 +12,12 @@ type LeadershipTableRow =
 	| RenewalsListPageData['rows'][number];
 type LeadershipSelectionRow = Pick<LeadershipTableRow, 'key'>;
 
+export const LEADERSHIP_SELECTION_INFO_TEXT =
+	'Ask for update sends a notification to the broker';
+
 export function getLeadershipSelectionHeaderUiScope(
-	selectedRowCount: number
+	selectedRowCount: number,
+	askForUpdateHandler?: DashboardHeaderButtonHandler
 ): DashboardHeaderUiScope {
 	return selectedRowCount > 0
 		? {
@@ -20,9 +27,18 @@ export function getLeadershipSelectionHeaderUiScope(
 						label: 'Ask for update',
 						order: 30
 					}
-				]
+				],
+				handlers: askForUpdateHandler
+					? {
+							'ask-for-update': askForUpdateHandler
+						}
+					: undefined
 			}
 		: {};
+}
+
+export function getLeadershipSelectionInfoText(selectedRowCount: number) {
+	return selectedRowCount > 0 ? LEADERSHIP_SELECTION_INFO_TEXT : null;
 }
 
 export function getStaleLeadershipSelectionRowKeys(

@@ -3,6 +3,7 @@
 export const convexTestModules = import.meta.glob([
 	'./assets.ts',
 	'./accountDetail.ts',
+	'./askForUpdateInternal.ts',
 	'./industryInternal.ts',
 	'./migrations.ts',
 	'./mutations.ts',

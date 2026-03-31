@@ -40,7 +40,7 @@ async function resolveAccountActivities(
 ) {
 	return ctx.db
 		.query('activities')
-		.withIndex('by_account_id_stream_occurred_on_iso', (query) =>
+		.withIndex('by_account_id_stream_occurred_at_iso', (query) =>
 			query.eq('accountId', account._id).eq('stream', 'account-detail')
 		)
 		.collect();

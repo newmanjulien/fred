@@ -23,8 +23,8 @@
 	const feedTabs = $derived(buildMyAccountsFeedTabs(data.newsItems, data.watchlistItems));
 	const tabs = [
 		{ id: 'news', label: 'News' },
-		{ id: 'linkedin', label: 'LinkedIn' },
-		{ id: 'watchlist', label: 'Watchlist' }
+		{ id: 'watchlist', label: 'Watchlist' },
+		{ id: 'upcoming', label: 'Upcoming' }
 	] as const;
 
 	function getMyAccountsHeaderUiScope(selectedView: MyAccountsView): DashboardHeaderUiScope | null {
@@ -60,15 +60,15 @@
 			<SectionTabPanel tabId="news">
 				<NewsList items={feedTabs.newsItems} />
 			</SectionTabPanel>
-			<SectionTabPanel tabId="linkedin">
-				<NewsList items={feedTabs.linkedinItems} emptyStateTab="linkedin" />
-			</SectionTabPanel>
 			<SectionTabPanel tabId="watchlist">
 				<NewsList
 					items={data.watchlistItems}
 					emptyStateTab="watchlist"
 					infoBarText={WATCHLIST_INFO_BAR_TEXT}
 				/>
+			</SectionTabPanel>
+			<SectionTabPanel tabId="upcoming">
+				<NewsList items={[]} emptyStateTab="upcoming" />
 			</SectionTabPanel>
 		{/snippet}
 	</DashboardTabbedPage>

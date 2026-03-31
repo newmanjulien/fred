@@ -113,6 +113,10 @@ export function parseIsoDateArray(values: readonly string[], label = 'value'): I
 	return values.map((value, index) => parseIsoDate(value, `${label}[${index}]`));
 }
 
+export function getIsoDatePart(isoDateTime: IsoDateTime): IsoDate {
+	return isoDateTime.slice(0, 10) as IsoDate;
+}
+
 export function isIsoDatePast(value: IsoDate, now: Date = new Date()) {
 	return value < toUtcIsoDate(now);
 }

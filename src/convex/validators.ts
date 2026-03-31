@@ -57,6 +57,7 @@ export const accountStageValidator = literalUnion(ACCOUNT_STAGES);
 export const accountKindValidator = literalUnion(ACCOUNT_KINDS);
 export const accountIndustryValidator = literalUnion(ACCOUNT_INDUSTRIES);
 export const accountActivityStreamValidator = literalUnion(ACCOUNT_ACTIVITY_STREAMS);
+export const accountActivityEventKindValidator = v.literal('ask-for-update');
 export const accountNewsSourceValidator = literalUnion(ACCOUNT_NEWS_SOURCES);
 export const accountInsightKindValidator = literalUnion(ACCOUNT_INSIGHT_KINDS);
 
@@ -138,20 +139,24 @@ export const timelineMarkerValidator = v.union(
 	})
 );
 
+export const timelinePresentationValidator = literalUnion(['standard', 'callout'] as const);
+
 export const timelineItemValidator = v.union(
 	v.object({
 		kind: v.literal('headline'),
 		id: v.string(),
-		occurredOnIso: v.string(),
+		occurredAtIso: v.string(),
 		body: v.string(),
+		presentation: timelinePresentationValidator,
 		marker: timelineMarkerValidator,
 		title: v.string()
 	}),
 	v.object({
 		kind: v.literal('actor-action'),
 		id: v.string(),
-		occurredOnIso: v.string(),
+		occurredAtIso: v.string(),
 		body: v.string(),
+		presentation: timelinePresentationValidator,
 		marker: timelineMarkerValidator,
 		actor: dashboardPersonValidator,
 		action: v.string()

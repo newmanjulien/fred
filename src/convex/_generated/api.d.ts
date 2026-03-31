@@ -10,6 +10,7 @@
 
 import type * as accountDetail from "../accountDetail.js";
 import type * as admin from "../admin.js";
+import type * as askForUpdateInternal from "../askForUpdateInternal.js";
 import type * as assets from "../assets.js";
 import type * as industryInternal from "../industryInternal.js";
 import type * as leadershipList from "../leadershipList.js";
@@ -34,6 +35,7 @@ import type {
 declare const fullApi: ApiFromModules<{
   accountDetail: typeof accountDetail;
   admin: typeof admin;
+  askForUpdateInternal: typeof askForUpdateInternal;
   assets: typeof assets;
   industryInternal: typeof industryInternal;
   leadershipList: typeof leadershipList;

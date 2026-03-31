@@ -22,8 +22,9 @@
 	import { buildLeadershipFilterDrawerSections } from './filters/sections';
 	import {
 		getLeadershipSelectionHeaderUiScope,
+		getLeadershipSelectionInfoText,
 		getStaleLeadershipSelectionRowKeys
-	} from './likely-out-of-date';
+	} from './selection-ui';
 
 	type LeadershipListPageData = NewBusinessListPageData | RenewalsListPageData;
 	type BrokerKey = LeadershipFilterDrawerData['brokers'][number]['key'];
@@ -51,6 +52,7 @@
 	let selectedIndustries = $state<AccountIndustry[]>([]);
 	let selectedRenewalDates = $state<string[]>([]);
 	let selectedRowKeys = new SvelteSet<LeadershipListPageData['rows'][number]['key']>();
+	let askForUpdateForm = $state<HTMLFormElement | null>(null);
 	const filterDrawerSections = $derived(
 		buildLeadershipFilterDrawerSections({
 			data: filterDrawerData,
@@ -76,6 +78,11 @@
 			selectedRowKeys.delete(rowKey);
 		}
 	});
+
+	const selectedRowKeyList = $derived.by(() => [...selectedRowKeys]);
+	const resolvedInfoText = $derived(
+		getLeadershipSelectionInfoText(selectedRowKeys.size) ?? infoText ?? null
+	);
 
 	function toggleFilterDrawer() {
 		isFilterDrawerOpen = !isFilterDrawerOpen;
@@ -146,7 +153,20 @@
 		}
 	}
 
+	function submitAskForUpdate() {
+		if (!askForUpdateForm || selectedRowKeys.size === 0) {
+			return;
+		}
+
+		askForUpdateForm.requestSubmit();
+	}
+
 	function getHeaderUiScope(filterHandler: DashboardHeaderButtonHandler): DashboardHeaderUiScope {
+		const selectionScope = getLeadershipSelectionHeaderUiScope(
+			selectedRowKeys.size,
+			submitAskForUpdate
+		);
+
 		return {
 			buttons: [
 				{
@@ -154,11 +174,11 @@
 					label: 'Filter',
 					order: 20
 				},
-				...(getLeadershipSelectionHeaderUiScope(selectedRowKeys.size).buttons ?? [])
+				...(selectionScope.buttons ?? [])
 			],
 			handlers: {
 				filter: filterHandler,
-				...getLeadershipSelectionHeaderUiScope(selectedRowKeys.size).handlers
+				...selectionScope.handlers
 			}
 		};
 	}
@@ -180,6 +200,12 @@
 
 <DashboardHeaderScope scopeId={scopeId} scope={getHeaderUiScope(toggleFilterDrawer)} />
 
+<form method="POST" action="?/askForUpdate" bind:this={askForUpdateForm} class="hidden">
+	{#each selectedRowKeyList as rowKey (rowKey)}
+		<input type="hidden" name="accountKey" value={rowKey} />
+	{/each}
+</form>
+
 <DashboardPageLayout width="wide">
 	{#snippet body()}
 		<DesktopTable
@@ -189,7 +215,7 @@
 			ariaLabel={data.route.view === 'likely-out-of-date'
 				? likelyOutOfDateTableAriaLabel
 				: tableAriaLabel}
-			{infoText}
+			infoText={resolvedInfoText}
 		/>
 	{/snippet}
 </DashboardPageLayout>

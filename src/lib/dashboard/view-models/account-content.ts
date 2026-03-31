@@ -54,6 +54,7 @@ export function toTimelineItem<
 					person: resolveBrokerPerson(peopleByRef, record.marker.brokerRef)
 				}
 			: { kind: 'dot' };
+	const presentation = record.eventKind === 'ask-for-update' ? 'callout' : 'standard';
 
 	if (record.kind === 'actor-action') {
 		return {
@@ -61,8 +62,9 @@ export function toTimelineItem<
 			id: record.id,
 			actor: resolveBrokerPerson(peopleByRef, record.actorBrokerRef),
 			action: record.action,
-			occurredOnIso: record.occurredOnIso,
+			occurredAtIso: record.occurredAtIso,
 			body: record.body,
+			presentation,
 			marker
 		};
 	}
@@ -71,8 +73,9 @@ export function toTimelineItem<
 		kind: 'headline',
 		id: record.id,
 		title: record.title,
-		occurredOnIso: record.occurredOnIso,
+		occurredAtIso: record.occurredAtIso,
 		body: record.body,
+		presentation,
 		marker
 	};
 }

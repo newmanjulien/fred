@@ -73,7 +73,7 @@ export const getSinceLastMeeting = query({
 		]);
 		const activities = await ctx.db
 			.query('activities')
-			.withIndex('by_meeting_id_stream_occurred_on_iso', (query) =>
+			.withIndex('by_meeting_id_stream_occurred_at_iso', (query) =>
 				query.eq('meetingId', meeting.id).eq('stream', 'meeting-update')
 			)
 			.collect();
@@ -115,7 +115,7 @@ export const getSinceLastMeetingDetail = query({
 
 		const meetingActivities = await ctx.db
 			.query('activities')
-			.withIndex('by_meeting_id_account_id_stream_occurred_on_iso', (query) =>
+			.withIndex('by_meeting_id_account_id_stream_occurred_at_iso', (query) =>
 				query.eq('meetingId', meeting.id).eq('accountId', account._id).eq('stream', 'meeting-update')
 			)
 			.collect();

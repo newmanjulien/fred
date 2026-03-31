@@ -1,8 +1,8 @@
 import { action, mutation } from './_generated/server';
 import { v } from 'convex/values';
 import { makeFunctionReference, type FunctionReference } from 'convex/server';
-import type { AccountId } from '../lib/types/ids';
-import type { AccountKey } from '../lib/types/keys';
+import type { AccountId, BrokerId } from '../lib/types/ids';
+import type { AccountKey, BrokerKey } from '../lib/types/keys';
 import type { AccountIndustry } from '../lib/types/vocab';
 import { accountIndustryValidator } from './validators';
 import {
@@ -37,6 +37,42 @@ const updateAccountIndustryByCanonicalIdReference = makeFunctionReference<
 	UpdateAccountIndustryResult
 >;
 
+const resolveAskForUpdateTargetsReference = makeFunctionReference<
+	'query',
+	{ accountKeys: string[]; actorBrokerKey: string },
+	{
+		accountIds: AccountId[];
+		actorBrokerId: BrokerId | null;
+	}
+>('askForUpdateInternal:resolveAskForUpdateTargets') as unknown as FunctionReference<
+	'query',
+	'internal',
+	{ accountKeys: AccountKey[]; actorBrokerKey: BrokerKey },
+	{
+		accountIds: AccountId[];
+		actorBrokerId: BrokerId | null;
+	}
+>;
+
+const createAskForUpdateActivitiesReference = makeFunctionReference<
+	'mutation',
+	{
+		accountIds: AccountId[];
+		actorBrokerId: BrokerId;
+		occurredAtIso: string;
+	},
+	{ createdCount: number }
+>('askForUpdateInternal:createAskForUpdateActivities') as unknown as FunctionReference<
+	'mutation',
+	'internal',
+	{
+		accountIds: AccountId[];
+		actorBrokerId: BrokerId;
+		occurredAtIso: string;
+	},
+	{ createdCount: number }
+>;
+
 export const updateAccountIndustry = action({
 	args: {
 		accountKey: v.string(),
@@ -58,6 +94,38 @@ export const updateAccountIndustry = action({
 		return ctx.runMutation(updateAccountIndustryByCanonicalIdReference, {
 			accountId: normalizedAccountId,
 			industry: args.industry
+		});
+	}
+});
+
+export const askForAccountUpdate = action({
+	args: {
+		accountKeys: v.array(v.string()),
+		actorBrokerKey: v.string()
+	},
+	returns: v.object({
+		createdCount: v.number()
+	}),
+	handler: async (ctx, args) => {
+		const targets = await ctx.runQuery(resolveAskForUpdateTargetsReference, {
+			accountKeys: args.accountKeys as AccountKey[],
+			actorBrokerKey: args.actorBrokerKey as BrokerKey
+		});
+
+		if (!targets.actorBrokerId) {
+			throw new Error(`Unknown broker "${args.actorBrokerKey}".`);
+		}
+
+		if (targets.accountIds.length === 0) {
+			return { createdCount: 0 };
+		}
+
+		const occurredAtIso = new Date().toISOString();
+
+		return ctx.runMutation(createAskForUpdateActivitiesReference, {
+			accountIds: targets.accountIds,
+			actorBrokerId: targets.actorBrokerId,
+			occurredAtIso
 		});
 	}
 });

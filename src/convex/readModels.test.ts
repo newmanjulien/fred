@@ -9,7 +9,7 @@ function createActivity(
 		_creationTime: 1710000000000,
 		accountId: 'account-1',
 		stream: 'account-detail',
-		occurredOnIso: '2026-03-20',
+		occurredAtIso: '2026-03-20T10:00:00.000Z',
 		body: 'Called the buyer.',
 		marker: {
 			kind: 'dot'
@@ -32,7 +32,7 @@ describe('toActivityRecord', () => {
 			id: 'headline-1',
 			accountId: 'account-1',
 			stream: 'account-detail',
-			occurredOnIso: '2026-03-20',
+			occurredAtIso: '2026-03-20T10:00:00.000Z',
 			body: 'Called the buyer.',
 			marker: {
 				kind: 'dot'
@@ -45,6 +45,7 @@ describe('toActivityRecord', () => {
 		expect(
 			toActivityRecord(
 				createActivity({
+					eventKind: 'ask-for-update',
 					marker: {
 						kind: 'broker-avatar',
 						brokerId: 'broker-1' as BrokerId
@@ -58,8 +59,9 @@ describe('toActivityRecord', () => {
 			id: 'activity-1710000000000',
 			accountId: 'account-1',
 			stream: 'account-detail',
-			occurredOnIso: '2026-03-20',
+			occurredAtIso: '2026-03-20T10:00:00.000Z',
 			body: 'Called the buyer.',
+			eventKind: 'ask-for-update',
 			marker: {
 				kind: 'broker-avatar',
 				brokerRef: 'broker-1'

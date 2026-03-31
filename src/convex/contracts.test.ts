@@ -2,6 +2,7 @@ import { convexTest } from 'convex-test';
 import { makeFunctionReference, type FunctionReference } from 'convex/server';
 import { describe, expect, it } from 'vitest';
 import type { OrgChartNodeRecord as InternalOrgChartNodeRecord } from '../lib/domain/org-chart';
+import type { AccountId, BrokerId } from '../lib/types/ids';
 import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import { OVERBASE_LOGO_ALT, OVERBASE_LOGO_ASSET_KEY } from './assets';
 import { api } from './_generated/api';
@@ -22,6 +23,17 @@ const migrateLegacyOrgChartsReference = makeFunctionReference<
 	'public',
 	{ dryRun?: boolean },
 	unknown
+>;
+
+const askForAccountUpdateReference = makeFunctionReference<
+	'action',
+	{ accountKeys: string[]; actorBrokerKey: string },
+	{ createdCount: number }
+>('mutations:askForAccountUpdate') as unknown as FunctionReference<
+	'action',
+	'public',
+	{ accountKeys: AccountKey[]; actorBrokerKey: BrokerKey },
+	{ createdCount: number }
 >;
 
 function createConvex() {
@@ -203,7 +215,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 		await ctx.db.insert('activities', {
 			accountId,
 			stream: 'account-detail',
-			occurredOnIso: '2026-03-24',
+			occurredAtIso: '2026-03-24T10:00:00.000Z',
 			body: 'Discussed procurement blockers.',
 			marker: { kind: 'dot' },
 			title: 'Weekly follow-up'
@@ -212,7 +224,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			accountId,
 			meetingId: march27MeetingId,
 			stream: 'meeting-update',
-			occurredOnIso: '2026-03-18',
+			occurredAtIso: '2026-03-18T10:00:00.000Z',
 			body: 'This belongs to a different meeting.',
 			marker: { kind: 'dot' },
 			title: 'Old update'
@@ -221,7 +233,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			accountId,
 			meetingId: march20MeetingId,
 			stream: 'meeting-update',
-			occurredOnIso: '2026-03-22',
+			occurredAtIso: '2026-03-22T10:00:00.000Z',
 			body: 'This should appear in since-last-meeting.',
 			marker: { kind: 'dot' },
 			title: 'Fresh update'
@@ -240,7 +252,7 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 					id: 'timeline-1',
 					accountId,
 					stream: 'account-detail',
-					occurredOnIso: '2026-03-23',
+					occurredAtIso: '2026-03-23T10:00:00.000Z',
 					body: 'Customer is receptive to a broader package.',
 					marker: { kind: 'dot' },
 					title: 'Procurement note'
@@ -750,5 +762,49 @@ describe('Convex feature contracts', () => {
 
 		const updatedAccount = await t.run(async (ctx) => ctx.db.get(seed.accountId));
 		expect(updatedAccount?.industry).toBe('Food & beverage');
+	});
+
+	it('writes ask-for-update activities through the canonical account key contract', async () => {
+		const t = createConvex();
+		const seed = await seedDashboardRecords(t);
+
+		await expect(
+			t.action(askForAccountUpdateReference, {
+				accountKeys: [seed.accountKey],
+				actorBrokerKey: seed.ownerBrokerKey
+			})
+		).resolves.toEqual({ createdCount: 1 });
+
+		const result = await t.run(async (ctx) => {
+			const activities = await ctx.db
+				.query('activities')
+				.withIndex('by_account_id_stream_occurred_at_iso', (query) =>
+					query.eq('accountId', seed.accountId).eq('stream', 'account-detail')
+				)
+				.collect();
+			const account = await ctx.db.get(seed.accountId);
+
+			return { activities, account };
+		});
+
+		const askForUpdateActivity = result.activities.find(
+			(activity) => 'action' in activity && activity.action === 'asked for an update'
+		);
+
+		expect(askForUpdateActivity).toEqual(
+			expect.objectContaining({
+				accountId: seed.accountId as AccountId,
+				stream: 'account-detail',
+				body: 'Sent a notification to the broker.',
+				eventKind: 'ask-for-update',
+				actorBrokerId: seed.ownerBrokerId as BrokerId,
+				action: 'asked for an update',
+				marker: {
+					kind: 'broker-avatar',
+					brokerId: seed.ownerBrokerId as BrokerId
+				}
+			})
+		);
+		expect(result.account?.lastActivityAtIso).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 	});
 });

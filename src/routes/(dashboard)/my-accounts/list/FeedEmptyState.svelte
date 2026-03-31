@@ -1,29 +1,38 @@
 <script lang="ts">
-	import { Activity, Rss } from 'lucide-svelte';
-	import LinkedInGlyph from '$lib/dashboard/ui/icons/LinkedInGlyph.svelte';
+	import { Activity, CalendarDays, Rss } from 'lucide-svelte';
 	import EmptyStateCard from '$lib/dashboard/ui/shared/EmptyStateCard.svelte';
 
 	import type { FeedTabId } from './feed-tabs';
 
+	type EmptyStateIcon = 'news' | 'activity' | 'calendar';
+
 	type EmptyStateContent = {
 		title: string;
 		description: string;
+		icon: EmptyStateIcon;
+		iconClass?: string;
 	};
 
 	const EMPTY_STATE_CONTENT: Record<FeedTabId, EmptyStateContent> = {
 		news: {
-			title: 'No news this week',
-			description: 'Coverage for companies in your accounts will show up here as new updates come in.'
-		},
-		linkedin: {
-			title: 'No LinkedIn updates yet',
+			title: 'No updates this week',
 			description:
-				'This tab will fill with company posts, contact moves, and hiring updates once LinkedIn coverage is available for your accounts.'
+				'News coverage and LinkedIn updates for companies in your accounts will show up here as new items come in.',
+			icon: 'news',
+			iconClass: 'size-4'
 		},
 		watchlist: {
 			title: 'No watchlist activity yet',
 			description:
-				'Updates from accounts you follow in My accounts but do not own will appear here once there is activity to monitor.'
+				'Updates from accounts you follow in My accounts but do not own will appear here once there is activity to monitor.',
+			icon: 'activity',
+			iconClass: 'size-4'
+		},
+		upcoming: {
+			title: 'No upcoming items yet',
+			description: 'Upcoming account items will appear here once this feed is connected.',
+			icon: 'calendar',
+			iconClass: 'size-4'
 		}
 	};
 
@@ -35,12 +44,12 @@
 <section class="pt-1">
 	<EmptyStateCard title={content.title} description={content.description}>
 		{#snippet icon()}
-			{#if tab === 'linkedin'}
-				<LinkedInGlyph class="size-4" />
-			{:else if tab === 'watchlist'}
-				<Activity class="size-4" />
+			{#if content.icon === 'news'}
+				<Rss class={content.iconClass ?? 'size-4'} />
+			{:else if content.icon === 'activity'}
+				<Activity class={content.iconClass ?? 'size-4'} />
 			{:else}
-				<Rss class="size-4" />
+				<CalendarDays class={content.iconClass ?? 'size-4'} />
 			{/if}
 		{/snippet}
 	</EmptyStateCard>

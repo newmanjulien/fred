@@ -1,4 +1,4 @@
-import type { IsoDate, IsoDateTime } from '$lib/types/dates';
+import { getIsoDatePart, type IsoDate, type IsoDateTime } from '$lib/types/dates';
 
 const MONTH_DAY_FORMATTER = new Intl.DateTimeFormat('en-US', {
 	month: 'short',
@@ -74,6 +74,10 @@ export function formatUtcMonthYear(date: Date): string {
 
 export function formatIsoDateLong(isoDate: IsoDate): string {
 	return formatUtcIsoDate(isoDate, LONG_MONTH_DAY_YEAR_FORMATTER);
+}
+
+export function formatIsoDateTimeDate(isoDateTime: IsoDateTime): string {
+	return formatIsoDate(getIsoDatePart(isoDateTime));
 }
 
 export function formatIsoDateTimeRelative(isoDateTime: IsoDateTime, now: Date = new Date()): string {

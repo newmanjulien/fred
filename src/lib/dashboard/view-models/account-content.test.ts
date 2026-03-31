@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { BrokerKey } from '$lib/types/keys';
-import { createPersonSummaryMap, toOrgChartRoot } from './account-content';
+import { createPersonSummaryMap, toOrgChartRoot, toTimelineItem } from './account-content';
 
 const julienBrokerKey = 'broker-julien' as BrokerKey;
 const minaBrokerKey = 'broker-mina' as BrokerKey;
@@ -111,5 +111,60 @@ describe('toOrgChartRoot', () => {
 				peopleById
 			)
 		).toThrow('Org chart nodes are not reachable from root "root": finance-a, finance-b.');
+	});
+});
+
+describe('toTimelineItem', () => {
+	it('defaults ask-for-update cards to the waiting copy when no status is stored', () => {
+		expect(
+			toTimelineItem(
+				{
+					kind: 'actor-action',
+					id: 'activity-1',
+					occurredAtIso: '2026-03-21T10:00:00.000Z',
+					body: 'Sent a notification to the broker.',
+					eventKind: 'ask-for-update',
+					marker: {
+						kind: 'broker-avatar',
+						brokerRef: julienBrokerKey
+					},
+					actorBrokerRef: julienBrokerKey,
+					action: 'asked for an update'
+				},
+				peopleById
+			)
+		).toMatchObject({
+			kind: 'actor-action',
+			body: 'Waiting for update...',
+			updateRequestStatus: 'waiting',
+			presentation: 'callout'
+		});
+	});
+
+	it('renders the provided copy when an ask-for-update has been fulfilled', () => {
+		expect(
+			toTimelineItem(
+				{
+					kind: 'actor-action',
+					id: 'activity-2',
+					occurredAtIso: '2026-03-21T10:00:00.000Z',
+					body: 'Waiting for update...',
+					eventKind: 'ask-for-update',
+					updateRequestStatus: 'provided',
+					marker: {
+						kind: 'broker-avatar',
+						brokerRef: minaBrokerKey
+					},
+					actorBrokerRef: minaBrokerKey,
+					action: 'asked for an update'
+				},
+				peopleById
+			)
+		).toMatchObject({
+			kind: 'actor-action',
+			body: 'Update provided.',
+			updateRequestStatus: 'provided',
+			presentation: 'callout'
+		});
 	});
 });

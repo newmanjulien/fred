@@ -56,8 +56,9 @@ export const createAskForUpdateActivities = internalMutation({
 				accountId,
 				stream: 'account-detail',
 				occurredAtIso: args.occurredAtIso,
-				body: 'Sent a notification to the broker.',
+				body: 'Waiting for update...',
 				eventKind: 'ask-for-update',
+				updateRequestStatus: 'waiting',
 				marker: {
 					kind: 'broker-avatar',
 					brokerId: args.actorBrokerId

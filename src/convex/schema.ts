@@ -4,6 +4,7 @@ import {
 	activityLevelValidator,
 	accountActivityStreamValidator,
 	accountActivityEventKindValidator,
+	accountUpdateRequestStatusValidator,
 	accountIndustryValidator,
 	accountKindValidator,
 	accountInsightKindValidator,
@@ -28,6 +29,7 @@ const activityBaseFields = {
 	occurredAtIso: v.string(),
 	body: v.string(),
 	eventKind: v.optional(accountActivityEventKindValidator),
+	updateRequestStatus: v.optional(accountUpdateRequestStatusValidator),
 	marker: activityMarkerValidator
 };
 

@@ -11,6 +11,7 @@ export type TimelineMarkerRecord<BrokerRef extends string = string> =
 	  };
 
 export type AccountActivityEventKind = 'ask-for-update';
+export type AccountUpdateRequestStatus = 'waiting' | 'provided';
 export type TimelinePresentation = 'standard' | 'callout';
 
 export type AccountActivityRecordLike<BrokerRef extends string = string> =
@@ -20,6 +21,7 @@ export type AccountActivityRecordLike<BrokerRef extends string = string> =
 			occurredAtIso: IsoDateTime;
 			body: string;
 			eventKind?: AccountActivityEventKind;
+			updateRequestStatus?: AccountUpdateRequestStatus;
 			marker: TimelineMarkerRecord<BrokerRef>;
 			title: string;
 	  }
@@ -29,6 +31,7 @@ export type AccountActivityRecordLike<BrokerRef extends string = string> =
 			occurredAtIso: IsoDateTime;
 			body: string;
 			eventKind?: AccountActivityEventKind;
+			updateRequestStatus?: AccountUpdateRequestStatus;
 			marker: TimelineMarkerRecord<BrokerRef>;
 			actorBrokerRef: BrokerRef;
 			action: string;
@@ -47,6 +50,7 @@ type TimelineItemBase<TPerson extends PersonSummaryLike> = {
 	id: string;
 	occurredAtIso: IsoDateTime;
 	body: string;
+	updateRequestStatus?: AccountUpdateRequestStatus;
 	presentation: TimelinePresentation;
 	marker: TimelineMarker<TPerson>;
 };

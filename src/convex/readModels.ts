@@ -99,6 +99,7 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 			occurredAtIso: IsoDateTime;
 			body: string;
 			eventKind?: 'ask-for-update';
+			updateRequestStatus?: 'waiting' | 'provided';
 			marker: ActivityMarkerData<BrokerRef>;
 			title: string;
 	  }
@@ -110,6 +111,7 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 			occurredAtIso: IsoDateTime;
 			body: string;
 			eventKind?: 'ask-for-update';
+			updateRequestStatus?: 'waiting' | 'provided';
 			marker: ActivityMarkerData<BrokerRef>;
 			actorBrokerRef: BrokerRef;
 			action: string;
@@ -426,7 +428,14 @@ function getActivityLocalId(activity: DashboardActivityValue) {
 
 type ActivityRecordBase = Pick<
 	ActivityRecordData,
-	'id' | 'accountId' | 'stream' | 'occurredAtIso' | 'body' | 'eventKind' | 'marker'
+	| 'id'
+	| 'accountId'
+	| 'stream'
+	| 'occurredAtIso'
+	| 'body'
+	| 'eventKind'
+	| 'updateRequestStatus'
+	| 'marker'
 >;
 
 type NormalizedActivityVariant =
@@ -450,6 +459,11 @@ function createActivityRecordBase(activity: DashboardActivityValue, id: string):
 		eventKind:
 			'eventKind' in activity && activity.eventKind === 'ask-for-update'
 				? 'ask-for-update'
+				: undefined,
+		updateRequestStatus:
+			'updateRequestStatus' in activity &&
+			(activity.updateRequestStatus === 'waiting' || activity.updateRequestStatus === 'provided')
+				? activity.updateRequestStatus
 				: undefined,
 		marker:
 			activity.marker.kind === 'dot'

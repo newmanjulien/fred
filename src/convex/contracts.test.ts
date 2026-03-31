@@ -795,8 +795,9 @@ describe('Convex feature contracts', () => {
 			expect.objectContaining({
 				accountId: seed.accountId as AccountId,
 				stream: 'account-detail',
-				body: 'Sent a notification to the broker.',
+				body: 'Waiting for update...',
 				eventKind: 'ask-for-update',
+				updateRequestStatus: 'waiting',
 				actorBrokerId: seed.ownerBrokerId as BrokerId,
 				action: 'asked for an update',
 				marker: {

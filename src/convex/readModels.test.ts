@@ -46,6 +46,7 @@ describe('toActivityRecord', () => {
 			toActivityRecord(
 				createActivity({
 					eventKind: 'ask-for-update',
+					updateRequestStatus: 'provided',
 					marker: {
 						kind: 'broker-avatar',
 						brokerId: 'broker-1' as BrokerId
@@ -62,6 +63,7 @@ describe('toActivityRecord', () => {
 			occurredAtIso: '2026-03-20T10:00:00.000Z',
 			body: 'Called the buyer.',
 			eventKind: 'ask-for-update',
+			updateRequestStatus: 'provided',
 			marker: {
 				kind: 'broker-avatar',
 				brokerRef: 'broker-1'

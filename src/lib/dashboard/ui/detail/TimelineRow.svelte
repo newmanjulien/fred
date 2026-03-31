@@ -3,6 +3,7 @@
 	import type { TimelineItem } from '$lib/dashboard/view-models/account-content';
 	import PersonAvatar from '$lib/dashboard/ui/people/PersonAvatar.svelte';
 	import { cn } from '$lib/support/cn';
+	import WaitingStatusText from './WaitingStatusText.svelte';
 	import { getMarkerStyle, getRowStyle, TIMELINE_LAYOUT } from './timeline-layout';
 
 	type Props = {
@@ -13,6 +14,7 @@
 	let { item, showConnector = false }: Props = $props();
 
 	const isCallout = $derived(item.presentation === 'callout');
+	const isWaitingForUpdate = $derived(item.updateRequestStatus === 'waiting');
 	const rowPaddingStyle = $derived(
 		showConnector ? `padding-bottom:${TIMELINE_LAYOUT.rowSpacing}px;` : ''
 	);
@@ -74,7 +76,13 @@
 					{formatIsoDateTimeDate(item.occurredAtIso)}
 				</p>
 			</div>
-			<p class="mt-1 text-xs leading-relaxed tracking-wide text-zinc-600">{item.body}</p>
+			<p class="mt-1 text-xs leading-relaxed tracking-wide text-zinc-600">
+				{#if isWaitingForUpdate}
+					<WaitingStatusText />
+				{:else}
+					{item.body}
+				{/if}
+			</p>
 		</div>
 	</div>
 </li>

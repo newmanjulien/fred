@@ -58,6 +58,7 @@ export const accountKindValidator = literalUnion(ACCOUNT_KINDS);
 export const accountIndustryValidator = literalUnion(ACCOUNT_INDUSTRIES);
 export const accountActivityStreamValidator = literalUnion(ACCOUNT_ACTIVITY_STREAMS);
 export const accountActivityEventKindValidator = v.literal('ask-for-update');
+export const accountUpdateRequestStatusValidator = literalUnion(['waiting', 'provided'] as const);
 export const accountNewsSourceValidator = literalUnion(ACCOUNT_NEWS_SOURCES);
 export const accountInsightKindValidator = literalUnion(ACCOUNT_INSIGHT_KINDS);
 
@@ -147,6 +148,7 @@ export const timelineItemValidator = v.union(
 		id: v.string(),
 		occurredAtIso: v.string(),
 		body: v.string(),
+		updateRequestStatus: v.optional(accountUpdateRequestStatusValidator),
 		presentation: timelinePresentationValidator,
 		marker: timelineMarkerValidator,
 		title: v.string()
@@ -156,6 +158,7 @@ export const timelineItemValidator = v.union(
 		id: v.string(),
 		occurredAtIso: v.string(),
 		body: v.string(),
+		updateRequestStatus: v.optional(accountUpdateRequestStatusValidator),
 		presentation: timelinePresentationValidator,
 		marker: timelineMarkerValidator,
 		actor: dashboardPersonValidator,

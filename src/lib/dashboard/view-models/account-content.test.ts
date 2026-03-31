@@ -119,24 +119,21 @@ describe('toTimelineItem', () => {
 		expect(
 			toTimelineItem(
 				{
-					kind: 'actor-action',
+					kind: 'ask-for-update',
 					id: 'activity-1',
 					occurredAtIso: '2026-03-21T10:00:00.000Z',
-					body: 'Sent a notification to the broker.',
-					eventKind: 'ask-for-update',
 					marker: {
 						kind: 'broker-avatar',
 						brokerRef: julienBrokerKey
 					},
 					actorBrokerRef: julienBrokerKey,
-					action: 'asked for an update'
+					status: 'waiting'
 				},
 				peopleById
 			)
 		).toMatchObject({
-			kind: 'actor-action',
-			body: 'Waiting for update...',
-			updateRequestStatus: 'waiting',
+			kind: 'ask-for-update',
+			status: 'waiting',
 			presentation: 'callout'
 		});
 	});
@@ -145,25 +142,21 @@ describe('toTimelineItem', () => {
 		expect(
 			toTimelineItem(
 				{
-					kind: 'actor-action',
+					kind: 'ask-for-update',
 					id: 'activity-2',
 					occurredAtIso: '2026-03-21T10:00:00.000Z',
-					body: 'Waiting for update...',
-					eventKind: 'ask-for-update',
-					updateRequestStatus: 'provided',
 					marker: {
 						kind: 'broker-avatar',
 						brokerRef: minaBrokerKey
 					},
 					actorBrokerRef: minaBrokerKey,
-					action: 'asked for an update'
+					status: 'provided'
 				},
 				peopleById
 			)
 		).toMatchObject({
-			kind: 'actor-action',
-			body: 'Update provided.',
-			updateRequestStatus: 'provided',
+			kind: 'ask-for-update',
+			status: 'provided',
 			presentation: 'callout'
 		});
 	});

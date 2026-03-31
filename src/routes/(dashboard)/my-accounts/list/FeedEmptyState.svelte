@@ -29,8 +29,8 @@
 			iconClass: 'size-4'
 		},
 		upcoming: {
-			title: 'No upcoming items yet',
-			description: 'Upcoming account items will appear here once this feed is connected.',
+			title: 'No upcoming updates',
+			description: 'We predict updates your team will ask for so you can prepare them ahead of time',
 			icon: 'calendar',
 			iconClass: 'size-4'
 		}

@@ -148,7 +148,6 @@ export const timelineItemValidator = v.union(
 		id: v.string(),
 		occurredAtIso: v.string(),
 		body: v.string(),
-		updateRequestStatus: v.optional(accountUpdateRequestStatusValidator),
 		presentation: timelinePresentationValidator,
 		marker: timelineMarkerValidator,
 		title: v.string()
@@ -158,11 +157,19 @@ export const timelineItemValidator = v.union(
 		id: v.string(),
 		occurredAtIso: v.string(),
 		body: v.string(),
-		updateRequestStatus: v.optional(accountUpdateRequestStatusValidator),
 		presentation: timelinePresentationValidator,
 		marker: timelineMarkerValidator,
 		actor: dashboardPersonValidator,
 		action: v.string()
+	}),
+	v.object({
+		kind: v.literal('ask-for-update'),
+		id: v.string(),
+		occurredAtIso: v.string(),
+		status: accountUpdateRequestStatusValidator,
+		presentation: timelinePresentationValidator,
+		marker: timelineMarkerValidator,
+		actor: dashboardPersonValidator
 	})
 );
 

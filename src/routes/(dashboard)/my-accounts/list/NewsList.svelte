@@ -17,9 +17,10 @@
 		items: readonly MyAccountsFeedItem[];
 		emptyStateTab?: FeedTabId;
 		infoBarText?: string;
+		infoBarDataAttribute?: string;
 	};
 
-	let { items, emptyStateTab = 'news', infoBarText }: Props = $props();
+	let { items, emptyStateTab = 'news', infoBarText, infoBarDataAttribute }: Props = $props();
 </script>
 
 {#if items.length === 0}
@@ -59,7 +60,7 @@
 		</ol>
 		{#if infoBarText}
 			<InlineInfoBar
-				dataAttribute="data-my-accounts-watchlist-info-bar"
+				dataAttribute={infoBarDataAttribute}
 				text={infoBarText}
 			/>
 		{/if}

@@ -22,6 +22,7 @@ import type {
 	AccountStage
 } from '../lib/types/vocab';
 import type { DashboardMeeting, DashboardPerson, TeamMemberSummary } from '../lib/models/person';
+import type { AccountUpdateRequestStatus } from '../lib/models/timeline';
 import { hasLegacyOrgChartRoot } from './orgChartMigration';
 
 export type BrokerRecordData = {
@@ -98,8 +99,6 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 			stream: AccountActivityStream;
 			occurredAtIso: IsoDateTime;
 			body: string;
-			eventKind?: 'ask-for-update';
-			updateRequestStatus?: 'waiting' | 'provided';
 			marker: ActivityMarkerData<BrokerRef>;
 			title: string;
 	  }
@@ -110,11 +109,19 @@ export type ActivityRecordData<BrokerRef extends string = BrokerId> =
 			stream: AccountActivityStream;
 			occurredAtIso: IsoDateTime;
 			body: string;
-			eventKind?: 'ask-for-update';
-			updateRequestStatus?: 'waiting' | 'provided';
 			marker: ActivityMarkerData<BrokerRef>;
 			actorBrokerRef: BrokerRef;
 			action: string;
+	  }
+	| {
+			kind: 'ask-for-update';
+			id: string;
+			accountId: AccountId;
+			stream: AccountActivityStream;
+			occurredAtIso: IsoDateTime;
+			marker: ActivityMarkerData<BrokerRef>;
+			actorBrokerRef: BrokerRef;
+			status: AccountUpdateRequestStatus;
 	  };
 
 export type NewsRecordData = {
@@ -428,25 +435,25 @@ function getActivityLocalId(activity: DashboardActivityValue) {
 
 type ActivityRecordBase = Pick<
 	ActivityRecordData,
-	| 'id'
-	| 'accountId'
-	| 'stream'
-	| 'occurredAtIso'
-	| 'body'
-	| 'eventKind'
-	| 'updateRequestStatus'
-	| 'marker'
+	'id' | 'accountId' | 'stream' | 'occurredAtIso' | 'marker'
 >;
 
 type NormalizedActivityVariant =
 	| {
 			kind: 'headline';
+			body: string;
 			title: string;
 	  }
 	| {
 			kind: 'actor-action';
+			body: string;
 			actorBrokerRef: BrokerId;
 			action: string;
+	  }
+	| {
+			kind: 'ask-for-update';
+			actorBrokerRef: BrokerId;
+			status: AccountUpdateRequestStatus;
 	  };
 
 function createActivityRecordBase(activity: DashboardActivityValue, id: string): ActivityRecordBase {
@@ -455,16 +462,6 @@ function createActivityRecordBase(activity: DashboardActivityValue, id: string):
 		accountId: activity.accountId,
 		stream: activity.stream as AccountActivityStream,
 		occurredAtIso: parseIsoDateTime(activity.occurredAtIso, `activity["${id}"].occurredAtIso`),
-		body: activity.body,
-		eventKind:
-			'eventKind' in activity && activity.eventKind === 'ask-for-update'
-				? 'ask-for-update'
-				: undefined,
-		updateRequestStatus:
-			'updateRequestStatus' in activity &&
-			(activity.updateRequestStatus === 'waiting' || activity.updateRequestStatus === 'provided')
-				? activity.updateRequestStatus
-				: undefined,
 		marker:
 			activity.marker.kind === 'dot'
 				? { kind: 'dot' as const }
@@ -473,16 +470,43 @@ function createActivityRecordBase(activity: DashboardActivityValue, id: string):
 }
 
 function normalizeActivityVariant(activity: DashboardActivityValue, id: string): NormalizedActivityVariant {
+	if ('eventKind' in activity && activity.eventKind === 'ask-for-update') {
+		if (
+			!('actorBrokerId' in activity) ||
+			activity.updateRequestStatus !== 'waiting' && activity.updateRequestStatus !== 'provided'
+		) {
+			throw new Error(`Invalid ask-for-update activity shape for "${id}".`);
+		}
+
+		return {
+			kind: 'ask-for-update',
+			actorBrokerRef: activity.actorBrokerId,
+			status: activity.updateRequestStatus
+		};
+	}
+
 	if ('title' in activity) {
+		if (typeof activity.body !== 'string') {
+			throw new Error(`Missing activity body for "${id}".`);
+		}
+
 		return {
 			kind: 'headline',
+			body: activity.body,
 			title: activity.title
 		};
 	}
 
-	if ('actorBrokerId' in activity && 'action' in activity) {
+	if (
+		'actorBrokerId' in activity &&
+		'action' in activity &&
+		typeof activity.action === 'string' &&
+		'body' in activity &&
+		typeof activity.body === 'string'
+	) {
 		return {
 			kind: 'actor-action',
+			body: activity.body,
 			actorBrokerRef: activity.actorBrokerId,
 			action: activity.action
 		};
@@ -495,13 +519,6 @@ export function toActivityRecord(activity: DashboardActivityValue): ActivityReco
 	const id = getActivityLocalId(activity);
 	const base = createActivityRecordBase(activity, id);
 	const variant = normalizeActivityVariant(activity, id);
-
-	if (variant.kind === 'headline') {
-		return {
-			...base,
-			...variant
-		};
-	}
 
 	return {
 		...base,

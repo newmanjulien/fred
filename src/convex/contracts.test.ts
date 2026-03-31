@@ -788,24 +788,24 @@ describe('Convex feature contracts', () => {
 		});
 
 		const askForUpdateActivity = result.activities.find(
-			(activity) => 'action' in activity && activity.action === 'asked for an update'
+			(activity) => 'eventKind' in activity && activity.eventKind === 'ask-for-update'
 		);
 
 		expect(askForUpdateActivity).toEqual(
 			expect.objectContaining({
 				accountId: seed.accountId as AccountId,
 				stream: 'account-detail',
-				body: 'Waiting for update...',
 				eventKind: 'ask-for-update',
 				updateRequestStatus: 'waiting',
 				actorBrokerId: seed.ownerBrokerId as BrokerId,
-				action: 'asked for an update',
 				marker: {
 					kind: 'broker-avatar',
 					brokerId: seed.ownerBrokerId as BrokerId
 				}
 			})
 		);
+		expect(askForUpdateActivity).not.toHaveProperty('body');
+		expect(askForUpdateActivity).not.toHaveProperty('action');
 		expect(result.account?.lastActivityAtIso).toMatch(/^\d{4}-\d{2}-\d{2}T/);
 	});
 });

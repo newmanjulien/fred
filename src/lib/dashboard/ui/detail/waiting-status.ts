@@ -12,4 +12,9 @@ export const WAITING_STATUS_ANIMATION_STEPS = [
 	{ visibleDotCount: 3, durationMs: 1800 }
 ] as const;
 
+export const WAITING_STATUS_CYCLE_DURATION_MS = WAITING_STATUS_ANIMATION_STEPS.reduce(
+	(totalDuration, step) => totalDuration + step.durationMs,
+	0
+);
+
 export type WaitingStatusAnimationStep = (typeof WAITING_STATUS_ANIMATION_STEPS)[number];

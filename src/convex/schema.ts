@@ -22,31 +22,46 @@ const activityMarkerValidator = v.union(
 	})
 );
 
-const activityBaseFields = {
+const brokerAvatarActivityMarkerValidator = v.object({
+	kind: v.literal('broker-avatar'),
+	brokerId: v.id('brokers')
+});
+
+const standardActivityBaseFields = {
 	accountId: v.id('accounts'),
 	meetingId: v.optional(v.id('meetings')),
 	stream: accountActivityStreamValidator,
 	occurredAtIso: v.string(),
 	body: v.string(),
-	eventKind: v.optional(accountActivityEventKindValidator),
-	updateRequestStatus: v.optional(accountUpdateRequestStatusValidator),
 	marker: activityMarkerValidator
 };
 
 const headlineActivityFields = {
-	...activityBaseFields,
+	...standardActivityBaseFields,
 	title: v.string()
 };
 
 const actorActivityFields = {
-	...activityBaseFields,
+	...standardActivityBaseFields,
 	actorBrokerId: v.id('brokers'),
 	action: v.string()
 };
 
+const askForUpdateActivityFields = {
+	accountId: v.id('accounts'),
+	meetingId: v.optional(v.id('meetings')),
+	stream: accountActivityStreamValidator,
+	occurredAtIso: v.string(),
+	eventKind: accountActivityEventKindValidator,
+	updateRequestStatus: accountUpdateRequestStatusValidator,
+	marker: brokerAvatarActivityMarkerValidator,
+	actorBrokerId: v.id('brokers')
+};
+
 const activityDocumentValidator = v.union(
 	v.object(headlineActivityFields),
-	v.object(actorActivityFields)
+	v.object(actorActivityFields),
+	v.object(askForUpdateActivityFields)
 );
 
 const embeddedActivityValidator = v.union(
@@ -57,6 +72,10 @@ const embeddedActivityValidator = v.union(
 	v.object({
 		id: v.string(),
 		...actorActivityFields
+	}),
+	v.object({
+		id: v.string(),
+		...askForUpdateActivityFields
 	})
 );
 

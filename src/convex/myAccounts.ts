@@ -18,6 +18,10 @@ import {
 	toTimelineItem
 } from '../lib/dashboard/view-models/account-content';
 import {
+	ASK_FOR_UPDATE_ACTION_LABEL,
+	formatAskForUpdateBody
+} from '../lib/dashboard/view-models/ask-for-update';
+import {
 	buildAccountHero,
 	buildAccountUploadFieldData
 } from '../lib/dashboard/view-models/detail-builders';
@@ -121,7 +125,13 @@ function toMyAccountsWatchlistItem(
 ) {
 	return {
 		id: activity.id,
-		title: `${entry.account.accountName}: ${activity.kind === 'headline' ? activity.title : activity.action}`,
+		title: `${entry.account.accountName}: ${
+			activity.kind === 'headline'
+				? activity.title
+				: activity.kind === 'ask-for-update'
+					? ASK_FOR_UPDATE_ACTION_LABEL
+					: activity.action
+		}`,
 		kind: 'activity',
 		dateIso: getIsoDatePart(activity.occurredAtIso),
 		detail: {
@@ -230,7 +240,10 @@ function toTableRow(
 		account: entry.account.accountName,
 		latestNewsSource: latestNews?.source ?? null,
 		latestNews: latestNews?.title ?? NO_RECENT_NEWS_LABEL,
-		lastActivityDescription: latestActivity?.body ?? NO_RECORDED_ACTIVITY_LABEL,
+		lastActivityDescription:
+			latestActivity?.kind === 'ask-for-update'
+				? formatAskForUpdateBody(latestActivity.status)
+				: latestActivity?.body ?? NO_RECORDED_ACTIVITY_LABEL,
 		owner: resolveOptionalBrokerPerson(peopleByBrokerId, entry.account.ownerBrokerId),
 		isReservedInEpic: entry.account.isReservedInEpic
 	};

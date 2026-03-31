@@ -12,6 +12,8 @@
 
 	const WATCHLIST_INFO_BAR_TEXT =
 		'Watchlist shows activity from accounts you follow in My accounts but do not own.';
+	const UPCOMING_INFO_BAR_TEXT =
+		'Upcoming shows the next account items coming up across the accounts you own.';
 
 	type Props = {
 		data: MyAccountsListPageData;
@@ -65,10 +67,16 @@
 					items={data.watchlistItems}
 					emptyStateTab="watchlist"
 					infoBarText={WATCHLIST_INFO_BAR_TEXT}
+					infoBarDataAttribute="data-my-accounts-watchlist-info-bar"
 				/>
 			</SectionTabPanel>
 			<SectionTabPanel tabId="upcoming">
-				<NewsList items={[]} emptyStateTab="upcoming" />
+				<NewsList
+					items={[]}
+					emptyStateTab="upcoming"
+					infoBarText={UPCOMING_INFO_BAR_TEXT}
+					infoBarDataAttribute="data-my-accounts-upcoming-info-bar"
+				/>
 			</SectionTabPanel>
 		{/snippet}
 	</DashboardTabbedPage>

@@ -1,6 +1,10 @@
 <script lang="ts">
 	import { formatIsoDateTimeDate } from '$lib/format/date-time';
 	import type { TimelineItem } from '$lib/dashboard/view-models/account-content';
+	import {
+		ASK_FOR_UPDATE_ACTION_LABEL,
+		formatAskForUpdateBody
+	} from '$lib/dashboard/view-models/ask-for-update';
 	import PersonAvatar from '$lib/dashboard/ui/people/PersonAvatar.svelte';
 	import { cn } from '$lib/support/cn';
 	import WaitingStatusText from './WaitingStatusText.svelte';
@@ -14,7 +18,6 @@
 	let { item, showConnector = false }: Props = $props();
 
 	const isCallout = $derived(item.presentation === 'callout');
-	const isWaitingForUpdate = $derived(item.updateRequestStatus === 'waiting');
 	const rowPaddingStyle = $derived(
 		showConnector ? `padding-bottom:${TIMELINE_LAYOUT.rowSpacing}px;` : ''
 	);
@@ -69,6 +72,11 @@
 						<span class="font-medium text-zinc-800">{item.actor.name}</span>
 						<span> {item.action}</span>
 					</h2>
+				{:else if item.kind === 'ask-for-update'}
+					<h2 class="min-w-0 flex-1 text-xs leading-5 tracking-wide text-zinc-700">
+						<span class="font-medium text-zinc-800">{item.actor.name}</span>
+						<span> {ASK_FOR_UPDATE_ACTION_LABEL}</span>
+					</h2>
 				{:else}
 					<h2 class="min-w-0 flex-1 text-xs leading-5 font-medium tracking-wide text-zinc-700">{item.title}</h2>
 				{/if}
@@ -77,8 +85,12 @@
 				</p>
 			</div>
 			<p class="mt-1 text-xs leading-relaxed tracking-wide text-zinc-600">
-				{#if isWaitingForUpdate}
-					<WaitingStatusText />
+				{#if item.kind === 'ask-for-update'}
+					{#if item.status === 'waiting'}
+						<WaitingStatusText />
+					{:else}
+						{formatAskForUpdateBody(item.status)}
+					{/if}
 				{:else}
 					{item.body}
 				{/if}

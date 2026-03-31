@@ -54,17 +54,19 @@ export function toTimelineItem<
 					person: resolveBrokerPerson(peopleByRef, record.marker.brokerRef)
 				}
 			: { kind: 'dot' };
-	const presentation = record.eventKind === 'ask-for-update' ? 'callout' : 'standard';
-	const updateRequestStatus =
-		record.eventKind === 'ask-for-update'
-			? record.updateRequestStatus ?? 'waiting'
-			: undefined;
-	const body =
-		record.eventKind === 'ask-for-update'
-			? updateRequestStatus === 'provided'
-				? 'Update provided.'
-				: 'Waiting for update...'
-			: record.body;
+	const presentation = record.kind === 'ask-for-update' ? 'callout' : 'standard';
+
+	if (record.kind === 'ask-for-update') {
+		return {
+			kind: 'ask-for-update',
+			id: record.id,
+			actor: resolveBrokerPerson(peopleByRef, record.actorBrokerRef),
+			occurredAtIso: record.occurredAtIso,
+			status: record.status,
+			presentation,
+			marker
+		};
+	}
 
 	if (record.kind === 'actor-action') {
 		return {
@@ -73,8 +75,7 @@ export function toTimelineItem<
 			actor: resolveBrokerPerson(peopleByRef, record.actorBrokerRef),
 			action: record.action,
 			occurredAtIso: record.occurredAtIso,
-			body,
-			updateRequestStatus,
+			body: record.body,
 			presentation,
 			marker
 		};
@@ -85,8 +86,7 @@ export function toTimelineItem<
 		id: record.id,
 		title: record.title,
 		occurredAtIso: record.occurredAtIso,
-		body,
-		updateRequestStatus,
+		body: record.body,
 		presentation,
 		marker
 	};

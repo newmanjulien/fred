@@ -18,6 +18,25 @@ function createActivity(
 	} as Parameters<typeof toActivityRecord>[0];
 }
 
+function createAskForUpdateActivity(
+	overrides: Partial<Parameters<typeof toActivityRecord>[0]>
+): Parameters<typeof toActivityRecord>[0] {
+	return {
+		_creationTime: 1710000000000,
+		accountId: 'account-1',
+		stream: 'account-detail',
+		occurredAtIso: '2026-03-20T10:00:00.000Z',
+		eventKind: 'ask-for-update',
+		updateRequestStatus: 'waiting',
+		marker: {
+			kind: 'broker-avatar',
+			brokerId: 'broker-1' as BrokerId
+		},
+		actorBrokerId: 'broker-2' as BrokerId,
+		...overrides
+	} as Parameters<typeof toActivityRecord>[0];
+}
+
 describe('toActivityRecord', () => {
 	it('maps headline activities through the shared base mapper', () => {
 		expect(
@@ -44,32 +63,22 @@ describe('toActivityRecord', () => {
 	it('maps actor-action activities through the shared base mapper', () => {
 		expect(
 			toActivityRecord(
-				createActivity({
-					eventKind: 'ask-for-update',
-					updateRequestStatus: 'provided',
-					marker: {
-						kind: 'broker-avatar',
-						brokerId: 'broker-1' as BrokerId
-					},
-					actorBrokerId: 'broker-2' as BrokerId,
-					action: 'sent pricing'
+				createAskForUpdateActivity({
+					updateRequestStatus: 'provided'
 				})
 			)
 		).toEqual({
-			kind: 'actor-action',
+			kind: 'ask-for-update',
 			id: 'activity-1710000000000',
 			accountId: 'account-1',
 			stream: 'account-detail',
 			occurredAtIso: '2026-03-20T10:00:00.000Z',
-			body: 'Called the buyer.',
-			eventKind: 'ask-for-update',
-			updateRequestStatus: 'provided',
 			marker: {
 				kind: 'broker-avatar',
 				brokerRef: 'broker-1'
 			},
 			actorBrokerRef: 'broker-2',
-			action: 'sent pricing'
+			status: 'provided'
 		});
 	});
 

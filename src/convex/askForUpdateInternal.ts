@@ -56,15 +56,13 @@ export const createAskForUpdateActivities = internalMutation({
 				accountId,
 				stream: 'account-detail',
 				occurredAtIso: args.occurredAtIso,
-				body: 'Waiting for update...',
 				eventKind: 'ask-for-update',
 				updateRequestStatus: 'waiting',
 				marker: {
 					kind: 'broker-avatar',
 					brokerId: args.actorBrokerId
 				},
-				actorBrokerId: args.actorBrokerId,
-				action: 'asked for an update'
+				actorBrokerId: args.actorBrokerId
 			});
 
 			await ctx.db.patch(accountId, {

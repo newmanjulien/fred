@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
 	import { formatIsoDateTimeRelative } from '$lib/format/date-time';
 	import { formatUsdAmount } from '$lib/format/number';
@@ -43,6 +44,7 @@
 		selection?: LeadershipTableSelection;
 		ariaLabel?: string;
 		infoText?: string | null;
+		infoContent?: Snippet;
 	};
 
 	let {
@@ -50,7 +52,8 @@
 		rows,
 		selection,
 		ariaLabel = 'Leadership accounts table',
-		infoText
+		infoText,
+		infoContent
 	}: Props = $props();
 
 	let isRenewalsPage = $derived(pageKind === 'renewals-list');
@@ -171,6 +174,7 @@
 	{ariaLabel}
 	rows={rows}
 	infoText={infoText}
+	{infoContent}
 	dataAttribute="data-leadership-table-info-bar"
 	interactiveRows={false}
 >

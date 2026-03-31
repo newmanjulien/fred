@@ -37,10 +37,6 @@ export function getLeadershipSelectionHeaderUiScope(
 		: {};
 }
 
-export function getLeadershipSelectionInfoText(selectedRowCount: number) {
-	return selectedRowCount > 0 ? LEADERSHIP_SELECTION_INFO_TEXT : null;
-}
-
 export function getStaleLeadershipSelectionRowKeys(
 	selectedRowKeys: Iterable<LeadershipSelectionRow['key']>,
 	rows: readonly LeadershipSelectionRow[]

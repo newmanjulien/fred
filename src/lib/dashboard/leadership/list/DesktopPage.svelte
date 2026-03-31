@@ -1,4 +1,5 @@
 <script lang="ts">
+	import type { Snippet } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import DashboardPageLayout from '$lib/dashboard/layout/DashboardPageLayout.svelte';
 	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
@@ -22,7 +23,7 @@
 	import { buildLeadershipFilterDrawerSections } from './filters/sections';
 	import {
 		getLeadershipSelectionHeaderUiScope,
-		getLeadershipSelectionInfoText,
+		LEADERSHIP_SELECTION_INFO_TEXT,
 		getStaleLeadershipSelectionRowKeys
 	} from './selection-ui';
 
@@ -80,8 +81,10 @@
 	});
 
 	const selectedRowKeyList = $derived.by(() => [...selectedRowKeys]);
-	const resolvedInfoText = $derived(
-		getLeadershipSelectionInfoText(selectedRowKeys.size) ?? infoText ?? null
+	const hasSelectedRows = $derived(selectedRowKeys.size > 0);
+	const resolvedInfoText = $derived(hasSelectedRows ? LEADERSHIP_SELECTION_INFO_TEXT : infoText ?? null);
+	const selectionInfoContent = $derived<Snippet | undefined>(
+		hasSelectedRows ? selectedInfoContent : undefined
 	);
 
 	function toggleFilterDrawer() {
@@ -190,6 +193,17 @@
 	};
 </script>
 
+{#snippet selectedInfoContent()}
+	{LEADERSHIP_SELECTION_INFO_TEXT}{' '}
+	<a
+		href="/learn-more"
+		class="ml-1.5 underline underline-offset-2 transition-colors hover:text-zinc-700"
+		onclick={(event) => event.preventDefault()}
+	>
+		Learn more
+	</a>
+{/snippet}
+
 <Drawer
 	open={isFilterDrawerOpen}
 	sections={filterDrawerSections}
@@ -216,6 +230,7 @@
 				? likelyOutOfDateTableAriaLabel
 				: tableAriaLabel}
 			infoText={resolvedInfoText}
+			infoContent={selectionInfoContent}
 		/>
 	{/snippet}
 </DashboardPageLayout>

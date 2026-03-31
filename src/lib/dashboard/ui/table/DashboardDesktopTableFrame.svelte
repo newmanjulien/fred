@@ -13,6 +13,7 @@
 		minWidthClass: string;
 		ariaLabel: string;
 		infoText?: string | null;
+		infoContent?: Snippet;
 		dataAttribute?: string;
 		interactiveRows?: boolean;
 		emptyText?: string;
@@ -28,6 +29,7 @@
 		minWidthClass,
 		ariaLabel,
 		infoText,
+		infoContent,
 		dataAttribute,
 		interactiveRows = true,
 		emptyText = 'No rows available.',
@@ -116,7 +118,13 @@
 				{#if infoText?.trim()}
 					<div class="flex min-w-0 items-start gap-2">
 						<Info aria-hidden="true" class="mt-0.5 size-3.5 shrink-0" />
-						<p class="min-w-0 text-xs leading-relaxed tracking-wide">{infoText}</p>
+						<p class="min-w-0 text-xs leading-relaxed tracking-wide">
+							{#if infoContent}
+								{@render infoContent()}
+							{:else}
+								{infoText}
+							{/if}
+						</p>
 					</div>
 				{/if}
 				<div class="ml-2 flex shrink-0 items-center gap-2">

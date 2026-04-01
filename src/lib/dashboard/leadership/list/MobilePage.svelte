@@ -12,10 +12,11 @@
 		data: LeadershipListPageData;
 		tableAriaLabel: string;
 		likelyOutOfDateTableAriaLabel: string;
-		infoText?: string | null;
+		defaultFooterText?: string | null;
 	};
 
-	let { data, tableAriaLabel, likelyOutOfDateTableAriaLabel, infoText }: Props = $props();
+	let { data, tableAriaLabel, likelyOutOfDateTableAriaLabel, defaultFooterText }: Props =
+		$props();
 </script>
 
 <DashboardPageLayout width="wide">
@@ -26,7 +27,7 @@
 			ariaLabel={data.route.view === 'likely-out-of-date'
 				? likelyOutOfDateTableAriaLabel
 				: tableAriaLabel}
-			{infoText}
+			{defaultFooterText}
 		/>
 	{/snippet}
 </DashboardPageLayout>

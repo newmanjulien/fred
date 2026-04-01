@@ -14,6 +14,7 @@
 		ariaLabel: string;
 		infoText?: string | null;
 		infoContent?: Snippet;
+		footer?: Snippet<[readonly unknown[]]>;
 		dataAttribute?: string;
 		interactiveRows?: boolean;
 		emptyText?: string;
@@ -30,6 +31,7 @@
 		ariaLabel,
 		infoText,
 		infoContent,
+		footer,
 		dataAttribute,
 		interactiveRows = true,
 		emptyText = 'No rows available.',
@@ -54,6 +56,7 @@
 	const visibleRows = $derived(rows.slice(pageStart, pageStart + PAGE_SIZE));
 	const hasPreviousPage = $derived(pageIndex > 0);
 	const hasNextPage = $derived((pageIndex + 1) * PAGE_SIZE < rows.length);
+	const hasFooterContent = $derived(Boolean(footer || infoContent || infoText?.trim()));
 	const rangeLabel = $derived.by(() => {
 		if (rows.length === 0) {
 			return '0-0 of 0';
@@ -108,14 +111,18 @@
 			<div
 				class={cn(
 					'border-t border-zinc-100 bg-zinc-50/35 px-3 py-2 text-zinc-500',
-					infoText?.trim()
+					hasFooterContent
 						? 'flex items-center justify-between gap-3'
 						: 'flex items-center justify-end gap-2'
 				)}
 				data-table-footer
 				{...(dataAttribute ? { [dataAttribute]: true } : {})}
 			>
-				{#if infoText?.trim()}
+				{#if footer}
+					<div class="min-w-0">
+						{@render footer(visibleRows)}
+					</div>
+				{:else if infoContent || infoText?.trim()}
 					<div class="flex min-w-0 items-start gap-2">
 						<Info aria-hidden="true" class="mt-0.5 size-3.5 shrink-0" />
 						<p class="min-w-0 text-xs leading-relaxed tracking-wide">

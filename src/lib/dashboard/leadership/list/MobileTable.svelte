@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
-	import { formatIsoDateTimeRelative } from '$lib/format/date-time';
 	import { formatUsdAmount } from '$lib/format/number';
 	import { isInternalDashboardLink } from '$lib/dashboard/links';
 	import type {
@@ -21,6 +20,8 @@
 		LEADERSHIP_TABLE_MIN_WIDTH_CLASS,
 		RENEWALS_TABLE_MIN_WIDTH_CLASS
 	} from './table-layout';
+	import LastActivityCell from './LastActivityCell.svelte';
+	import LeadershipTableFooter from './LeadershipTableFooter.svelte';
 
 	type LeadershipTableRow =
 		| NewBusinessListPageData['rows'][number]
@@ -31,14 +32,14 @@
 		pageKind: LeadershipPageKind;
 		rows: readonly LeadershipTableRow[];
 		ariaLabel?: string;
-		infoText?: string | null;
+		defaultFooterText?: string | null;
 	};
 
 	let {
 		pageKind,
 		rows,
 		ariaLabel = 'Leadership accounts table',
-		infoText
+		defaultFooterText
 	}: Props = $props();
 
 	let isRenewalsPage = $derived(pageKind === 'renewals-list');
@@ -54,12 +55,6 @@
 		return value as readonly LeadershipTableRow[];
 	}
 
-	function getLastActivityText(row: LeadershipTableRow) {
-		return row.lastActivity.kind === 'relative'
-			? formatIsoDateTimeRelative(row.lastActivity.atIso)
-			: row.lastActivity.label;
-	}
-
 	function getProbabilityText(row: LeadershipTableRow) {
 		return `${row.probability}% ${getProbabilityLabel(row.kind)}`;
 	}
@@ -73,6 +68,14 @@
 	}
 </script>
 
+{#snippet ownerCellContent(row: LeadershipTableRow)}
+	{#if row.owner}
+		<PersonInline person={row.owner} />
+	{:else}
+		Unassigned
+	{/if}
+{/snippet}
+
 {#snippet accountCellContent(row: LeadershipTableRow, isLinked: boolean)}
 	<span
 		data-table-cell
@@ -83,24 +86,28 @@
 	<span data-table-cell class="whitespace-nowrap">
 		<ActivityLevelLabel activityLevel={row.activityLevel} />
 	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-900">
-		{getProbabilityText(row)}
-	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-600">
-		{#if row.owner}
-			<PersonInline person={row.owner} />
-		{:else}
-			Unassigned
-		{/if}
-	</span>
 	{#if isRenewalsPage}
+		<span data-table-cell class="whitespace-nowrap text-zinc-600">
+			{@render ownerCellContent(row)}
+		</span>
 		<span data-table-cell class="whitespace-nowrap text-zinc-600">{getRevenueText(row)}</span>
 		<span data-table-cell class="whitespace-nowrap text-zinc-500">
 			<RenewalDateLabel renewalDate={row.renewalDate} />
 		</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-500">
+			<LastActivityCell lastActivity={row.lastActivity} />
+		</span>
 	{:else}
+		<span data-table-cell class="whitespace-nowrap text-zinc-900">
+			{getProbabilityText(row)}
+		</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-600">
+			{@render ownerCellContent(row)}
+		</span>
 		<span data-table-cell class="whitespace-nowrap text-zinc-600">{getStageText(row)}</span>
-		<span data-table-cell class="whitespace-nowrap text-zinc-500">{getLastActivityText(row)}</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-500">
+			<LastActivityCell lastActivity={row.lastActivity} />
+		</span>
 	{/if}
 {/snippet}
 
@@ -111,10 +118,16 @@
 	minWidthClass={minWidthClass}
 	{ariaLabel}
 	rows={rows}
-	infoText={infoText}
 	dataAttribute="data-leadership-table-info-bar"
 	interactiveRows={false}
 >
+	{#snippet footer(visibleRows)}
+		<LeadershipTableFooter
+			defaultText={defaultFooterText}
+			visibleRows={toLeadershipRows(visibleRows)}
+		/>
+	{/snippet}
+
 	{#snippet body(visibleRows)}
 		{@const pageRows = toLeadershipRows(visibleRows)}
 		<div class="divide-y divide-zinc-100">

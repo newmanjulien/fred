@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
 	MAX_WAITING_STATUS_DOTS,
 	WAITING_STATUS_ANIMATION_STEPS
-} from './waiting-status';
+} from '../shared/waiting-status';
 
 describe('WAITING_STATUS_ANIMATION_STEPS', () => {
 	it('renders two passes followed by a full-dot pause', () => {

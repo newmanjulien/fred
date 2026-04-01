@@ -6,8 +6,8 @@
 		formatAskForUpdateBody
 	} from '$lib/dashboard/view-models/ask-for-update';
 	import PersonAvatar from '$lib/dashboard/ui/people/PersonAvatar.svelte';
+	import WaitingStatusText from '$lib/dashboard/ui/shared/WaitingStatusText.svelte';
 	import { cn } from '$lib/support/cn';
-	import WaitingStatusText from './WaitingStatusText.svelte';
 	import { getMarkerStyle, getRowStyle, TIMELINE_LAYOUT } from './timeline-layout';
 
 	type Props = {

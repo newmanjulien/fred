@@ -1,5 +1,4 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import DashboardPageLayout from '$lib/dashboard/layout/DashboardPageLayout.svelte';
 	import DashboardHeaderScope from '$lib/dashboard/shell/header/DashboardHeaderScope.svelte';
@@ -22,8 +21,8 @@
 	} from './filters/model';
 	import { buildLeadershipFilterDrawerSections } from './filters/sections';
 	import {
+		getInvalidLeadershipSelectionRowKeys,
 		getLeadershipSelectionHeaderUiScope,
-		LEADERSHIP_SELECTION_INFO_TEXT,
 		getStaleLeadershipSelectionRowKeys
 	} from './selection-ui';
 
@@ -35,7 +34,7 @@
 		scopeId: string;
 		tableAriaLabel: string;
 		likelyOutOfDateTableAriaLabel: string;
-		infoText?: string | null;
+		defaultFooterText?: string | null;
 	};
 
 	let {
@@ -43,7 +42,7 @@
 		scopeId,
 		tableAriaLabel,
 		likelyOutOfDateTableAriaLabel,
-		infoText
+		defaultFooterText
 	}: Props = $props();
 	const filterDrawerData = $derived(data.filterDrawerData);
 	let isFilterDrawerOpen = $state(false);
@@ -80,12 +79,15 @@
 		}
 	});
 
+	$effect(() => {
+		const invalidRowKeys = getInvalidLeadershipSelectionRowKeys(selectedRowKeys, data.rows);
+
+		for (const rowKey of invalidRowKeys) {
+			selectedRowKeys.delete(rowKey);
+		}
+	});
+
 	const selectedRowKeyList = $derived.by(() => [...selectedRowKeys]);
-	const hasSelectedRows = $derived(selectedRowKeys.size > 0);
-	const resolvedInfoText = $derived(hasSelectedRows ? LEADERSHIP_SELECTION_INFO_TEXT : infoText ?? null);
-	const selectionInfoContent = $derived<Snippet | undefined>(
-		hasSelectedRows ? selectedInfoContent : undefined
-	);
 
 	function toggleFilterDrawer() {
 		isFilterDrawerOpen = !isFilterDrawerOpen;
@@ -193,17 +195,6 @@
 	};
 </script>
 
-{#snippet selectedInfoContent()}
-	{LEADERSHIP_SELECTION_INFO_TEXT}{' '}
-	<a
-		href="/learn-more"
-		class="ml-1.5 underline underline-offset-2 transition-colors hover:text-zinc-700"
-		onclick={(event) => event.preventDefault()}
-	>
-		Learn more
-	</a>
-{/snippet}
-
 <Drawer
 	open={isFilterDrawerOpen}
 	sections={filterDrawerSections}
@@ -226,11 +217,11 @@
 			pageKind={data.route.kind}
 			rows={data.rows}
 			{selection}
+			selectedRowCount={selectedRowKeys.size}
 			ariaLabel={data.route.view === 'likely-out-of-date'
 				? likelyOutOfDateTableAriaLabel
 				: tableAriaLabel}
-			infoText={resolvedInfoText}
-			infoContent={selectionInfoContent}
+			defaultFooterText={defaultFooterText}
 		/>
 	{/snippet}
 </DashboardPageLayout>

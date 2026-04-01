@@ -1,5 +1,6 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
+import { accountSummaryDocumentValidator } from './accountSummary';
 import {
 	activityLevelValidator,
 	accountActivityStreamValidator,
@@ -160,7 +161,6 @@ export default defineSchema({
 		stage: v.optional(accountStageValidator),
 		isLikelyOutOfDate: v.boolean(),
 		activityLevel: activityLevelValidator,
-		lastActivityAtIso: v.optional(v.string()),
 		ownerBrokerId: v.optional(v.id('brokers')),
 		collaboratorBrokerIds: v.array(v.id('brokers')),
 		context: v.optional(accountContextValidator),
@@ -180,6 +180,8 @@ export default defineSchema({
 			'occurredAtIso'
 		])
 		.index('by_account_id_stream_occurred_at_iso', ['accountId', 'stream', 'occurredAtIso']),
+
+	accountSummaries: defineTable(accountSummaryDocumentValidator).index('by_account_id', ['accountId']),
 
 	news: defineTable({
 		accountId: v.id('accounts'),

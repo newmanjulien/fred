@@ -174,7 +174,6 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 			stage: 'Discovery',
 			isLikelyOutOfDate: false,
 			activityLevel: 'high',
-			lastActivityAtIso: '2026-03-24T10:00:00Z',
 			ownerBrokerId,
 			collaboratorBrokerIds: [collaboratorBrokerId],
 			context: {
@@ -259,6 +258,15 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 				}
 			],
 			orgChartNodes: insightOrgChartNodes
+		});
+
+		await ctx.db.insert('accountSummaries', {
+			accountId,
+			lastAccountDetailActivity: {
+				kind: 'activity',
+				occurredAtIso: '2026-03-24T10:00:00.000Z'
+			},
+			canRequestBrokerUpdate: true
 		});
 
 		return {
@@ -405,7 +413,11 @@ describe('Convex feature contracts', () => {
 			expect.arrayContaining([
 				expect.objectContaining({
 					key: seed.accountKey,
-					hasDetail: true
+					hasDetail: true,
+					lastActivity: {
+						kind: 'activity',
+						occurredAtIso: '2026-03-24T10:00:00.000Z'
+					}
 				})
 			])
 		);
@@ -492,7 +504,7 @@ describe('Convex feature contracts', () => {
 		const renewalAccountKey = 'acme-renewal' as AccountKey;
 
 		await t.run(async (ctx) => {
-			await ctx.db.insert('accounts', {
+			const renewalAccountId = await ctx.db.insert('accounts', {
 				key: renewalAccountKey,
 				kind: 'renewal',
 				accountNumber: 314,
@@ -506,7 +518,6 @@ describe('Convex feature contracts', () => {
 				probability: 85,
 				isLikelyOutOfDate: true,
 				activityLevel: 'medium',
-				lastActivityAtIso: '2026-03-26T10:00:00Z',
 				ownerBrokerId: seed.ownerBrokerId,
 				collaboratorBrokerIds: [seed.collaboratorBrokerId],
 				context: {
@@ -518,6 +529,14 @@ describe('Convex feature contracts', () => {
 					needsSupport: true,
 					duplicatedWork: false
 				}
+			});
+			await ctx.db.insert('accountSummaries', {
+				accountId: renewalAccountId,
+				lastAccountDetailActivity: {
+					kind: 'activity',
+					occurredAtIso: '2026-03-26T10:00:00Z'
+				},
+				canRequestBrokerUpdate: true
 			});
 		});
 
@@ -552,7 +571,11 @@ describe('Convex feature contracts', () => {
 				expect.objectContaining({
 					key: renewalAccountKey,
 					revenue: 24000000,
-					hasDetail: true
+					hasDetail: true,
+					lastActivity: {
+						kind: 'activity',
+						occurredAtIso: '2026-03-26T10:00:00Z'
+					}
 				})
 			])
 		);
@@ -782,9 +805,15 @@ describe('Convex feature contracts', () => {
 					query.eq('accountId', seed.accountId).eq('stream', 'account-detail')
 				)
 				.collect();
-			const account = await ctx.db.get(seed.accountId);
+			const accountSummary = await ctx.db
+				.query('accountSummaries')
+				.withIndex('by_account_id', (query) => query.eq('accountId', seed.accountId))
+				.unique();
 
-			return { activities, account };
+			return { activities, accountSummary };
+		});
+		const newBusinessList = await t.query(api.newBusiness.getNewBusinessList, {
+			view: 'accounts'
 		});
 
 		const askForUpdateActivity = result.activities.find(
@@ -806,6 +835,24 @@ describe('Convex feature contracts', () => {
 		);
 		expect(askForUpdateActivity).not.toHaveProperty('body');
 		expect(askForUpdateActivity).not.toHaveProperty('action');
-		expect(result.account?.lastActivityAtIso).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+		expect(result.accountSummary).toMatchObject({
+			lastAccountDetailActivity: {
+				kind: 'waiting-for-update',
+				occurredAtIso: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/)
+			},
+			canRequestBrokerUpdate: false
+		});
+		expect(newBusinessList.rows).toEqual(
+			expect.arrayContaining([
+				expect.objectContaining({
+					key: seed.accountKey,
+					lastActivity: {
+						kind: 'waiting-for-update',
+						occurredAtIso: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/)
+					},
+					canRequestBrokerUpdate: false
+				})
+			])
+		);
 	});
 });

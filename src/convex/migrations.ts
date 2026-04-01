@@ -2,6 +2,7 @@ import { action, mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 import { makeFunctionReference, type FunctionReference } from 'convex/server';
 import { flattenLegacyOrgChartRoot, hasLegacyOrgChartRoot } from './orgChartMigration';
+import { recomputeAccountSummary } from './accountActivityGateway';
 
 type LegacyOrgChartStatus = {
 	accountsWithLegacyOrgChartRoot: number;
@@ -13,6 +14,14 @@ type LegacyOrgChartStatus = {
 type LegacyOrgChartMigrationResult = LegacyOrgChartStatus & {
 	migratedAccounts: number;
 	migratedInsights: number;
+	dryRun: boolean;
+};
+
+type RebuildAccountSummariesResult = {
+	processedAccounts: number;
+	createdSummaries: number;
+	updatedSummaries: number;
+	deletedOrphanSummaries: number;
 	dryRun: boolean;
 };
 
@@ -33,6 +42,14 @@ const legacyOrgChartMigrationResultValidator = v.object({
 	dryRun: v.boolean()
 });
 
+const rebuildAccountSummariesResultValidator = v.object({
+	processedAccounts: v.number(),
+	createdSummaries: v.number(),
+	updatedSummaries: v.number(),
+	deletedOrphanSummaries: v.number(),
+	dryRun: v.boolean()
+});
+
 const migrateLegacyOrgChartsInPlaceReference = makeFunctionReference<
 	'mutation',
 	{ dryRun: boolean },
@@ -42,6 +59,17 @@ const migrateLegacyOrgChartsInPlaceReference = makeFunctionReference<
 	'public',
 	{ dryRun: boolean },
 	LegacyOrgChartMigrationResult
+>;
+
+const rebuildAccountSummariesInPlaceReference = makeFunctionReference<
+	'mutation',
+	{ dryRun: boolean },
+	RebuildAccountSummariesResult
+>('migrations:rebuildAccountSummariesInPlace') as unknown as FunctionReference<
+	'mutation',
+	'public',
+	{ dryRun: boolean },
+	RebuildAccountSummariesResult
 >;
 
 function hasFlatOrgChartNodes(
@@ -134,6 +162,7 @@ export const migrateLegacyOrgChartsInPlace = mutation({
 			}
 
 			const { _id, _creationTime, ...rest } = account;
+			void _creationTime;
 			const rawAccountContext = accountContext as {
 				summary: string;
 				claimedAtIso: string;
@@ -176,6 +205,7 @@ export const migrateLegacyOrgChartsInPlace = mutation({
 
 			const rawInsight = insight as typeof insight & { orgChartRoot: unknown };
 			const { _id, _creationTime, orgChartRoot, ...restInsight } = rawInsight;
+			void _creationTime;
 
 			await ctx.db.replace(_id, {
 				...restInsight,
@@ -190,6 +220,69 @@ export const migrateLegacyOrgChartsInPlace = mutation({
 			...status,
 			migratedAccounts,
 			migratedInsights,
+			dryRun: args.dryRun
+		};
+	}
+});
+
+export const rebuildAccountSummaries = action({
+	args: {
+		dryRun: v.optional(v.boolean())
+	},
+	returns: rebuildAccountSummariesResultValidator,
+	handler: async (ctx, args): Promise<RebuildAccountSummariesResult> => {
+		return ctx.runMutation(rebuildAccountSummariesInPlaceReference, {
+			dryRun: args.dryRun ?? false
+		});
+	}
+});
+
+export const rebuildAccountSummariesInPlace = mutation({
+	args: {
+		dryRun: v.boolean()
+	},
+	returns: rebuildAccountSummariesResultValidator,
+	handler: async (ctx, args): Promise<RebuildAccountSummariesResult> => {
+		const [accounts, summaries] = await Promise.all([
+			ctx.db.query('accounts').collect(),
+			ctx.db.query('accountSummaries').collect()
+		]);
+		const accountIds = new Set(accounts.map((account) => account._id));
+		let createdSummaries = 0;
+		let updatedSummaries = 0;
+		let deletedOrphanSummaries = 0;
+
+		for (const summary of summaries) {
+			if (accountIds.has(summary.accountId)) {
+				continue;
+			}
+
+			deletedOrphanSummaries += 1;
+
+			if (!args.dryRun) {
+				await ctx.db.delete(summary._id);
+			}
+		}
+
+		for (const account of accounts) {
+			const existingSummary = summaries.find((summary) => summary.accountId === account._id);
+
+			if (existingSummary) {
+				updatedSummaries += 1;
+			} else {
+				createdSummaries += 1;
+			}
+
+			if (!args.dryRun) {
+				await recomputeAccountSummary(ctx, account._id);
+			}
+		}
+
+		return {
+			processedAccounts: accounts.length,
+			createdSummaries,
+			updatedSummaries,
+			deletedOrphanSummaries,
 			dryRun: args.dryRun
 		};
 	}

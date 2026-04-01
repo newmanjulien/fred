@@ -8,7 +8,9 @@
  * @module
  */
 
+import type * as accountActivityGateway from "../accountActivityGateway.js";
 import type * as accountDetail from "../accountDetail.js";
+import type * as accountSummary from "../accountSummary.js";
 import type * as admin from "../admin.js";
 import type * as askForUpdateInternal from "../askForUpdateInternal.js";
 import type * as assets from "../assets.js";
@@ -33,7 +35,9 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accountActivityGateway: typeof accountActivityGateway;
   accountDetail: typeof accountDetail;
+  accountSummary: typeof accountSummary;
   admin: typeof admin;
   askForUpdateInternal: typeof askForUpdateInternal;
   assets: typeof assets;

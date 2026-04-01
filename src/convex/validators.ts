@@ -19,7 +19,7 @@ import {
 import type { DetailRightRailData } from '../lib/dashboard/detail/right-rail';
 import type { CanvasHeroData } from '../lib/dashboard/ui/detail/CanvasHero.types';
 import type { FileUploadFieldData } from '../lib/dashboard/ui/detail/FileUploadField.types';
-import type { IsoDate, IsoDateTime } from '../lib/types/dates';
+import type { IsoDate } from '../lib/types/dates';
 import type { BrokerKey, AccountKey, InsightKey, MeetingKey } from '../lib/types/keys';
 import type { AccountSummaryRow } from '../lib/models/account';
 import type { OrgChartNodeRecord as SharedOrgChartNodeRecord } from '../lib/models/org-chart';
@@ -43,6 +43,10 @@ import {
 	type AccountInsightKind,
 	type AccountNewsSource
 } from '../lib/types/vocab';
+import {
+	lastAccountDetailActivityValidator,
+	type LastAccountDetailActivity
+} from './accountSummary';
 
 type NonEmptyStringTuple = readonly [string, ...string[]];
 
@@ -289,16 +293,7 @@ export const myAccountsTableRowReadModelValidator = v.object({
 	isReservedInEpic: v.boolean()
 });
 
-export const newBusinessRowLastActivityValidator = v.union(
-	v.object({
-		kind: v.literal('relative'),
-		atIso: v.string()
-	}),
-	v.object({
-		kind: v.literal('text'),
-		label: v.string()
-	})
-);
+export const accountListLastActivityValidator = lastAccountDetailActivityValidator;
 
 export const accountListRowReadModelValidator = v.object({
 	key: v.string(),
@@ -311,7 +306,8 @@ export const accountListRowReadModelValidator = v.object({
 	account: v.string(),
 	industry: accountIndustryValidator,
 	stage: v.optional(v.string()),
-	lastActivity: newBusinessRowLastActivityValidator,
+	lastActivity: accountListLastActivityValidator,
+	canRequestBrokerUpdate: v.boolean(),
 	owner: v.union(dashboardPersonValidator, v.null())
 });
 export const accountListFilterDrawerDataValidator = v.object({
@@ -470,15 +466,8 @@ export type AccountListRowReadModel = {
 	account: string;
 	industry: AccountIndustry;
 	stage?: string;
-	lastActivity:
-		| {
-				kind: 'relative';
-				atIso: IsoDateTime;
-		  }
-		| {
-				kind: 'text';
-				label: string;
-		  };
+	lastActivity: LastAccountDetailActivity;
+	canRequestBrokerUpdate: boolean;
 	owner: DashboardPerson | null;
 };
 

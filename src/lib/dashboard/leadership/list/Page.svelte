@@ -50,7 +50,7 @@
 	}: Props = $props();
 	const viewport = useDashboardViewportState();
 
-	function getInfoBarText(data: LeadershipListPageData) {
+	function getDefaultFooterText(data: LeadershipListPageData) {
 		if (data.route.kind === 'new-business-list') {
 			return NEW_BUSINESS_INFO_BAR_TEXT_BY_VIEW[data.route.view] ?? null;
 		}
@@ -65,13 +65,13 @@
 		{scopeId}
 		{tableAriaLabel}
 		{likelyOutOfDateTableAriaLabel}
-		infoText={getInfoBarText(data)}
+		defaultFooterText={getDefaultFooterText(data)}
 	/>
 {:else}
 	<MobilePage
 		{data}
 		{tableAriaLabel}
 		{likelyOutOfDateTableAriaLabel}
-		infoText={getInfoBarText(data)}
+		defaultFooterText={getDefaultFooterText(data)}
 	/>
 {/if}

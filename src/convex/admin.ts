@@ -3,6 +3,7 @@ import { mutation, query } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import type { DatabaseReader, DatabaseWriter } from './_generated/server';
 import type { AccountKey } from '../lib/types/keys';
+import { deleteAccountSummaryForAccount } from './accountActivityGateway';
 
 type CascadeDeleteCounts = {
 	activities: number;
@@ -178,6 +179,7 @@ export const deleteAccountCascade = mutation({
 			await ctx.db.delete(insight._id);
 		}
 
+		await deleteAccountSummaryForAccount(ctx, account._id);
 		await ctx.db.delete(account._id);
 
 		return {

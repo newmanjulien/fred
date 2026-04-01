@@ -19,9 +19,11 @@ import {
 } from '../lib/dashboard/detail/right-rail';
 import {
 	type AccountRecordData,
+	createEmptyAccountSummaryRecord,
 	createBrokerKeyByIdMap,
 	createDashboardPersonByBrokerIdMap,
 	findAccountDocumentByKey,
+	toAccountSummaryRecord,
 	toActivityRecord,
 	toBrokerRecord,
 	toDashboardOrgChartNodes,
@@ -29,6 +31,7 @@ import {
 } from './readModels';
 import type { DashboardPerson } from '../lib/models/person';
 import type { AccountDetailReadModel } from './validators';
+import type { AccountSummaryRecordData } from './accountSummary';
 
 type AccountDetailReadModelOptions = {
 	timingSection?: 'claimed' | 'renewal-date';
@@ -50,12 +53,14 @@ function buildDetailReadModel(params: {
 	accountRecord: AccountRecordData & {
 		context: NonNullable<AccountRecordData['context']>;
 	};
+	accountSummary: AccountSummaryRecordData;
 	activities: Awaited<ReturnType<typeof resolveAccountActivities>>;
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>;
 	brokerKeyById: ReturnType<typeof createBrokerKeyByIdMap>;
 	options?: AccountDetailReadModelOptions;
 }): AccountDetailReadModel {
-	const { accountRecord, activities, peopleByBrokerId, brokerKeyById, options } = params;
+	const { accountRecord, accountSummary, activities, peopleByBrokerId, brokerKeyById, options } =
+		params;
 
 	return {
 		title: accountRecord.accountName,
@@ -78,7 +83,7 @@ function buildDetailReadModel(params: {
 				accountRecord,
 				resolveOptionalBrokerPerson(peopleByBrokerId, accountRecord.ownerBrokerId)
 			),
-			toDetailRightRailTimingSection(accountRecord, accountRecord.context, {
+			toDetailRightRailTimingSection(accountRecord, accountSummary, accountRecord.context, {
 				showRenewalDate: options?.timingSection === 'renewal-date'
 			}),
 			toDetailRightRailHelpfulContactsSection(accountRecord.context)
@@ -100,6 +105,10 @@ export async function getAccountDetailReadModel(
 		return null;
 	}
 
+	const accountSummary = await ctx.db
+		.query('accountSummaries')
+		.withIndex('by_account_id', (query) => query.eq('accountId', account._id))
+		.unique();
 	const activities = await resolveAccountActivities(ctx, account);
 	const accountRecord = toAccountRecord(account);
 
@@ -116,6 +125,9 @@ export async function getAccountDetailReadModel(
 			...accountRecord,
 			context: accountRecord.context
 		},
+		accountSummary: accountSummary
+			? toAccountSummaryRecord(accountSummary)
+			: createEmptyAccountSummaryRecord(accountRecord.id),
 		activities,
 		peopleByBrokerId,
 		brokerKeyById,

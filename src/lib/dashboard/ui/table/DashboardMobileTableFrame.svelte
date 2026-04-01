@@ -12,6 +12,7 @@
 		minWidthClass: string;
 		ariaLabel: string;
 		infoText?: string | null;
+		footer?: Snippet<[readonly unknown[]]>;
 		dataAttribute?: string;
 		interactiveRows?: boolean;
 		emptyText?: string;
@@ -27,6 +28,7 @@
 		minWidthClass,
 		ariaLabel,
 		infoText,
+		footer,
 		dataAttribute,
 		interactiveRows = true,
 		emptyText = 'No rows available.',
@@ -87,6 +89,12 @@
 	{@render body(visibleRows)}
 {/snippet}
 
+{#snippet footerContent()}
+	{#if footer}
+		{@render footer(visibleRows)}
+	{/if}
+{/snippet}
+
 <div class={classProp}>
 	<DashboardTableShell
 		{headers}
@@ -101,7 +109,11 @@
 	/>
 
 	{#if rows.length > 0}
-		<InlineInfoBar text={infoText} dataAttribute={dataAttribute} />
+		<InlineInfoBar
+			text={footer ? undefined : infoText}
+			content={footer ? footerContent : undefined}
+			dataAttribute={dataAttribute}
+		/>
 		{#if hasMoreRows}
 			<div bind:this={loadTrigger} aria-hidden="true" class="h-4"></div>
 		{/if}

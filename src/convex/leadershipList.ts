@@ -8,8 +8,7 @@ import {
 import { ACCOUNT_INDUSTRIES, type ActivityLevel, type AccountIndustry } from '../lib/types/vocab';
 import type { DashboardPerson } from '../lib/models/person';
 import type { AccountRecordData } from './readModels';
-
-const NO_ACTIVITY_LABEL = 'No recorded activity';
+import type { AccountSummaryRecordData, LastAccountDetailActivity } from './accountSummary';
 
 function createRenewalMonthFilterOptions(now: Date = new Date()) {
 	const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
@@ -37,29 +36,14 @@ export type LeadershipListTableRow = {
 	account: string;
 	industry: AccountRecordData['industry'];
 	stage?: AccountRecordData['stage'];
-	lastActivity:
-		| {
-				kind: 'relative';
-				atIso: NonNullable<AccountRecordData['lastActivityAtIso']>;
-		  }
-		| {
-				kind: 'text';
-				label: string;
-		  };
+	lastActivity: LastAccountDetailActivity;
+	canRequestBrokerUpdate: AccountSummaryRecordData['canRequestBrokerUpdate'];
 	owner: DashboardPerson | null;
 };
 
-export function hasListActivityData(
-	account: AccountRecordData
-): account is AccountRecordData & {
-	lastActivityAtIso: NonNullable<AccountRecordData['lastActivityAtIso']>;
-} {
-	return Boolean(account.lastActivityAtIso);
-}
-
 export function toLeadershipTableRow(
 	account: AccountRecordData,
-	lastActivity: LeadershipListTableRow['lastActivity'],
+	accountSummary: AccountSummaryRecordData,
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ): LeadershipListTableRow {
 	return {
@@ -73,39 +57,18 @@ export function toLeadershipTableRow(
 		account: account.accountName,
 		industry: account.industry,
 		stage: account.stage,
-		lastActivity,
+		lastActivity: accountSummary.lastAccountDetailActivity,
+		canRequestBrokerUpdate: accountSummary.canRequestBrokerUpdate,
 		owner: resolveOptionalBrokerPerson(peopleByBrokerId, account.ownerBrokerId)
 	};
 }
 
-export function toRelativeLastActivityRow(
-	account: AccountRecordData & {
-		lastActivityAtIso: NonNullable<AccountRecordData['lastActivityAtIso']>;
-	},
-	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
-) {
-	return toLeadershipTableRow(
-		account,
-		{
-			kind: 'relative',
-			atIso: account.lastActivityAtIso
-		},
-		peopleByBrokerId
-	);
-}
-
-export function toNoActivityRow(
+export function toLeadershipRow(
 	account: AccountRecordData,
+	accountSummary: AccountSummaryRecordData,
 	peopleByBrokerId: PersonSummaryMap<DashboardPerson, BrokerId>
 ) {
-	return toLeadershipTableRow(
-		account,
-		{
-			kind: 'text',
-			label: NO_ACTIVITY_LABEL
-		},
-			peopleByBrokerId
-		);
+	return toLeadershipTableRow(account, accountSummary, peopleByBrokerId);
 }
 
 export function createLeadershipFilterDrawerData(

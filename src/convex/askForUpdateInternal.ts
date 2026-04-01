@@ -1,6 +1,7 @@
 import { internalMutation, internalQuery } from './_generated/server';
 import { v } from 'convex/values';
 import type { Id } from './_generated/dataModel';
+import { appendAccountDetailActivity } from './accountActivityGateway';
 
 export const resolveAskForUpdateTargets = internalQuery({
 	args: {
@@ -52,7 +53,7 @@ export const createAskForUpdateActivities = internalMutation({
 	}),
 	handler: async (ctx, args) => {
 		for (const accountId of args.accountIds) {
-			await ctx.db.insert('activities', {
+			await appendAccountDetailActivity(ctx, {
 				accountId,
 				stream: 'account-detail',
 				occurredAtIso: args.occurredAtIso,
@@ -63,10 +64,6 @@ export const createAskForUpdateActivities = internalMutation({
 					brokerId: args.actorBrokerId
 				},
 				actorBrokerId: args.actorBrokerId
-			});
-
-			await ctx.db.patch(accountId, {
-				lastActivityAtIso: args.occurredAtIso
 			});
 		}
 

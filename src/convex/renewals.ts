@@ -4,18 +4,19 @@ import type { AccountKey } from '../lib/types/keys';
 import { type RenewalsView } from '../lib/dashboard/routing/renewals';
 import {
 	type AccountRecordData,
+	createEmptyAccountSummaryRecord,
 	createDashboardPersonByBrokerIdMap,
 	findAccountDocumentByKey,
 	toBrokerRecord,
 	toDashboardPeople,
+	toAccountSummaryRecord,
 	toAccountRecord
 } from './readModels';
+import type { AccountSummaryRecordData } from './accountSummary';
 import { getAccountDetailReadModel } from './accountDetail';
 import {
 	createLeadershipFilterDrawerData,
-	hasListActivityData,
-	toNoActivityRow,
-	toRelativeLastActivityRow,
+	toLeadershipRow,
 	type LeadershipListTableRow
 } from './leadershipList';
 import {
@@ -44,19 +45,21 @@ const emptyRowCollections = (): RowCollections => ({
 
 function createLeadershipRow(
 	account: AccountRecordData,
+	accountSummary: AccountSummaryRecordData,
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ) {
-	return hasListActivityData(account)
-		? toRelativeLastActivityRow(account, peopleByBrokerId)
-		: toNoActivityRow(account, peopleByBrokerId);
+	return toLeadershipRow(account, accountSummary, peopleByBrokerId);
 }
 
 function buildRowCollections(
 	accounts: readonly AccountRecordData[],
+	accountSummariesByAccountId: ReadonlyMap<AccountRecordData['id'], AccountSummaryRecordData>,
 	peopleByBrokerId: ReturnType<typeof createDashboardPersonByBrokerIdMap>
 ): RowCollections {
 	const collections = accounts.reduce<RowCollections>((collections, account) => {
-		const row = createLeadershipRow(account, peopleByBrokerId);
+		const accountSummary =
+			accountSummariesByAccountId.get(account.id) ?? createEmptyAccountSummaryRecord(account.id);
+		const row = createLeadershipRow(account, accountSummary, peopleByBrokerId);
 
 		collections.accountsRows.push(row);
 
@@ -100,17 +103,28 @@ export const getRenewalsList = query({
 	returns: accountListReadModelValidator,
 	handler: async (ctx, args): Promise<AccountListReadModel> => {
 		const selectedView = args.view as RenewalsView;
-		const [brokers, accounts] = await Promise.all([
+		const [brokers, accounts, accountSummaries] = await Promise.all([
 			ctx.db.query('brokers').collect(),
-			ctx.db.query('accounts').collect()
+			ctx.db.query('accounts').collect(),
+			ctx.db.query('accountSummaries').collect()
 		]);
 		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
 		const people = toDashboardPeople(brokerRecords);
 		const peopleByBrokerId = createDashboardPersonByBrokerIdMap(brokerRecords);
+		const accountSummariesByAccountId = new Map(
+			accountSummaries.map((summary) => {
+				const record = toAccountSummaryRecord(summary);
+				return [record.accountId, record] as const;
+			})
+		);
 		const accountRecords = accounts
 			.map((account) => toAccountRecord(account))
 			.filter((account) => account.kind === 'renewal');
-		const collections = buildRowCollections(accountRecords, peopleByBrokerId);
+		const collections = buildRowCollections(
+			accountRecords,
+			accountSummariesByAccountId,
+			peopleByBrokerId
+		);
 
 		return {
 			rows: resolveRowsForView(selectedView, collections),

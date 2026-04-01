@@ -3,6 +3,7 @@ import type { AccountKind, ActivityLevel, AccountIndustry } from '$lib/types/voc
 import type { IsoDate, IsoDateTime } from '$lib/types/dates';
 import { formatUsdAmount } from '$lib/format/number';
 import { formatIsoDateTimeRelative, formatIsoDateTimeRelativeMonths } from '$lib/format/date-time';
+import type { AccountSummaryRecordData } from '../../../convex/accountSummary';
 
 type PersonSummaryLike = {
 	key: BrokerKey;
@@ -32,7 +33,6 @@ type AccountOverviewLike = {
 	activityLevel: ActivityLevel;
 	industry: AccountIndustry;
 	stage?: string;
-	lastActivityAtIso?: IsoDateTime;
 	renewalDate?: IsoDate;
 	revenue?: number;
 };
@@ -200,7 +200,8 @@ export function toDetailRightRailOverviewSection(
 }
 
 export function toDetailRightRailTimingSection(
-	account: AccountOverviewLike,
+	account: Pick<AccountOverviewLike, 'renewalDate'>,
+	accountSummary: Pick<AccountSummaryRecordData, 'lastAccountDetailActivity'>,
 	detailContext: AccountContextLike,
 	options: DetailRightRailTimingSectionOptions = {}
 ): DetailRightRailSection {
@@ -228,8 +229,8 @@ export function toDetailRightRailTimingSection(
 				id: 'last-activity',
 				label: 'Last activity',
 				kind: 'text',
-				value: account.lastActivityAtIso
-					? formatIsoDateTimeRelative(account.lastActivityAtIso)
+				value: accountSummary.lastAccountDetailActivity.kind !== 'none'
+					? formatIsoDateTimeRelative(accountSummary.lastAccountDetailActivity.occurredAtIso)
 					: formatIsoDateTimeRelativeMonths(detailContext.claimedAtIso)
 			}
 		]

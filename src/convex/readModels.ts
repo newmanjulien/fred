@@ -6,7 +6,6 @@ import {
 	parseIsoDate,
 	parseIsoDateTime,
 	parseOptionalIsoDate,
-	parseOptionalIsoDateTime,
 	type IsoDate,
 	type IsoDateTime
 } from '../lib/types/dates';
@@ -24,6 +23,12 @@ import type {
 import type { DashboardMeeting, DashboardPerson, TeamMemberSummary } from '../lib/models/person';
 import type { AccountUpdateRequestStatus } from '../lib/models/timeline';
 import { hasLegacyOrgChartRoot } from './orgChartMigration';
+import {
+	createActivityLastAccountDetailActivity,
+	createEmptyLastAccountDetailActivity,
+	type AccountSummaryRecordData,
+	type LastAccountDetailActivity
+} from './accountSummary';
 
 export type BrokerRecordData = {
 	id: BrokerId;
@@ -72,7 +77,6 @@ export type AccountRecordData = {
 	stage?: AccountStage;
 	isLikelyOutOfDate: boolean;
 	activityLevel: ActivityLevel;
-	lastActivityAtIso?: IsoDateTime;
 	ownerBrokerId: BrokerId | null;
 	collaboratorBrokerIds: BrokerId[];
 	context?: AccountContextRecordData;
@@ -145,6 +149,8 @@ export type InsightRecordData = {
 	timeline: ActivityRecordData[];
 	orgChartNodes: InternalOrgChartNodeRecord[];
 };
+
+type AccountSummaryDocument = Doc<'accountSummaries'>;
 
 type DashboardActivityValue = Doc<'activities'> | Doc<'insights'>['timeline'][number];
 type AccountContextDocument = NonNullable<Doc<'accounts'>['context']>;
@@ -411,10 +417,6 @@ export function toAccountRecord(account: Doc<'accounts'>): AccountRecordData {
 		stage: account.stage ? (account.stage as AccountStage) : undefined,
 		isLikelyOutOfDate: account.isLikelyOutOfDate,
 		activityLevel: account.activityLevel as ActivityLevel,
-		lastActivityAtIso: parseOptionalIsoDateTime(
-			account.lastActivityAtIso,
-			`accounts["${account._id}"].lastActivityAtIso`
-		),
 		ownerBrokerId: account.ownerBrokerId ?? null,
 		collaboratorBrokerIds: account.collaboratorBrokerIds,
 		context: account.context ? toAccountContextRecord(account.context) : undefined,
@@ -422,6 +424,50 @@ export function toAccountRecord(account: Doc<'accounts'>): AccountRecordData {
 			needsSupport: account.dashboardFlags.needsSupport,
 			duplicatedWork: account.dashboardFlags.duplicatedWork
 		}
+	};
+}
+
+function parseLastAccountDetailActivity(
+	summary: AccountSummaryDocument
+): LastAccountDetailActivity {
+	if (summary.lastAccountDetailActivity.kind === 'none') {
+		return createEmptyLastAccountDetailActivity();
+	}
+
+	if (summary.lastAccountDetailActivity.kind === 'waiting-for-update') {
+		return {
+			kind: 'waiting-for-update',
+			occurredAtIso: parseIsoDateTime(
+				summary.lastAccountDetailActivity.occurredAtIso,
+				`accountSummaries["${summary._id}"].lastAccountDetailActivity.occurredAtIso`
+			)
+		};
+	}
+
+	return createActivityLastAccountDetailActivity(
+		parseIsoDateTime(
+			summary.lastAccountDetailActivity.occurredAtIso,
+			`accountSummaries["${summary._id}"].lastAccountDetailActivity.occurredAtIso`
+		)
+	);
+}
+
+export function toAccountSummaryRecord(summary: AccountSummaryDocument): AccountSummaryRecordData {
+	return {
+		id: summary._id,
+		accountId: summary.accountId,
+		lastAccountDetailActivity: parseLastAccountDetailActivity(summary),
+		canRequestBrokerUpdate: summary.canRequestBrokerUpdate,
+		lastAccountDetailActivityId: summary.lastAccountDetailActivityId
+	};
+}
+
+export function createEmptyAccountSummaryRecord(accountId: AccountId): AccountSummaryRecordData {
+	return {
+		id: `missing-summary-${accountId}`,
+		accountId,
+		lastAccountDetailActivity: createEmptyLastAccountDetailActivity(),
+		canRequestBrokerUpdate: true
 	};
 }
 

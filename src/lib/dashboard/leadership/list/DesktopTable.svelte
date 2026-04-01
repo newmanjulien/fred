@@ -1,7 +1,5 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte';
 	import { resolve } from '$app/paths';
-	import { formatIsoDateTimeRelative } from '$lib/format/date-time';
 	import { formatUsdAmount } from '$lib/format/number';
 	import { isInternalDashboardLink } from '$lib/dashboard/links';
 	import type {
@@ -26,6 +24,12 @@
 		RENEWALS_TABLE_MIN_WIDTH_CLASS,
 		RENEWALS_TABLE_MIN_WIDTH_CLASS_WITH_SELECTION
 	} from './table-layout';
+	import LastActivityCell from './LastActivityCell.svelte';
+	import LeadershipTableFooter from './LeadershipTableFooter.svelte';
+	import {
+		isLeadershipRowSelectable,
+		LEADERSHIP_WAITING_SELECTION_DISABLED_REASON
+	} from './selection-ui';
 
 	type LeadershipTableRow =
 		| NewBusinessListPageData['rows'][number]
@@ -43,8 +47,8 @@
 		rows: readonly LeadershipTableRow[];
 		selection?: LeadershipTableSelection;
 		ariaLabel?: string;
-		infoText?: string | null;
-		infoContent?: Snippet;
+		defaultFooterText?: string | null;
+		selectedRowCount?: number;
 	};
 
 	let {
@@ -52,8 +56,8 @@
 		rows,
 		selection,
 		ariaLabel = 'Leadership accounts table',
-		infoText,
-		infoContent
+		defaultFooterText,
+		selectedRowCount = 0
 	}: Props = $props();
 
 	let isRenewalsPage = $derived(pageKind === 'renewals-list');
@@ -82,24 +86,22 @@
 	}
 
 	function getVisibleSelectableRowKeys(visibleRows: readonly LeadershipTableRow[]) {
-		return visibleRows.map((row) => row.key);
+		return visibleRows.filter((row) => isLeadershipRowSelectable(row)).map((row) => row.key);
 	}
 
 	function areAllVisibleRowsSelected(visibleRows: readonly LeadershipTableRow[]) {
+		const selectableRows = visibleRows.filter((row) => isLeadershipRowSelectable(row));
+
 		return (
-			visibleRows.length > 0 &&
-			visibleRows.every((row) => selection?.selectedRowKeys.has(row.key))
+			selectableRows.length > 0 &&
+			selectableRows.every((row) => selection?.selectedRowKeys.has(row.key))
 		);
 	}
 
 	function areSomeVisibleRowsSelected(visibleRows: readonly LeadershipTableRow[]) {
-		return visibleRows.some((row) => selection?.selectedRowKeys.has(row.key));
-	}
-
-	function getLastActivityText(row: LeadershipTableRow) {
-		return row.lastActivity.kind === 'relative'
-			? formatIsoDateTimeRelative(row.lastActivity.atIso)
-			: row.lastActivity.label;
+		return visibleRows
+			.filter((row) => isLeadershipRowSelectable(row))
+			.some((row) => selection?.selectedRowKeys.has(row.key));
 	}
 
 	function getProbabilityText(row: LeadershipTableRow) {
@@ -117,21 +119,41 @@
 
 {#snippet selectionCell(row: LeadershipTableRow)}
 	{#if selection}
-		<label
+		{@const isSelectable = isLeadershipRowSelectable(row)}
+		<span
 			data-table-cell
 			data-table-select-cell
-			class="cursor-pointer items-center justify-center"
+			class={`items-center justify-center ${isSelectable ? 'cursor-pointer' : 'cursor-not-allowed text-zinc-300'}`}
+			title={isSelectable ? undefined : LEADERSHIP_WAITING_SELECTION_DISABLED_REASON}
 		>
-			<input
-				data-selection-checkbox
-				type="checkbox"
-				aria-label={`Select ${row.account}`}
-				class="h-3.5 w-3.5 rounded-[3px]"
-				checked={selection.selectedRowKeys.has(row.key)}
-				onchange={(event) =>
-					selection.onToggleRow(row.key, (event.currentTarget as HTMLInputElement).checked)}
-			/>
-		</label>
+			{#if isSelectable}
+				<input
+					data-selection-checkbox
+					type="checkbox"
+					aria-label={`Select ${row.account}`}
+					class="h-3.5 w-3.5 rounded-[3px]"
+					checked={selection.selectedRowKeys.has(row.key)}
+					onchange={(event) =>
+						selection.onToggleRow(row.key, (event.currentTarget as HTMLInputElement).checked)}
+				/>
+			{:else}
+				<span class="sr-only">{`${row.account}: ${LEADERSHIP_WAITING_SELECTION_DISABLED_REASON}`}</span>
+				<span
+					aria-hidden="true"
+					class="inline-flex h-3.5 w-3.5 items-center justify-center rounded-[3px] border border-zinc-200 bg-zinc-100 text-[10px] leading-none text-zinc-300"
+				>
+					-
+				</span>
+			{/if}
+		</span>
+	{/if}
+{/snippet}
+
+{#snippet ownerCellContent(row: LeadershipTableRow)}
+	{#if row.owner}
+		<PersonInline person={row.owner} />
+	{:else}
+		Unassigned
 	{/if}
 {/snippet}
 
@@ -145,24 +167,28 @@
 	<span data-table-cell class="whitespace-nowrap">
 		<ActivityLevelLabel activityLevel={row.activityLevel} />
 	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-900">
-		{getProbabilityText(row)}
-	</span>
-	<span data-table-cell class="whitespace-nowrap text-zinc-600">
-		{#if row.owner}
-			<PersonInline person={row.owner} />
-		{:else}
-			Unassigned
-		{/if}
-	</span>
 	{#if isRenewalsPage}
+		<span data-table-cell class="whitespace-nowrap text-zinc-600">
+			{@render ownerCellContent(row)}
+		</span>
 		<span data-table-cell class="whitespace-nowrap text-zinc-600">{getRevenueText(row)}</span>
 		<span data-table-cell class="whitespace-nowrap text-zinc-500">
 			<RenewalDateLabel renewalDate={row.renewalDate} />
 		</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-500">
+			<LastActivityCell lastActivity={row.lastActivity} />
+		</span>
 	{:else}
+		<span data-table-cell class="whitespace-nowrap text-zinc-900">
+			{getProbabilityText(row)}
+		</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-600">
+			{@render ownerCellContent(row)}
+		</span>
 		<span data-table-cell class="whitespace-nowrap text-zinc-600">{getStageText(row)}</span>
-		<span data-table-cell class="whitespace-nowrap text-zinc-500">{getLastActivityText(row)}</span>
+		<span data-table-cell class="whitespace-nowrap text-zinc-500">
+			<LastActivityCell lastActivity={row.lastActivity} />
+		</span>
 	{/if}
 {/snippet}
 
@@ -173,11 +199,17 @@
 	{minWidthClass}
 	{ariaLabel}
 	rows={rows}
-	infoText={infoText}
-	{infoContent}
 	dataAttribute="data-leadership-table-info-bar"
 	interactiveRows={false}
 >
+	{#snippet footer(visibleRows)}
+		<LeadershipTableFooter
+			defaultText={defaultFooterText}
+			visibleRows={toLeadershipRows(visibleRows)}
+			{selectedRowCount}
+		/>
+	{/snippet}
+
 	{#snippet headerLeading(visibleRows)}
 		{@const pageRows = toLeadershipRows(visibleRows)}
 		{#if selection}
@@ -191,6 +223,7 @@
 					type="checkbox"
 					aria-label="Select visible rows"
 					class="h-3.5 w-3.5 rounded-[3px]"
+					disabled={getVisibleSelectableRowKeys(pageRows).length === 0}
 					checked={areAllVisibleRowsSelected(pageRows)}
 					indeterminate={areSomeVisibleRowsSelected(pageRows) && !areAllVisibleRowsSelected(pageRows)}
 					onchange={(event) =>
@@ -232,19 +265,12 @@
 						<a
 							href={resolve(internalNavigation.href)}
 							data-table-cell
-							class="cursor-pointer whitespace-nowrap text-zinc-900 no-underline"
+							class={`cursor-pointer whitespace-nowrap no-underline${isRenewalsPage ? ' text-zinc-600' : ' text-zinc-900'}`}
 						>
-							{getProbabilityText(row)}
-						</a>
-						<a
-							href={resolve(internalNavigation.href)}
-							data-table-cell
-							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
-						>
-							{#if row.owner}
-								<PersonInline person={row.owner} />
+							{#if isRenewalsPage}
+								{@render ownerCellContent(row)}
 							{:else}
-								Unassigned
+								{getProbabilityText(row)}
 							{/if}
 						</a>
 						<a
@@ -255,6 +281,17 @@
 							{#if isRenewalsPage}
 								{getRevenueText(row)}
 							{:else}
+								{@render ownerCellContent(row)}
+							{/if}
+						</a>
+						<a
+							href={resolve(internalNavigation.href)}
+							data-table-cell
+							class="cursor-pointer whitespace-nowrap text-zinc-600 no-underline"
+						>
+							{#if isRenewalsPage}
+								<RenewalDateLabel renewalDate={row.renewalDate} />
+							{:else}
 								{getStageText(row)}
 							{/if}
 						</a>
@@ -263,11 +300,7 @@
 							data-table-cell
 							class={`cursor-pointer whitespace-nowrap no-underline${isRenewalsPage ? ' text-zinc-500' : ' text-zinc-600'}`}
 						>
-							{#if isRenewalsPage}
-								<RenewalDateLabel renewalDate={row.renewalDate} />
-							{:else}
-								{getLastActivityText(row)}
-							{/if}
+							<LastActivityCell lastActivity={row.lastActivity} />
 						</a>
 					</div>
 				{:else if !selection && internalNavigation}

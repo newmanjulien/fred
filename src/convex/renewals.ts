@@ -4,6 +4,7 @@ import type { AccountKey } from '../lib/types/keys';
 import { type RenewalsView } from '../lib/dashboard/routing/renewals';
 import {
 	type AccountRecordData,
+	type BrokerRecordData,
 	createEmptyAccountSummaryRecord,
 	createDashboardPersonByBrokerIdMap,
 	findAccountDocumentByKey,
@@ -20,10 +21,10 @@ import {
 	type LeadershipListTableRow
 } from './leadershipList';
 import {
-	type AccountDetailReadModel,
 	type AccountListReadModel,
-	accountDetailReadModelValidator,
+	type RenewalsDetailReadModel,
 	accountListReadModelValidator,
+	renewalsDetailReadModelValidator,
 	renewalsViewValidator
 } from './validators';
 
@@ -96,6 +97,34 @@ function resolveRowsForView(view: RenewalsView, collections: RowCollections) {
 	return rowsByView[view];
 }
 
+function createRenewalsBrokerTiles(
+	account: Pick<AccountRecordData, 'ownerBrokerId' | 'collaboratorBrokerIds'>,
+	brokerRecords: readonly BrokerRecordData[]
+): RenewalsDetailReadModel['brokerTiles'] {
+	const brokerRecordsById = new Map(brokerRecords.map((broker) => [broker.id, broker] as const));
+	const brokerIds = [account.ownerBrokerId, ...account.collaboratorBrokerIds].filter(
+		(brokerId, index, brokerIdList): brokerId is NonNullable<typeof brokerId> =>
+			brokerId !== null && brokerIdList.indexOf(brokerId) === index
+	);
+
+	return brokerIds.flatMap((brokerId) => {
+		const broker = brokerRecordsById.get(brokerId);
+
+		if (!broker) {
+			return [];
+		}
+
+		return [
+			{
+				key: broker.key,
+				name: broker.name,
+				avatar: broker.avatar,
+				division: broker.division
+			}
+		];
+	});
+}
+
 export const getRenewalsList = query({
 	args: {
 		view: renewalsViewValidator
@@ -139,16 +168,36 @@ export const getRenewalsDetail = query({
 	args: {
 		accountKey: v.string()
 	},
-	returns: v.union(accountDetailReadModelValidator, v.null()),
-	handler: async (ctx, args): Promise<AccountDetailReadModel | null> => {
+	returns: v.union(renewalsDetailReadModelValidator, v.null()),
+	handler: async (ctx, args): Promise<RenewalsDetailReadModel | null> => {
 		const account = await findAccountDocumentByKey(ctx, args.accountKey as AccountKey);
 
-		if (!account || toAccountRecord(account).kind !== 'renewal') {
+		if (!account) {
 			return null;
 		}
 
-		return getAccountDetailReadModel(ctx, args.accountKey as AccountKey, {
-			timingSection: 'renewal-date'
-		});
+		const accountRecord = toAccountRecord(account);
+
+		if (accountRecord.kind !== 'renewal') {
+			return null;
+		}
+
+		const [detailReadModel, brokers] = await Promise.all([
+			getAccountDetailReadModel(ctx, args.accountKey as AccountKey, {
+				timingSection: 'renewal-date'
+			}),
+			ctx.db.query('brokers').collect()
+		]);
+
+		if (!detailReadModel) {
+			return null;
+		}
+
+		const brokerRecords = await Promise.all(brokers.map((broker) => toBrokerRecord(ctx, broker)));
+
+		return {
+			...detailReadModel,
+			brokerTiles: createRenewalsBrokerTiles(accountRecord, brokerRecords)
+		};
 	}
 });

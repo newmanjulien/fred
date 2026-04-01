@@ -4,12 +4,12 @@ import {
 	type DashboardAccountDetailLayoutData
 } from '$lib/dashboard/loaders/accountDetail';
 import { api, createServerConvexClient } from '$lib/server/convex';
-import type { AccountDetailReadModel } from '$lib/dashboard/read-models';
+import type { RenewalsDetailReadModel } from '$lib/dashboard/read-models';
 
 export async function loadRenewalsDetailPageData(layoutData: DashboardAccountDetailLayoutData) {
 	return loadDashboardAccountDetailPageData<
 		'renewals-detail',
-		AccountDetailReadModel,
+		RenewalsDetailReadModel,
 		ReturnType<typeof buildRenewalsDetailPageData>
 	>({
 		layoutData,

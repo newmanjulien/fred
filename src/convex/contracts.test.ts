@@ -87,12 +87,14 @@ async function seedDashboardRecords(t: ReturnType<typeof createConvex>) {
 		const ownerBrokerId = await ctx.db.insert('brokers', {
 			key: ownerBrokerKey,
 			name: 'Julien Newman',
-			avatar: '/avatars/julien.png'
+			avatar: '/avatars/julien.png',
+			division: 'Property insurance'
 		});
 		const collaboratorBrokerId = await ctx.db.insert('brokers', {
 			key: collaboratorBrokerKey,
 			name: 'Mina Chen',
-			avatar: '/avatars/mina.png'
+			avatar: '/avatars/mina.png',
+			division: 'Cyber insurance'
 		});
 
 		const march20MeetingId = await ctx.db.insert('meetings', {
@@ -605,6 +607,20 @@ describe('Convex feature contracts', () => {
 		);
 		expect(renewalsDetail?.title).toBe('Acme Renewal');
 		expect(renewalsDetail?.hero.description).not.toContain(' is in ');
+		expect(renewalsDetail?.brokerTiles).toEqual([
+			{
+				key: seed.ownerBrokerKey,
+				name: 'Julien Newman',
+				avatar: '/avatars/julien.png',
+				division: 'Property insurance'
+			},
+			{
+				key: seed.collaboratorBrokerKey,
+				name: 'Mina Chen',
+				avatar: '/avatars/mina.png',
+				division: 'Cyber insurance'
+			}
+		]);
 		expect(getRightRailRow(renewalsDetail!, 'renewal-date')).toMatchObject({
 			kind: 'renewal-date',
 			label: 'Renewal',

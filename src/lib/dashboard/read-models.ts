@@ -3,6 +3,7 @@ export type {
 	AccountListFilterDrawerData,
 	AccountListReadModel,
 	AccountListRowReadModel,
+	BrokerTileReadModel,
 	DashboardBranding,
 	DashboardShellReadModel,
 	MyAccountsDetailReadModel,
@@ -11,6 +12,7 @@ export type {
 	MyAccountsListReadModel,
 	OpportunityDetailReadModel,
 	OpportunitiesListReadModel,
+	RenewalsDetailReadModel,
 	SinceLastMeetingAccountReadModel,
 	SinceLastMeetingReadModel
 } from '../../convex/validators';

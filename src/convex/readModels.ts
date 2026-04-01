@@ -35,6 +35,7 @@ export type BrokerRecordData = {
 	key: BrokerKey;
 	name: string;
 	avatar: string;
+	division?: string;
 };
 
 export type TeamRecordData = {
@@ -192,7 +193,8 @@ export async function findBrokerRecordByKey(
 		id: broker._id,
 		key: broker.key as BrokerKey,
 		name: broker.name,
-		avatar
+		avatar,
+		division: broker.division ?? undefined
 	};
 }
 
@@ -217,7 +219,8 @@ export async function toBrokerRecord(
 		id: broker._id,
 		key: broker.key as BrokerKey,
 		name: broker.name,
-		avatar: await resolveBrokerAvatar(ctx, broker)
+		avatar: await resolveBrokerAvatar(ctx, broker),
+		division: broker.division ?? undefined
 	};
 }
 

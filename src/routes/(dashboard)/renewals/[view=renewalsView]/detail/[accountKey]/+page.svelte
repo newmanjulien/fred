@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Page from '$lib/dashboard/leadership/detail/Page.svelte';
+	import Page from '$lib/dashboard/renewals/detail/Page.svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();

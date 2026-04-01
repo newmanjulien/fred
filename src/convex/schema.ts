@@ -129,7 +129,8 @@ export default defineSchema({
 	brokers: defineTable({
 		key: v.string(),
 		name: v.string(),
-		avatar: v.string()
+		avatar: v.string(),
+		division: v.optional(v.string())
 	}).index('by_key', ['key']),
 
 	team: defineTable({

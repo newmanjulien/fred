@@ -3,9 +3,9 @@ import type { DashboardLinkTarget } from '$lib/dashboard/links';
 import type { RenewalsDetailRouteRef, RenewalsListRouteRef } from '$lib/dashboard/routing';
 import { resolveRenewalsDetailPath } from '$lib/dashboard/routing/renewals';
 import type {
-	AccountDetailReadModel,
 	AccountListReadModel,
-	DashboardShellReadModel
+	DashboardShellReadModel,
+	RenewalsDetailReadModel
 } from '$lib/dashboard/read-models';
 import {
 	buildAccountDetailContentPageData,
@@ -48,6 +48,7 @@ export type RenewalsListPageData = {
 export type RenewalsDetailPageData = {
 	route: RenewalsDetailRouteRef;
 	header: DashboardHeader;
+	brokerTiles: RenewalsDetailReadModel['brokerTiles'];
 } & AccountDetailContentPageData;
 
 export function buildRenewalsListPageData(params: {
@@ -74,7 +75,7 @@ export function buildRenewalsListPageData(params: {
 
 export function buildRenewalsDetailPageData(params: {
 	route: RenewalsDetailRouteRef;
-	readModel: AccountDetailReadModel;
+	readModel: RenewalsDetailReadModel;
 	dashboardShell: DashboardShellReadModel;
 }): RenewalsDetailPageData {
 	const { route, readModel, dashboardShell } = params;
@@ -82,6 +83,7 @@ export function buildRenewalsDetailPageData(params: {
 	return {
 		route,
 		header: createRenewalsDetailHeader(readModel.title, route.view),
+		brokerTiles: readModel.brokerTiles,
 		...buildAccountDetailContentPageData({
 			readModel,
 			dashboardShell

@@ -109,6 +109,12 @@ const cascadeDeleteCountsValidator = v.object({
 	insightOrgChartNodes: v.number()
 });
 
+const DEV_BROKER_DIVISIONS = {
+	'julien-newman': 'Property insurance',
+	'mina-chen': 'Cyber insurance',
+	'sam-rivera': 'Employee benefits'
+} as const;
+
 export const previewAccountCascadeDelete = query({
 	args: {
 		accountKey: v.string()
@@ -212,5 +218,40 @@ export const backfillNewsLinks = mutation({
 		}
 
 		return { updatedCount };
+	}
+});
+
+export const backfillBrokerDivisions = mutation({
+	args: {},
+	returns: v.object({
+		updatedCount: v.number(),
+		missingKeys: v.array(v.string())
+	}),
+	handler: async (ctx) => {
+		const brokers = await ctx.db.query('brokers').collect();
+		const brokerByKey = new Map(brokers.map((broker) => [broker.key, broker] as const));
+		let updatedCount = 0;
+		const missingKeys: string[] = [];
+
+		for (const [key, division] of Object.entries(DEV_BROKER_DIVISIONS)) {
+			const broker = brokerByKey.get(key);
+
+			if (!broker) {
+				missingKeys.push(key);
+				continue;
+			}
+
+			if (broker.division === division) {
+				continue;
+			}
+
+			await ctx.db.patch(broker._id, { division });
+			updatedCount += 1;
+		}
+
+		return {
+			updatedCount,
+			missingKeys
+		};
 	}
 });

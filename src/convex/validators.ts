@@ -120,6 +120,13 @@ export const myAccountsDetailRefValidator = v.object({
 	defaultTab: myAccountsDetailTabIdValidator
 });
 
+export const brokerTileReadModelValidator = v.object({
+	key: v.string(),
+	name: v.string(),
+	avatar: v.string(),
+	division: v.optional(v.string())
+});
+
 export const canvasHeroValidator = v.object({
 	title: v.string(),
 	description: v.optional(v.string()),
@@ -391,6 +398,16 @@ export const accountDetailReadModelValidator = v.object({
 	rightRail: detailRightRailDataValidator
 });
 
+export const renewalsDetailReadModelValidator = v.object({
+	title: v.string(),
+	hero: canvasHeroValidator,
+	activityItems: v.array(timelineItemValidator),
+	brokerTiles: v.array(brokerTileReadModelValidator),
+	orgChartNodes: v.array(orgChartNodeRecordValidator),
+	update: fileUploadFieldValidator,
+	rightRail: detailRightRailDataValidator
+});
+
 export const opportunitiesListReadModelValidator = v.object({
 	opportunityTiles: v.array(opportunityTileReadModelValidator),
 	riskTiles: v.array(opportunityTileReadModelValidator),
@@ -419,6 +436,13 @@ export const sinceLastMeetingDetailReadModelValidator = accountDetailReadModelVa
 export type MyAccountsDetailRef = {
 	accountKey: AccountKey;
 	defaultTab: MyAccountsDetailTabId;
+};
+
+export type BrokerTileReadModel = {
+	key: BrokerKey;
+	name: string;
+	avatar: string;
+	division?: string;
 };
 
 export type MyAccountsFeedItemReadModel =
@@ -535,6 +559,10 @@ export type AccountDetailReadModel = {
 	orgChartNodes: OrgChartNodeRecord[];
 	update: FileUploadFieldData;
 	rightRail: DetailRightRailData;
+};
+
+export type RenewalsDetailReadModel = AccountDetailReadModel & {
+	brokerTiles: BrokerTileReadModel[];
 };
 
 export type OpportunitiesListReadModel = {
